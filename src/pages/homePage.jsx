@@ -2,13 +2,16 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Search, ChevronDown, Star, ArrowRight, ShieldCheck, Truck, Tag,
-  MapPin, Phone, Mail, Instagram, Twitter, Facebook, Heart, Menu, X,
+  MapPin, Phone, Mail, Heart, Menu, X,
   Navigation, Clock, Wrench, Car, Bike, Filter, LocateFixed, ChevronRight
 } from "lucide-react";
+
 import { Link } from "react-router-dom";
 import LOGO_SRC from "../assets/motorMandiLogo.png";
+import HERO_IMAGE from "../assets/backHome.png";
 import TyreListingsModal from "../components/TyreListingsModal";   // ← NEW
 import WheelListingsModal from "../components/WheelListingsModal";
+import CarListingsModal from "../components/CarListingsModal";
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const categories = [
@@ -132,17 +135,18 @@ function Hero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
       <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(16,185,129,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.06) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
-      <div className="absolute top-0 right-0 w-2/3 h-full" style={{ background: "radial-gradient(ellipse at 80% 50%, rgba(16,185,129,0.10) 0%, transparent 65%)" }} />
-      <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden lg:block pointer-events-none select-none">
-        <div className="relative w-80 h-80">
-          <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20" />
-          <div className="absolute inset-6 rounded-full border-2 border-emerald-400/15" />
-          <div className="absolute inset-12 rounded-full border-[20px] border-emerald-200/60" style={{ boxShadow: "inset 0 0 40px rgba(0,0,0,0.05)" }} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <img src={LOGO_SRC} alt="MotorMandi Logo" className="h-30 w-auto object-contain drop-shadow-lg" style={{ filter: "drop-shadow(0 0 8px rgba(245,197,24,0.4))" }} />
-          </div>
-        </div>
+      <div className="absolute top-0 right-0 w-full h-full" style={{ background: "radial-gradient(ellipse at 80% 50%, rgba(16,185,129,0.10) 0%, transparent 65%)" }} />
+      {/* Hero Image Background */}
+      <div className="absolute top-0 w-full h-full hidden lg:block pointer-events-none opacity-40">
+        <img 
+          src={HERO_IMAGE} 
+          alt="Auto Marketplace Team" 
+          className="w-full h-full object-cover object-center"
+        />
       </div>
+      
+      {/* Gradient overlay over image */}
+      <div className="absolute right-0 top-0 w-full h-full hidden lg:block pointer-events-none bg-gradient-to-l from-transparent via-white/20 to-white" />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-300/50 rounded-full px-4 py-1.5 mb-6">
@@ -194,8 +198,8 @@ function Hero() {
   );
 }
 
-// ── Categories (UPDATED – opens TyreListingsModal on Tyres click) ─────────────
-function Categories({ onTyresClick,onWheelsClick }) {
+// ── Categories (opens listings modals from category cards) ───────────────────
+function Categories({ onTyresClick, onWheelsClick, onCarsClick }) {
   return (
     <section className="bg-white px-4">
       <div className="max-w-7xl mx-auto">
@@ -213,9 +217,10 @@ function Categories({ onTyresClick,onWheelsClick }) {
               onClick={() => {
                 if (cat.key === "tyres") onTyresClick();
                 if (cat.key === "rims")  onWheelsClick();
+                if (cat.key === "cars")  onCarsClick();
               }}
               // onClick={() => cat.key === "tyres" && onTyresClick()}
-              className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${cat.key === "tyres" ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
+              className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${["tyres", "rims", "cars"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
               style={{ animationDelay: `${i * 80}ms` }}
             >
               <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{cat.icon}</div>
@@ -223,8 +228,8 @@ function Categories({ onTyresClick,onWheelsClick }) {
               <div className="text-emerald-600/60 text-xs mt-1">{cat.sub}</div>
               <div className="mt-3 text-emerald-600 text-xs font-bold">{cat.count} listings</div>
 
-              {/* "Live" badge for Tyres */}
-              {cat.key === "tyres" && (
+              {/* "Live" badge for selected category listings */}
+              {(cat.key === "tyres" || cat.key === "cars") && (
                 <div className="absolute top-3 right-3 flex items-center gap-1 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                   LIVE
@@ -584,7 +589,14 @@ function CTABanner() {
     </section>
   );
 }
-
+const socialIcons = [
+  // Instagram
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>,
+  // Twitter / X
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>,
+  // Facebook
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>,
+];
 // ── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   return (
@@ -597,11 +609,18 @@ function Footer() {
               <span className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.05em" }}>MOTOR<span className="text-emerald-400">MANDI</span></span>
             </div>
             <p className="text-emerald-400/60 text-sm leading-relaxed mb-5">India's fastest growing marketplace for automotive parts, tyres, rims, cars & bikes.</p>
-            <div className="flex gap-3">
+          <div className="flex gap-3">
+  {socialIcons.map((icon, i) => (
+    <a key={i} href="#" className="w-9 h-9 bg-emerald-800/50 hover:bg-emerald-600 rounded-lg flex items-center justify-center text-emerald-400 hover:text-white transition-all">
+      {icon}
+    </a>
+  ))}
+</div>
+            {/* <div className="flex gap-3">
               {[Instagram, Twitter, Facebook].map((SocialIcon, i) => (
                 <a key={i} href="#" className="w-9 h-9 bg-emerald-800/50 hover:bg-emerald-600 rounded-lg flex items-center justify-center text-emerald-400 hover:text-white transition-all"><SocialIcon size={18} /></a>
               ))}
-            </div>
+            </div> */}
           </div>
           <div>
             <h4 className="text-white font-black text-sm tracking-widest uppercase mb-4">Categories</h4>
@@ -637,6 +656,7 @@ function Footer() {
 export default function HomePage() {
   const [tyreModalOpen, setTyreModalOpen] = useState(false);   // ← NEW
   const [wheelModalOpen, setWheelModalOpen] = useState(false);
+  const [carModalOpen, setCarModalOpen] = useState(false);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -650,7 +670,11 @@ export default function HomePage() {
       <Navbar />
       <Hero />
       {/* Pass the opener down to Categories */}
-      <Categories onTyresClick={() => setTyreModalOpen(true)} onWheelsClick={() => setWheelModalOpen(true)}  />
+      <Categories
+        onTyresClick={() => setTyreModalOpen(true)}
+        onWheelsClick={() => setWheelModalOpen(true)}
+        onCarsClick={() => setCarModalOpen(true)}
+      />
       <FeaturedListings />
       <NearestShops />
       <WhyChooseUs />
@@ -666,6 +690,10 @@ export default function HomePage() {
       <WheelListingsModal
         isOpen={wheelModalOpen}
         onClose={() => setWheelModalOpen(false)}
+      />
+      <CarListingsModal
+        isOpen={carModalOpen}
+        onClose={() => setCarModalOpen(false)}
       />
     </div>
   );

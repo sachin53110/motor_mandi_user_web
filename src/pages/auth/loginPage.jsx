@@ -5,10 +5,11 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Chrome,
+
   Car,
   Zap,
   ShieldCheck,
+  
   ChevronLeft,
 } from "lucide-react";
 import  LOGO_SRC from "../../assets/motorMandiLogo.png";
