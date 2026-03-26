@@ -10,6 +10,7 @@ import {
   Star, ShoppingBag, SlidersHorizontal, CheckCircle
 } from "lucide-react";
 import useTyres from "../hooks/useTyres";
+import TyreDetailModal from "./TyreDetailModal";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const formatPrice = (price) => {
@@ -226,6 +227,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
   const [tyreType,    setTyreType]    = useState("all");
   const [page,        setPage]        = useState(1);
   const [contactTyre, setContactTyre] = useState(null);
+  const [selectedTyre, setSelectedTyre] = useState(null);
   const [hasLoaded,   setHasLoaded]   = useState(false);
 
   // Fetch on open
@@ -516,6 +518,12 @@ export default function TyreListingsModal({ isOpen, onClose }) {
       {contactTyre && (
         <ContactPopup tyre={contactTyre} onClose={() => setContactTyre(null)} />
       )}
+
+      <TyreDetailModal
+        isOpen={!!selectedTyre}
+        onClose={() => setSelectedTyre(null)}
+        item={selectedTyre}
+      />
     </>
   );
 }

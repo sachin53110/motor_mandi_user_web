@@ -12,6 +12,8 @@ import HERO_IMAGE from "../assets/backHome.png";
 import TyreListingsModal from "../components/TyreListingsModal";   // ← NEW
 import WheelListingsModal from "../components/WheelListingsModal";
 import CarListingsModal from "../components/CarListingsModal";
+import BikeListingsModal from "../components/BikeListingsModal";
+import SearchResultsModal from "../components/SearchResultsModal";
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const categories = [
@@ -131,7 +133,20 @@ function Navbar() {
 // ── Hero ─────────────────────────────────────────────────────────────────────
 function Hero() {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const filters = ["All", "Tyres", "Rims", "Cars", "Bikes", "Accessories"];
+
+  const handleSearchClick = () => {
+    setSearchModalOpen(true);
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearchClick();
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
       <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(16,185,129,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.06) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
@@ -168,17 +183,27 @@ function Hero() {
             <div className="flex gap-3 flex-col sm:flex-row">
               <div className="flex-1 flex items-center gap-3 bg-emerald-50 rounded-xl px-4 py-3">
                 <Search size={18} className="text-emerald-500" />
-                <input type="text" placeholder="Search tyres, rims, cars, bikes..." className="bg-transparent text-emerald-900 placeholder-emerald-400 text-sm w-full outline-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                  placeholder="Search tyres, rims, cars, bikes..."
+                  className="bg-transparent text-emerald-900 placeholder-emerald-400 text-sm w-full outline-none"
+                />
               </div>
-              <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-4 py-3 sm:w-36 cursor-pointer">
+              {/* <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-4 py-3 sm:w-36 cursor-pointer">
                 <span className="text-emerald-600 text-sm">Brand</span>
                 <ChevronDown size={16} className="text-emerald-500" />
               </div>
               <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-4 py-3 sm:w-32 cursor-pointer">
                 <span className="text-emerald-600 text-sm">Condition</span>
                 <ChevronDown size={16} className="text-emerald-500" />
-              </div>
-              <button className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap">
+              </div> */}
+              <button
+                onClick={handleSearchClick}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap"
+              >
                 <Search size={18} />Search
               </button>
             </div>
@@ -194,12 +219,18 @@ function Hero() {
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+
+      <SearchResultsModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        initialQuery={searchQuery}
+      />
     </section>
   );
 }
 
 // ── Categories (opens listings modals from category cards) ───────────────────
-function Categories({ onTyresClick, onWheelsClick, onCarsClick }) {
+function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick }) {
   return (
     <section className="bg-white px-4">
       <div className="max-w-7xl mx-auto">
@@ -218,9 +249,9 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick }) {
                 if (cat.key === "tyres") onTyresClick();
                 if (cat.key === "rims")  onWheelsClick();
                 if (cat.key === "cars")  onCarsClick();
+                if (cat.key === "bikes") onBikesClick();
               }}
-              // onClick={() => cat.key === "tyres" && onTyresClick()}
-              className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${["tyres", "rims", "cars"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
+              className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${["tyres", "rims", "cars", "bikes"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
               style={{ animationDelay: `${i * 80}ms` }}
             >
               <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{cat.icon}</div>
@@ -229,7 +260,7 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick }) {
               <div className="mt-3 text-emerald-600 text-xs font-bold">{cat.count} listings</div>
 
               {/* "Live" badge for selected category listings */}
-              {(cat.key === "tyres" || cat.key === "cars") && (
+              {(cat.key === "tyres" || cat.key === "cars" || cat.key === "bikes") && (
                 <div className="absolute top-3 right-3 flex items-center gap-1 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                   LIVE
@@ -387,7 +418,7 @@ function NearestShops() {
   };
 
   return (
-    <section className="bg-white py-2 px-4" id="shops">
+    <section className="bg-white py-2 px-4 relative z-0" id="shops">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
           <div>
@@ -450,14 +481,14 @@ function NearestShops() {
           </div>
 
           <div className="lg:col-span-3 flex flex-col gap-4">
-            <div className="relative rounded-2xl overflow-hidden border border-emerald-200 shadow-lg" style={{ height: "380px" }}>
+            <div className="relative rounded-2xl overflow-hidden border border-emerald-200 shadow-lg z-0" style={{ height: "380px", isolation: "isolate" }}>
               {showMap ? (
                 <>
-                  <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
-                  <div className="absolute top-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md border border-emerald-100">
+                  <div ref={mapRef} style={{ width: "100%", height: "100%", position: "relative", zIndex: 0, isolation: "isolate" }} />
+                  <div className="absolute top-3 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md border border-emerald-100">
                     <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-bold"><MapPin size={12} className="text-emerald-600" />MotorMandi Shops Near You</div>
                   </div>
-                  <div className="absolute bottom-10 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-md border border-emerald-100 space-y-1">
+                  <div className="absolute bottom-10 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-md border border-emerald-100 space-y-1">
                     {[["🚗","Car Repair"],["🏍️","Bike Repair"],["🛞","Tyre & Rim"]].map(([icon,label]) => (
                       <div key={label} className="flex items-center gap-2 text-emerald-800 text-xs font-medium"><span>{icon}</span><span>{label}</span></div>
                     ))}
@@ -657,6 +688,7 @@ export default function HomePage() {
   const [tyreModalOpen, setTyreModalOpen] = useState(false);   // ← NEW
   const [wheelModalOpen, setWheelModalOpen] = useState(false);
   const [carModalOpen, setCarModalOpen] = useState(false);
+  const [bikeModalOpen, setBikeModalOpen] = useState(false);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -674,6 +706,7 @@ export default function HomePage() {
         onTyresClick={() => setTyreModalOpen(true)}
         onWheelsClick={() => setWheelModalOpen(true)}
         onCarsClick={() => setCarModalOpen(true)}
+        onBikesClick={() => setBikeModalOpen(true)}
       />
       <FeaturedListings />
       <NearestShops />
@@ -694,6 +727,10 @@ export default function HomePage() {
       <CarListingsModal
         isOpen={carModalOpen}
         onClose={() => setCarModalOpen(false)}
+      />
+      <BikeListingsModal
+        isOpen={bikeModalOpen}
+        onClose={() => setBikeModalOpen(false)}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import {
   X, Search, MapPin, Phone, RefreshCw, ChevronLeft, ChevronRight,
   AlertCircle, Star, SlidersHorizontal, CheckCircle
 } from "lucide-react";
-import useCars from "../hooks/useCars";
+import useBikes from "../hooks/useBikes";
 import ItemDetailModal from "./ItemDetailModal";
 
 const formatPrice = (price) => {
@@ -42,45 +42,43 @@ function SkeletonCard() {
   );
 }
 
-function CarCard({ car, onContact, onItemClick }) {
+function BikeCard({ bike, onContact, onItemClick }) {
   const [imgError, setImgError] = useState(false);
   const [liked, setLiked] = useState(false);
-  const firstImage = car.medias?.[0]?.media;
-  const conditionKey = car.condition?.toLowerCase();
+  const firstImage = bike.medias?.[0]?.media;
+  const conditionKey = bike.condition?.toLowerCase();
   const conditionClass = conditionStyles[conditionKey] || conditionStyles.old;
 
   return (
     <div
-      onClick={() => onItemClick && onItemClick(car)}
-      className="group bg-white border border-emerald-100 hover:border-emerald-400/60 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-100/80 flex flex-col cursor-pointer"
-      style={{ userSelect: 'none' }}
-    >
+      onClick={() => onItemClick && onItemClick(bike)}
+      className="group bg-white border border-emerald-100 hover:border-emerald-400/60 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-100/80 flex flex-col cursor-pointer">
       <div className="relative h-48 bg-gradient-to-br from-teal-50 to-emerald-50 overflow-hidden flex items-center justify-center">
         {firstImage && !imgError ? (
           <img
             src={firstImage}
-            alt={car.name || "Car"}
+            alt={bike.name || "Bike"}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <span className="text-7xl select-none">🚗</span>
+          <span className="text-7xl select-none">🏍️</span>
         )}
 
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${conditionClass}`}>
-            {car.condition || "—"}
+            {bike.condition || "—"}
           </span>
-          {car.status && (
+          {bike.status && (
             <span className="bg-black/60 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize">
-              {car.status}
+              {bike.status}
             </span>
           )}
         </div>
 
-        {car.medias?.length > 1 && (
+        {bike.medias?.length > 1 && (
           <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            +{car.medias.length - 1} photos
+            +{bike.medias.length - 1} photos
           </div>
         )}
 
@@ -95,68 +93,68 @@ function CarCard({ car, onContact, onItemClick }) {
       <div className="p-4 flex flex-col flex-1">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">
-            {car.type || "Car"}
+            {bike.type || "Bike"}
           </span>
-          {car.brandName && (
+          {bike.brandName && (
             <>
               <span className="text-emerald-300">·</span>
               <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">
-                {car.brandName}
+                {bike.brandName}
               </span>
             </>
           )}
         </div>
 
         <h3 className="text-emerald-950 font-bold text-sm leading-snug group-hover:text-emerald-600 transition-colors mb-1">
-          {car.name || car.brandName || "Car Listing"}
-          {car.model && <span className="ml-1 text-emerald-400 font-normal">({car.model})</span>}
+          {bike.name || bike.brandName || "Bike Listing"}
+          {bike.model && <span className="ml-1 text-emerald-400 font-normal">({bike.model})</span>}
         </h3>
 
         <div className="flex flex-wrap gap-2 mb-3 text-[10px] font-semibold uppercase tracking-wide">
-          {car.km && (
-            <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">{car.km} km</span>
+          {bike.km && (
+            <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">{bike.km} km</span>
           )}
-          {car.vehicleNumber && (
+          {bike.vehicleNumber && (
             <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full truncate max-w-[140px]">
-              {car.vehicleNumber}
+              {bike.vehicleNumber}
             </span>
           )}
         </div>
 
-        {car.user && (
+        {bike.user && (
           <div className="flex items-center gap-1.5 text-emerald-600/60 text-xs mb-2">
             <MapPin size={11} />
-            <span className="truncate">{car.user.shopName || car.user.name}</span>
-            {car.user.city && <span>· {car.user.city}</span>}
+            <span className="truncate">{bike.user.shopName || bike.user.name}</span>
+            {bike.user.city && <span>· {bike.user.city}</span>}
           </div>
         )}
 
-        {car.description && (
-          <p className="text-emerald-700/50 text-xs mb-3 line-clamp-2">{car.description}</p>
+        {bike.description && (
+          <p className="text-emerald-700/50 text-xs mb-3 line-clamp-2">{bike.description}</p>
         )}
 
         <div className="grid grid-cols-3 gap-2 mb-3 text-[10px] text-emerald-700/70">
           <div className="rounded-xl bg-emerald-50 px-2 py-2 text-center">
             <div className="font-bold text-emerald-900">Owner</div>
-            <div className="truncate">{car.owner || "—"}</div>
+            <div className="truncate">{bike.owner || "—"}</div>
           </div>
           <div className="rounded-xl bg-emerald-50 px-2 py-2 text-center">
             <div className="font-bold text-emerald-900">Model</div>
-            <div className="truncate">{car.model || "—"}</div>
+            <div className="truncate">{bike.model || "—"}</div>
           </div>
           <div className="rounded-xl bg-emerald-50 px-2 py-2 text-center">
             <div className="font-bold text-emerald-900">KM</div>
-            <div className="truncate">{car.km || "—"}</div>
+            <div className="truncate">{bike.km || "—"}</div>
           </div>
         </div>
 
         <div className="flex items-end justify-between mt-auto pt-3 border-t border-emerald-50">
           <div>
-            <div className="text-emerald-700 font-black text-xl">{formatPrice(car.price)}</div>
-            <div className="text-emerald-400/60 text-xs">Pre-owned car</div>
+            <div className="text-emerald-700 font-black text-xl">{formatPrice(bike.price)}</div>
+            <div className="text-emerald-400/60 text-xs">Pre-owned bike</div>
           </div>
           <button
-            onClick={() => onContact(car)}
+            onClick={() => onContact(bike)}
             className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
           >
             <Phone size={12} /> Contact
@@ -167,8 +165,8 @@ function CarCard({ car, onContact, onItemClick }) {
   );
 }
 
-function ContactPopup({ car, onClose }) {
-  if (!car) return null;
+function ContactPopup({ bike, onClose }) {
+  if (!bike) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose}>
@@ -183,29 +181,29 @@ function ContactPopup({ car, onClose }) {
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">🚗</div>
+          <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">🏍️</div>
           <div>
-            <h3 className="text-emerald-950 font-black text-sm">{car.name || "Car Listing"}</h3>
-            <p className="text-emerald-600/60 text-xs">{car.brandName || "Brand"} · {car.model || "Model"}</p>
+            <h3 className="text-emerald-950 font-black text-sm">{bike.name || "Bike Listing"}</h3>
+            <p className="text-emerald-600/60 text-xs">{bike.brandName || "Brand"} · {bike.model || "Model"}</p>
           </div>
         </div>
 
-        {car.user && (
+        {bike.user && (
           <div className="bg-emerald-50 rounded-2xl p-4 mb-4">
-            <p className="text-emerald-800 font-bold text-sm mb-1">{car.user.shopName || car.user.name}</p>
-            {car.user.address && <p className="text-emerald-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11} />{car.user.address}</p>}
+            <p className="text-emerald-800 font-bold text-sm mb-1">{bike.user.shopName || bike.user.name}</p>
+            {bike.user.address && <p className="text-emerald-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11} />{bike.user.address}</p>}
             <a
-              href={`tel:${car.user.phone}`}
+              href={`tel:${bike.user.phone}`}
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all hover:scale-105 justify-center mt-2"
             >
-              <Phone size={16} /> {car.user.phone}
+              <Phone size={16} /> {bike.user.phone}
             </a>
-            {car.user.email && (
+            {bike.user.email && (
               <a
-                href={`mailto:${car.user.email}`}
+                href={`mailto:${bike.user.email}`}
                 className="flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:bg-emerald-50 justify-center mt-2"
               >
-                ✉️ {car.user.email}
+                ✉️ {bike.user.email}
               </a>
             )}
           </div>
@@ -214,11 +212,11 @@ function ContactPopup({ car, onClose }) {
         <div className="grid grid-cols-2 gap-3 mb-4 text-xs text-emerald-700/80">
           <div className="bg-emerald-50 rounded-2xl p-3">
             <div className="font-bold text-emerald-900 mb-1">Vehicle Number</div>
-            <div>{car.vehicleNumber || "—"}</div>
+            <div>{bike.vehicleNumber || "—"}</div>
           </div>
           <div className="bg-emerald-50 rounded-2xl p-3">
             <div className="font-bold text-emerald-900 mb-1">Condition</div>
-            <div>{car.condition || "—"}</div>
+            <div>{bike.condition || "—"}</div>
           </div>
         </div>
 
@@ -231,21 +229,21 @@ function ContactPopup({ car, onClose }) {
   );
 }
 
-export default function CarListingsModal({ isOpen, onClose }) {
-  const { cars, loading, error, pagination, fetchCars } = useCars();
+export default function BikeListingsModal({ isOpen, onClose }) {
+  const { bikes, loading, error, pagination, fetchBikes } = useBikes();
   const [search, setSearch] = useState("");
   const [condition, setCondition] = useState("all");
   const [page, setPage] = useState(1);
-  const [contactCar, setContactCar] = useState(null);
-  const [selectedCar, setSelectedCar] = useState(null);
+  const [contactBike, setContactBike] = useState(null);
+  const [selectedBike, setSelectedBike] = useState(null);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     if (isOpen && !hasLoaded) {
-      fetchCars({ page: 1, limit: 10 });
+      fetchBikes({ page: 1, limit: 10 });
       setHasLoaded(true);
     }
-  }, [isOpen, hasLoaded, fetchCars]);
+  }, [isOpen, hasLoaded, fetchBikes]);
 
   useEffect(() => {
     if (!isOpen) setHasLoaded(false);
@@ -259,28 +257,28 @@ export default function CarListingsModal({ isOpen, onClose }) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const filtered = cars.filter((car) => {
+  const filtered = bikes.filter((bike) => {
     const q = search.toLowerCase();
     const matchSearch = !q ||
-      (car.name || "").toLowerCase().includes(q) ||
-      (car.brandName || "").toLowerCase().includes(q) ||
-      (car.model || "").toLowerCase().includes(q) ||
-      (car.vehicleNumber || "").toLowerCase().includes(q) ||
-      (car.user?.shopName || "").toLowerCase().includes(q) ||
-      (car.user?.name || "").toLowerCase().includes(q);
+      (bike.name || "").toLowerCase().includes(q) ||
+      (bike.brandName || "").toLowerCase().includes(q) ||
+      (bike.model || "").toLowerCase().includes(q) ||
+      (bike.vehicleNumber || "").toLowerCase().includes(q) ||
+      (bike.user?.shopName || "").toLowerCase().includes(q) ||
+      (bike.user?.name || "").toLowerCase().includes(q);
 
-    const matchCondition = condition === "all" || (car.condition || "").toLowerCase() === condition;
+    const matchCondition = condition === "all" || (bike.condition || "").toLowerCase() === condition;
     return matchSearch && matchCondition;
   });
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    fetchCars({ page: newPage, limit: 10 });
+    fetchBikes({ page: newPage, limit: 10 });
     window.scrollTo(0, 0);
   };
 
   const handleRefresh = () => {
-    fetchCars({ page, limit: 10 });
+    fetchBikes({ page, limit: 10 });
   };
 
   if (!isOpen) return null;
@@ -305,13 +303,13 @@ export default function CarListingsModal({ isOpen, onClose }) {
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl">🚗</div>
+                    <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl">🏍️</div>
                     <div>
                       <h2 className="text-emerald-950 font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>
-                        OLD CAR LISTINGS
+                        OLD BIKE LISTINGS
                       </h2>
                       {pagination && (
-                        <p className="text-emerald-500 text-xs">{pagination.totalRecords} cars found</p>
+                        <p className="text-emerald-500 text-xs">{pagination.totalRecords} bikes found</p>
                       )}
                     </div>
                   </div>
@@ -397,7 +395,7 @@ export default function CarListingsModal({ isOpen, onClose }) {
                   <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                     <AlertCircle size={28} className="text-red-400" />
                   </div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">Failed to load cars</p>
+                  <p className="text-emerald-950 font-bold text-lg mb-1">Failed to load bikes</p>
                   <p className="text-emerald-600/60 text-sm mb-5">{error}</p>
                   <button
                     onClick={handleRefresh}
@@ -410,8 +408,8 @@ export default function CarListingsModal({ isOpen, onClose }) {
 
               {!loading && !error && filtered.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="text-7xl mb-4">🚗</div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">No cars found</p>
+                  <div className="text-7xl mb-4">🏍️</div>
+                  <p className="text-emerald-950 font-bold text-lg mb-1">No bikes found</p>
                   <p className="text-emerald-600/60 text-sm mb-5">Try adjusting your search or filters</p>
                   <button
                     onClick={() => { setSearch(""); setCondition("all"); }}
@@ -429,8 +427,8 @@ export default function CarListingsModal({ isOpen, onClose }) {
                     {search && ` for "${search}"`}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                    {filtered.map((car) => (
-                      <CarCard key={car.id} car={car} onContact={setContactCar} onItemClick={setSelectedCar} />
+                    {filtered.map((bike) => (
+                      <BikeCard key={bike.id} bike={bike} onContact={setContactBike} onItemClick={setSelectedBike} />
                     ))}
                   </div>
 
@@ -488,14 +486,14 @@ export default function CarListingsModal({ isOpen, onClose }) {
         </div>
       </div>
 
-      {contactCar && (
-        <ContactPopup car={contactCar} onClose={() => setContactCar(null)} />
+      {contactBike && (
+        <ContactPopup bike={contactBike} onClose={() => setContactBike(null)} />
       )}
 
       <ItemDetailModal
-        isOpen={!!selectedCar}
-        onClose={() => setSelectedCar(null)}
-        item={selectedCar}
+        isOpen={!!selectedBike}
+        onClose={() => setSelectedBike(null)}
+        item={selectedBike}
       />
     </>
   );

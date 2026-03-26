@@ -636,6 +636,7 @@ import {
   Star, SlidersHorizontal, CheckCircle, Gauge, Hash, Layers
 } from "lucide-react";
 import useWheels from "../hooks/userWheel";
+import WheelDetailModal from "./WheelDetailModal";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -667,7 +668,7 @@ function SkeletonCard() {
 }
 
 // ── Wheel Card ────────────────────────────────────────────────────────────────
-function WheelCard({ wheel, onContact }) {
+function WheelCard({ wheel, onContact, onItemClick }) {
   const [imgError, setImgError] = useState(false);
   const [liked,    setLiked]    = useState(false);
   const [activeImg, setActiveImg] = useState(0);
@@ -682,7 +683,7 @@ function WheelCard({ wheel, onContact }) {
     : 0;
 
   return (
-    <div className="group bg-white border border-emerald-100 hover:border-emerald-400/60 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-100/80 flex flex-col">
+    <div onClick={() => onItemClick && onItemClick(wheel)} className="group bg-white border border-emerald-100 hover:border-emerald-400/60 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-100/80 flex flex-col cursor-pointer">
 
       {/* ── Image ── */}
       <div className="relative h-48 bg-gradient-to-br from-emerald-50 to-green-50 overflow-hidden flex items-center justify-center">
@@ -903,6 +904,7 @@ export default function WheelListingsModal({ isOpen, onClose }) {
   const [condition,    setCondition]    = useState("all");
   const [page,         setPage]         = useState(1);
   const [contactWheel, setContactWheel] = useState(null);
+  const [selectedWheel, setSelectedWheel] = useState(null);
   const [hasLoaded,    setHasLoaded]    = useState(false);
 
   // Fetch on open (once)
@@ -1122,7 +1124,7 @@ export default function WheelListingsModal({ isOpen, onClose }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                     {filtered.map((wheel) => (
-                      <WheelCard key={wheel.id} wheel={wheel} onContact={setContactWheel} />
+                      <WheelCard key={wheel.id} wheel={wheel} onContact={setContactWheel} onItemClick={setSelectedWheel} />
                     ))}
                   </div>
 
@@ -1187,6 +1189,12 @@ export default function WheelListingsModal({ isOpen, onClose }) {
       {contactWheel && (
         <ContactPopup wheel={contactWheel} onClose={() => setContactWheel(null)} />
       )}
+
+      <WheelDetailModal
+        isOpen={!!selectedWheel}
+        onClose={() => setSelectedWheel(null)}
+        item={selectedWheel}
+      />
     </>
   );
 }

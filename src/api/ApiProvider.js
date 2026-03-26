@@ -142,6 +142,37 @@ const carApi = {
   remove: (id, token) => request(`vehicle/${id}`, { method: "DELETE", token }),
 };
 
+// ── Bike API Module ──────────────────────────────────────────────────────────
+const bikeApi = {
+  /**
+   * GET /vehicle?type=bike
+   * @param {object} params - { page, limit, condition, search }
+   */
+  getList: (params = {}) => {
+    const query = new URLSearchParams();
+    query.set("type", "bike");
+    if (params.page)      query.set("page",      params.page);
+    if (params.limit)     query.set("limit",     params.limit);
+    if (params.condition) query.set("condition", params.condition);
+    if (params.search)    query.set("search",    params.search);
+
+    const qs = query.toString();
+    return request(`vehicle${qs ? `?${qs}` : ""}`);
+  },
+
+  /** GET /vehicle/:id */
+  getById: (id) => request(`vehicle/${id}`),
+
+  /** POST /vehicle/store  (auth required) */
+  create: (data, token) => request("vehicle/store", { method: "POST", body: data, token }),
+
+  /** PUT /vehicle/:id  (auth required) */
+  update: (id, data, token) => request(`vehicle/${id}`, { method: "PUT", body: data, token }),
+
+  /** DELETE /vehicle/:id  (auth required) */
+  remove: (id, token) => request(`vehicle/${id}`, { method: "DELETE", token }),
+};
+
 // ── Order API Module ──────────────────────────────────────────────────────────
 const orderApi = {
   /** POST /order/store  (auth required) */
@@ -158,13 +189,32 @@ const authApi = {
   logout:   (token)       => request("auth/logout",   { method: "POST", token }),
 };
 
+// ── Search API Module ────────────────────────────────────────────────────────
+const searchApi = {
+  /**
+   * GET /search?type=all&search=<query>
+   * Returns vehicles, tyres, wheels, rims based on search query
+   * @param {object} params - { type, search }
+   */
+  search: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.type)   query.set("type",   params.type || "all");
+    if (params.search) query.set("search", params.search);
+
+    const qs = query.toString();
+    return request(`search${qs ? `?${qs}` : ""}`);
+  },
+};
+
 // ── Default Export ────────────────────────────────────────────────────────────
 const ApiProvider = {
   tyres:  tyreApi,
   wheels: wheelApi,
   cars:   carApi,
+  bikes:  bikeApi,
   orders: orderApi,
   auth:   authApi,
+  search: searchApi,
 };
 
 export default ApiProvider;
