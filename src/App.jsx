@@ -4,6 +4,16 @@ import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png' 
 import './App.css'
 import HomePage from './pages/homePage.jsx'
+import TyreDetailPage from './pages/tyreDetailPage.jsx'
+import TyreListPage from './pages/tyreListPage.jsx'
+import WheelListPage from './pages/wheelListPage.jsx'
+import WheelDetailPage from './pages/wheelDetailPage.jsx'
+import CarListPage from './pages/carListPage.jsx'
+import CarDetailPage from './pages/carDetailPage.jsx'
+import BikeListPage from './pages/bikeListPage.jsx'
+import BikeDetailPage from './pages/bikeDetailPage.jsx'
+import AccessoryListPage from './pages/accessoryListPage.jsx'
+import AccessoryDetailPage from './pages/accessoryDetailPage.jsx'
 import { Link, Routes, Route } from 'react-router-dom'
 import LoginForm from './pages/auth/loginPage.jsx'
 function App() {
@@ -19,7 +29,28 @@ function App() {
       <Routes>
         {/* Home Route */}
         <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginForm />} />
+        
+        {/* Tyres Routes */}
+        <Route path="/tyres" element={<TyreListPage />} />
+        <Route path="/tyre/:id" element={<TyreDetailPage />} />
+        
+        {/* Wheels Routes */}
+        <Route path="/wheels" element={<WheelListPage />} />
+        <Route path="/wheel/:id" element={<WheelDetailPage />} />
+        
+        {/* Cars Routes */}
+        <Route path="/cars" element={<CarListPage />} />
+        <Route path="/car/:id" element={<CarDetailPage />} />
+        
+        {/* Bikes Routes */}
+        <Route path="/bikes" element={<BikeListPage />} />
+        <Route path="/bike/:id" element={<BikeDetailPage />} />
+        
+        {/* Accessories Routes */}
+        <Route path="/accessories" element={<AccessoryListPage />} />
+        <Route path="/accessory/:id" element={<AccessoryDetailPage />} />
+        
+        <Route path="/login" element={<LoginForm />} />
 
         {/* Existing Page */}
         <Route

@@ -6,13 +6,12 @@ import {
   Navigation, Clock, Wrench, Car, Bike, Filter, LocateFixed, ChevronRight
 } from "lucide-react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LOGO_SRC from "../assets/motorMandiLogo.png";
 import HERO_IMAGE from "../assets/backHome.png";
-import TyreListingsModal from "../components/TyreListingsModal";   // ← NEW
-import WheelListingsModal from "../components/WheelListingsModal";
 import CarListingsModal from "../components/CarListingsModal";
 import BikeListingsModal from "../components/BikeListingsModal";
+import AccessoriesListingsModal from "../components/AccessoriesListingsModal";
 import SearchResultsModal from "../components/SearchResultsModal";
 
 // ── Data ────────────────────────────────────────────────────────────────────
@@ -39,7 +38,7 @@ const testimonials = [
   { name: "Arjun Singh",  role: "Fleet Manager",  rating: 4, text: "Bulk tyre purchases at the best rates. The brand filter and condition toggle saved me so much time.",     avatar: "AS" },
 ];
 
-const navLinks = ["Home", "Listings", "Shops", "Blog", "Contact"];
+const navLinks = ["Home", "Category", "Shops", , "Contact"];
 
 const allShops = [
   { id: 1, name: "SpeedZone Auto Works", type: "Car Repair",  rating: 4.8, reviews: 312, distance: "0.8 km", address: "Plot 14, Sector 7, Delhi",        phone: "+91 98100 11234", open: true,  hours: "8AM–8PM", tags: ["AC Repair","Engine","Painting"],    lat: 28.6562, lng: 77.2410, color: "#059669" },
@@ -106,10 +105,10 @@ function Navbar() {
               <a key={link} href="#" className={`text-sm font-semibold tracking-wide transition-colors ${link === "Home" ? "text-emerald-600" : "text-emerald-900/60 hover:text-emerald-800"}`}>{link}</a>
             ))}
           </div>
-          <div className="hidden md:flex items-center gap-3">
+          {/* <div className="hidden md:flex items-center gap-3">
             <Link to="/login" className="text-sm text-emerald-800 hover:text-emerald-600 font-semibold transition-colors">Sign In</Link>
             <button className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-4 py-2 rounded-lg transition-all hover:scale-105 active:scale-95">Post Ad FREE</button>
-          </div>
+          </div> */}
           <button className="md:hidden text-emerald-900" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -230,7 +229,7 @@ function Hero() {
 }
 
 // ── Categories (opens listings modals from category cards) ───────────────────
-function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick }) {
+function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick, onAccessoriesClick }) {
   return (
     <section className="bg-white px-4">
       <div className="max-w-7xl mx-auto">
@@ -250,8 +249,9 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick }) 
                 if (cat.key === "rims")  onWheelsClick();
                 if (cat.key === "cars")  onCarsClick();
                 if (cat.key === "bikes") onBikesClick();
+                if (cat.key === "accessories") onAccessoriesClick();
               }}
-              className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${["tyres", "rims", "cars", "bikes"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
+              className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${["tyres", "rims", "cars", "bikes", "accessories"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
               style={{ animationDelay: `${i * 80}ms` }}
             >
               <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{cat.icon}</div>
@@ -260,7 +260,7 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick }) 
               <div className="mt-3 text-emerald-600 text-xs font-bold">{cat.count} listings</div>
 
               {/* "Live" badge for selected category listings */}
-              {(cat.key === "tyres" || cat.key === "cars" || cat.key === "bikes") && (
+              {(cat.key === "tyres" || cat.key === "cars" || cat.key === "bikes" || cat.key === "accessories") && (
                 <div className="absolute top-3 right-3 flex items-center gap-1 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                   LIVE
@@ -685,10 +685,11 @@ function Footer() {
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [tyreModalOpen, setTyreModalOpen] = useState(false);   // ← NEW
+  const navigate = useNavigate();
   const [wheelModalOpen, setWheelModalOpen] = useState(false);
   const [carModalOpen, setCarModalOpen] = useState(false);
   const [bikeModalOpen, setBikeModalOpen] = useState(false);
+  const [accessoriesModalOpen, setAccessoriesModalOpen] = useState(false);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -703,10 +704,11 @@ export default function HomePage() {
       <Hero />
       {/* Pass the opener down to Categories */}
       <Categories
-        onTyresClick={() => setTyreModalOpen(true)}
-        onWheelsClick={() => setWheelModalOpen(true)}
-        onCarsClick={() => setCarModalOpen(true)}
-        onBikesClick={() => setBikeModalOpen(true)}
+        onTyresClick={() => navigate('/tyres')}
+        onWheelsClick={() => navigate('/wheels')}
+        onCarsClick={() => navigate('/cars')}
+        onBikesClick={() => navigate('/bikes')}
+        onAccessoriesClick={() => navigate('/accessories')}
       />
       <FeaturedListings />
       <NearestShops />
@@ -715,23 +717,7 @@ export default function HomePage() {
       <CTABanner />
       <Footer />
 
-      {/* Live Tyre Listings Modal */}
-      <TyreListingsModal
-        isOpen={tyreModalOpen}
-        onClose={() => setTyreModalOpen(false)}
-      />
-      <WheelListingsModal
-        isOpen={wheelModalOpen}
-        onClose={() => setWheelModalOpen(false)}
-      />
-      <CarListingsModal
-        isOpen={carModalOpen}
-        onClose={() => setCarModalOpen(false)}
-      />
-      <BikeListingsModal
-        isOpen={bikeModalOpen}
-        onClose={() => setBikeModalOpen(false)}
-      />
+
     </div>
   );
 }

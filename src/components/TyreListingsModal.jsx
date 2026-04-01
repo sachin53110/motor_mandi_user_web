@@ -4,13 +4,14 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   X, Search, Filter, MapPin, Phone, Tag, RefreshCw,
   ChevronLeft, ChevronRight, AlertCircle, Package,
-  Star, ShoppingBag, SlidersHorizontal, CheckCircle
+  Star, ShoppingBag, SlidersHorizontal, CheckCircle, Heart
 } from "lucide-react";
 import useTyres from "../hooks/useTyres";
-import TyreDetailModal from "./TyreDetailModal";
+import LOGO_SRC from "../assets/motorMandiLogo.png";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const formatPrice = (price) => {
@@ -44,7 +45,7 @@ function SkeletonCard() {
 }
 
 // ── Tyre Card ─────────────────────────────────────────────────────────────────
-function TyreCard({ tyre, onContact }) {
+function TyreCard({ tyre, onContact, onCardClick }) {
   const [imgError, setImgError] = useState(false);
   const [liked,    setLiked]    = useState(false);
   const firstImage = tyre.medias?.[0]?.media;
@@ -54,113 +55,131 @@ function TyreCard({ tyre, onContact }) {
   const savings = tyre.price && tyre.customerPrice
     ? Math.max(0, parseFloat(tyre.customerPrice) - parseFloat(tyre.price))
     : 0;
+  
+  const discountPercent = tyre.price && tyre.customerPrice
+    ? Math.round(((parseFloat(tyre.customerPrice) - parseFloat(tyre.price)) / parseFloat(tyre.customerPrice)) * 100)
+    : 0;
 
   return (
-    <div className="group bg-white border border-emerald-100 hover:border-emerald-400/60 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-100/80 flex flex-col">
-      {/* Image */}
-      <div className="relative h-48 bg-gradient-to-br from-emerald-50 to-green-50 overflow-hidden flex items-center justify-center">
+    <div
+      onClick={onCardClick}
+      className="group bg-white border border-gray-200 hover:border-emerald-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-100/60 flex flex-col h-full cursor-pointer"
+    >
+      {/* Image Section */}
+      <div className="relative bg-gray-100 overflow-hidden flex items-center justify-center aspect-square">
         {firstImage && !imgError ? (
           <img
             src={firstImage}
             alt={tyre.name || "Tyre"}
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
-          <span className="text-7xl select-none">🛞</span>
+          <span className="text-6xl select-none">🛞</span>
         )}
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
-          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${conditionClass}`}>
+        {/* Top Left Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {discountPercent > 0 && (
+            <div className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded">
+              {discountPercent}% OFF
+            </div>
+          )}
+          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded border capitalize bg-white ${conditionClass}`}>
             {tyre.condition || "—"}
           </span>
-          {savings > 0 && (
-            <span className="bg-red-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-              Save {formatPrice(savings)}
-            </span>
-          )}
         </div>
-
-        {/* Multiple images indicator */}
-        {tyre.medias?.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            +{tyre.medias.length - 1} photos
-          </div>
-        )}
 
         {/* Wishlist */}
         <button
           onClick={() => setLiked(!liked)}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow transition-transform hover:scale-110"
+          className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110"
         >
-          <Star size={14} fill={liked ? "#f59e0b" : "none"} stroke={liked ? "#f59e0b" : "#9ca3af"} />
+          <Heart size={16} fill={liked ? "#ef4444" : "none"} stroke={liked ? "#ef4444" : "#999"} />
         </button>
+
+        {/* Multiple images indicator */}
+        {tyre.medias?.length > 1 && (
+          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+            +{tyre.medias.length - 1}
+          </div>
+        )}
       </div>
 
-      {/* Body */}
-      <div className="p-4 flex flex-col flex-1">
-        {/* Meta */}
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">
-            {tyre.type || "Tyre"}
-          </span>
-          {tyre.brandName && (
-            <>
-              <span className="text-emerald-300">·</span>
-              <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">{tyre.brandName}</span>
-            </>
-          )}
-        </div>
+      {/* Content Section */}
+      <div className="p-3.5 flex flex-col flex-1">
+        {/* Brand Name */}
+        {tyre.brandName && (
+          <div className="text-teal-600 text-xs font-bold mb-1 uppercase tracking-wide">
+            {tyre.brandName}
+          </div>
+        )}
 
         {/* Name / Size */}
-        <h3 className="text-emerald-950 font-bold text-sm leading-snug group-hover:text-emerald-600 transition-colors mb-1">
-          {tyre.name || tyre.brandName || "Tyre Listing"}
+        <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-emerald-600">
+          {tyre.name || "Premium Tyre"}
           {tyre.size && (
-            <span className="ml-1 text-emerald-400 font-normal">({tyre.size})</span>
+            <span className="block text-xs text-gray-500 font-normal mt-0.5">{tyre.size}</span>
           )}
         </h3>
 
+        {/* Rating & Reviews */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={12} fill="#fbbf24" stroke="#fbbf24" />
+            ))}
+          </div>
+          <span className="text-xs text-gray-500">(200+)</span>
+        </div>
+
         {/* Car Company */}
         {tyre.carCompany && (
-          <p className="text-emerald-600/60 text-xs mb-1">Fits: {tyre.carCompany}</p>
+          <p className="text-gray-600 text-xs mb-2">📍 Fits: <span className="font-medium">{tyre.carCompany}</span></p>
         )}
 
-        {/* Quantity */}
-        <div className="flex items-center gap-1.5 text-emerald-600/60 text-xs mb-1">
-          <Package size={11} />
-          <span>{tyre.quantity} in stock</span>
-        </div>
-
-        {/* Shop location */}
-        {tyre.user && (
-          <div className="flex items-center gap-1.5 text-emerald-600/60 text-xs mb-3">
-            <MapPin size={11} />
-            <span className="truncate">{tyre.user.shopName || tyre.user.name}</span>
-            {tyre.user.city && <span>· {tyre.user.city}</span>}
-          </div>
-        )}
-
-        {/* Description */}
-        {tyre.description && (
-          <p className="text-emerald-700/50 text-xs mb-3 line-clamp-2">{tyre.description}</p>
-        )}
-
-        {/* Price row */}
-        <div className="flex items-end justify-between mt-auto pt-3 border-t border-emerald-50">
-          <div>
-            <div className="text-emerald-700 font-black text-xl">{formatPrice(tyre.price)}</div>
+        {/* Price Section */}
+        <div className="mb-2 pt-2 border-t border-gray-100">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-black text-gray-900">{formatPrice(tyre.price)}</span>
             {tyre.customerPrice && (
-              <div className="text-emerald-400/60 text-xs line-through">{formatPrice(tyre.customerPrice)}</div>
+              <span className="text-xs text-gray-500 line-through">{formatPrice(tyre.customerPrice)}</span>
             )}
           </div>
-          <button
-            onClick={() => onContact(tyre)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-          >
-            <Phone size={12} /> Contact
-          </button>
         </div>
+
+        {/* Savings Badge */}
+        {savings > 0 && (
+          <div className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-2">
+            ✓ Save {formatPrice(savings)}
+          </div>
+        )}
+
+        {/* Delivery Info */}
+        <div className="text-emerald-600 text-xs font-semibold mb-3 flex items-center gap-1">
+          🚚 FREE delivery by Thu
+        </div>
+
+        {/* Shop Info */}
+        {tyre.user && (
+          <div className="text-gray-600 text-xs mb-3 pb-2 border-b border-gray-100">
+            <MapPin size={10} className="inline mr-1" />
+            <span className="font-medium truncate">{tyre.user.shopName || tyre.user.name}</span>
+          </div>
+        )}
+
+        {/* Stock Status */}
+        <div className="text-emerald-700 text-xs font-semibold mb-3">
+          {tyre.quantity && tyre.quantity > 5 ? "✓ In Stock" : "Only few left"}
+        </div>
+
+        {/* Contact Button */}
+        <button
+          onClick={() => onContact(tyre)}
+          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
+        >
+          <Phone size={14} /> Contact Now
+        </button>
       </div>
     </div>
   );
@@ -221,13 +240,13 @@ function ContactPopup({ tyre, onClose }) {
 
 // ── Main Modal ────────────────────────────────────────────────────────────────
 export default function TyreListingsModal({ isOpen, onClose }) {
+  const navigate = useNavigate();
   const { tyres, loading, error, pagination, fetchTyres } = useTyres();
   const [search,      setSearch]      = useState("");
   const [condition,   setCondition]   = useState("all");
   const [tyreType,    setTyreType]    = useState("all");
   const [page,        setPage]        = useState(1);
   const [contactTyre, setContactTyre] = useState(null);
-  const [selectedTyre, setSelectedTyre] = useState(null);
   const [hasLoaded,   setHasLoaded]   = useState(false);
 
   // Fetch on open
@@ -285,7 +304,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
 
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md modal-enter"
+        className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm modal-enter"
         onClick={onClose}
       />
 
@@ -293,21 +312,21 @@ export default function TyreListingsModal({ isOpen, onClose }) {
       <div className="fixed inset-0 z-[110] overflow-y-auto">
         <div className="min-h-full flex flex-col">
           <div
-            className="flex-1 bg-white mt-16 rounded-t-3xl panel-enter flex flex-col"
+            className="flex-1 bg-white flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── Header ── */}
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 py-4 rounded-t-3xl">
-              <div className="max-w-7xl mx-auto">
+            <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 shadow-sm">
+              <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl">🛞</div>
+                    <img src={LOGO_SRC} alt="MotorMandi" className="h-12 w-auto object-contain" />
                     <div>
-                      <h2 className="text-emerald-950 font-black text-xl leading-none" style={{ fontFamily:"'Bebas Neue', sans-serif", letterSpacing:"0.04em" }}>
-                        TYRE LISTINGS
+                      <h2 className="text-gray-900 font-black text-2xl">
+                        Premium Tyres & Rims
                       </h2>
                       {pagination && (
-                        <p className="text-emerald-500 text-xs">{pagination.totalRecords} tyres found</p>
+                        <p className="text-gray-500 text-sm">{pagination.totalRecords} products available</p>
                       )}
                     </div>
                   </div>
@@ -315,15 +334,15 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                     <button
                       onClick={handleRefresh}
                       disabled={loading}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all disabled:opacity-40"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-40"
                     >
-                      <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                      <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                     </button>
                     <button
                       onClick={onClose}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-all"
                     >
-                      <X size={18} />
+                      <X size={20} />
                     </button>
                   </div>
                 </div>
@@ -331,29 +350,29 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                 {/* ── Filters ── */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   {/* Search */}
-                  <div className="flex-1 flex items-center gap-2 bg-emerald-50 rounded-xl px-4 py-2.5">
-                    <Search size={16} className="text-emerald-400 shrink-0" />
+                  <div className="flex-1 flex items-center gap-3 bg-gray-100 rounded-lg px-4 py-2.5">
+                    <Search size={18} className="text-gray-500 shrink-0" />
                     <input
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search brand, size, shop..."
-                      className="bg-transparent text-emerald-900 placeholder-emerald-400 text-sm w-full outline-none"
+                      className="bg-transparent text-gray-900 placeholder-gray-500 text-sm w-full outline-none"
                     />
                     {search && (
-                      <button onClick={() => setSearch("")} className="text-emerald-400 hover:text-emerald-600">
-                        <X size={14} />
+                      <button onClick={() => setSearch("")} className="text-gray-400 hover:text-gray-600">
+                        <X size={16} />
                       </button>
                     )}
                   </div>
 
                   {/* Condition */}
-                  <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-2.5">
-                    <SlidersHorizontal size={14} className="text-emerald-500" />
+                  <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-4 py-2.5">
+                    <SlidersHorizontal size={16} className="text-gray-600" />
                     <select
                       value={condition}
                       onChange={(e) => setCondition(e.target.value)}
-                      className="bg-transparent text-emerald-700 text-sm font-semibold outline-none cursor-pointer"
+                      className="bg-transparent text-gray-900 text-sm font-semibold outline-none cursor-pointer"
                     >
                       <option value="all">All Conditions</option>
                       <option value="new">New</option>
@@ -362,12 +381,12 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                   </div>
 
                   {/* Type */}
-                  <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-2.5">
-                    <Filter size={14} className="text-emerald-500" />
+                  <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-4 py-2.5">
+                    <Filter size={16} className="text-gray-600" />
                     <select
                       value={tyreType}
                       onChange={(e) => setTyreType(e.target.value)}
-                      className="bg-transparent text-emerald-700 text-sm font-semibold outline-none cursor-pointer"
+                      className="bg-transparent text-gray-900 text-sm font-semibold outline-none cursor-pointer"
                     >
                       <option value="all">All Types</option>
                       <option value="TubeLess">Tubeless</option>
@@ -381,21 +400,27 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                 {(condition !== "all" || tyreType !== "all" || search) && (
                   <div className="flex gap-2 flex-wrap mt-3">
                     {search && (
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                      <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-2">
                         🔍 "{search}"
-                        <button onClick={() => setSearch("")}><X size={10} /></button>
+                        <button onClick={() => setSearch("")} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
                       </span>
                     )}
                     {condition !== "all" && (
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 capitalize">
+                      <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-2 capitalize">
                         {condition}
-                        <button onClick={() => setCondition("all")}><X size={10} /></button>
+                        <button onClick={() => setCondition("all")} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
                       </span>
                     )}
                     {tyreType !== "all" && (
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                      <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-2">
                         {tyreType}
-                        <button onClick={() => setTyreType("all")}><X size={10} /></button>
+                        <button onClick={() => setTyreType("all")} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
                       </span>
                     )}
                   </div>
@@ -404,41 +429,41 @@ export default function TyreListingsModal({ isOpen, onClose }) {
             </div>
 
             {/* ── Body ── */}
-            <div className="flex-1 px-4 sm:px-6 py-6 max-w-7xl mx-auto w-full">
+            <div className="flex-1 px-4 sm:px-8 py-8 max-w-full w-full bg-gray-50">
 
               {/* Loading skeletons */}
               {loading && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                  {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)}
                 </div>
               )}
 
               {/* Error */}
               {!loading && error && (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                    <AlertCircle size={28} className="text-red-400" />
+                <div className="flex flex-col items-center justify-center py-32 text-center">
+                  <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                    <AlertCircle size={40} className="text-red-400" />
                   </div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">Failed to load tyres</p>
-                  <p className="text-emerald-600/60 text-sm mb-5">{error}</p>
+                  <p className="text-gray-900 font-bold text-2xl mb-2">Failed to load tyres</p>
+                  <p className="text-gray-600 text-base mb-8">{error}</p>
                   <button
                     onClick={handleRefresh}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all hover:scale-105"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-lg flex items-center gap-2 transition-all hover:scale-105"
                   >
-                    <RefreshCw size={16} /> Try Again
+                    <RefreshCw size={18} /> Try Again
                   </button>
                 </div>
               )}
 
               {/* Empty */}
               {!loading && !error && filtered.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="text-7xl mb-4">🛞</div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">No tyres found</p>
-                  <p className="text-emerald-600/60 text-sm mb-5">Try adjusting your search or filters</p>
+                <div className="flex flex-col items-center justify-center py-32 text-center">
+                  <div className="text-9xl mb-6">🛞</div>
+                  <p className="text-gray-900 font-bold text-2xl mb-2">No tyres found</p>
+                  <p className="text-gray-600 text-base mb-8">Try adjusting your search or filters</p>
                   <button
                     onClick={() => { setSearch(""); setCondition("all"); setTyreType("all"); }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl transition-all hover:scale-105"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-lg transition-all hover:scale-105"
                   >
                     Clear Filters
                   </button>
@@ -448,35 +473,40 @@ export default function TyreListingsModal({ isOpen, onClose }) {
               {/* Grid */}
               {!loading && !error && filtered.length > 0 && (
                 <>
-                  <p className="text-emerald-600/50 text-xs font-semibold mb-4">
-                    Showing {filtered.length} listing{filtered.length !== 1 ? "s" : ""}
-                    {search && ` for "${search}"`}
+                  <p className="text-gray-600 text-sm font-semibold mb-6">
+                    📍 Showing <span className="font-bold text-emerald-600">{filtered.length}</span> listing{filtered.length !== 1 ? "s" : ""}
+                    {search && ` for <span class="text-emerald-600">"${search}"</span>`}
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
                     {filtered.map((tyre) => (
-                      <TyreCard key={tyre.id} tyre={tyre} onContact={setContactTyre} />
+                      <TyreCard
+                        key={tyre.id}
+                        tyre={tyre}
+                        onContact={setContactTyre}
+                        onCardClick={() => navigate(`/tyre/${tyre.id}`)}
+                      />
                     ))}
                   </div>
 
                   {/* Pagination */}
                   {pagination && pagination.totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-3 mt-10">
+                    <div className="flex items-center justify-center gap-2 mt-12">
                       <button
                         onClick={() => handlePageChange(page - 1)}
                         disabled={page <= 1}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                       >
                         <ChevronLeft size={18} />
                       </button>
 
-                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+                      {Array.from({ length: Math.min(pagination.totalPages, 5) }, (_, i) => i + 1).map((p) => (
                         <button
                           key={p}
                           onClick={() => handlePageChange(p)}
-                          className={`w-10 h-10 rounded-xl font-bold text-sm transition-all ${
+                          className={`w-10 h-10 rounded-lg font-semibold text-sm transition-all ${
                             p === page
-                              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
-                              : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                              ? "bg-emerald-600 text-white shadow-lg"
+                              : "border border-gray-300 text-gray-700 hover:bg-white"
                           }`}
                         >
                           {p}
@@ -486,7 +516,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                       <button
                         onClick={() => handlePageChange(page + 1)}
                         disabled={page >= pagination.totalPages}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                       >
                         <ChevronRight size={18} />
                       </button>
@@ -497,16 +527,16 @@ export default function TyreListingsModal({ isOpen, onClose }) {
             </div>
 
             {/* ── Footer ── */}
-            <div className="border-t border-emerald-100 px-6 py-4">
-              <div className="max-w-7xl mx-auto flex items-center justify-between">
-                <p className="text-emerald-600/50 text-xs">
-                  {pagination ? `${pagination.totalRecords} total listings` : "Live data"}
+            <div className="border-t border-gray-200 px-4 sm:px-8 py-4 bg-white">
+              <div className="flex items-center justify-between">
+                <p className="text-gray-500 text-sm">
+                  {pagination ? `${pagination.totalRecords} total listings available` : "Live data"}
                 </p>
                 <button
                   onClick={onClose}
-                  className="text-sm text-emerald-600 hover:text-emerald-500 font-semibold flex items-center gap-1 transition-colors"
+                  className="text-sm text-emerald-600 hover:text-emerald-500 font-semibold flex items-center gap-1.5 transition-colors"
                 >
-                  <X size={14} /> Close
+                  <X size={16} /> Close
                 </button>
               </div>
             </div>
@@ -518,12 +548,6 @@ export default function TyreListingsModal({ isOpen, onClose }) {
       {contactTyre && (
         <ContactPopup tyre={contactTyre} onClose={() => setContactTyre(null)} />
       )}
-
-      <TyreDetailModal
-        isOpen={!!selectedTyre}
-        onClose={() => setSelectedTyre(null)}
-        item={selectedTyre}
-      />
     </>
   );
 }

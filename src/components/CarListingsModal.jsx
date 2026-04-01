@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import {
   X, Search, MapPin, Phone, RefreshCw, ChevronLeft, ChevronRight,
-  AlertCircle, Star, SlidersHorizontal, CheckCircle
+  AlertCircle, Star, SlidersHorizontal, CheckCircle, Heart
 } from "lucide-react";
 import useCars from "../hooks/useCars";
 import ItemDetailModal from "./ItemDetailModal";
+import LOGO_SRC from "../assets/motorMandiLogo.png";
 
 const formatPrice = (price) => {
   const value = parseFloat(price);
@@ -49,119 +50,121 @@ function CarCard({ car, onContact, onItemClick }) {
   const conditionKey = car.condition?.toLowerCase();
   const conditionClass = conditionStyles[conditionKey] || conditionStyles.old;
 
+  const discount = car.price && car.customerPrice
+    ? Math.round(((parseFloat(car.customerPrice) - parseFloat(car.price)) / parseFloat(car.customerPrice)) * 100)
+    : 0;
+
   return (
     <div
       onClick={() => onItemClick && onItemClick(car)}
-      className="group bg-white border border-emerald-100 hover:border-emerald-400/60 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-100/80 flex flex-col cursor-pointer"
+      className="group bg-white border border-gray-200 hover:border-emerald-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-100/60 flex flex-col cursor-pointer h-full"
       style={{ userSelect: 'none' }}
     >
-      <div className="relative h-48 bg-gradient-to-br from-teal-50 to-emerald-50 overflow-hidden flex items-center justify-center">
+      {/* Image Section */}
+      <div className="relative bg-gray-100 overflow-hidden flex items-center justify-center aspect-square">
         {firstImage && !imgError ? (
           <img
             src={firstImage}
             alt={car.name || "Car"}
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
-          <span className="text-7xl select-none">🚗</span>
+          <span className="text-6xl select-none">🚗</span>
         )}
 
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
-          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${conditionClass}`}>
+        {/* Top Left Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {discount > 0 && (
+            <div className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded">
+              {discount}% OFF
+            </div>
+          )}
+          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded border capitalize bg-white ${conditionClass}`}>
             {car.condition || "—"}
           </span>
-          {car.status && (
-            <span className="bg-black/60 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize">
-              {car.status}
-            </span>
-          )}
         </div>
 
+        {/* Wishlist */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+          className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110"
+        >
+          <Heart size={16} fill={liked ? "#ef4444" : "none"} stroke={liked ? "#ef4444" : "#999"} />
+        </button>
+
+        {/* Multiple images indicator */}
         {car.medias?.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            +{car.medias.length - 1} photos
+          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+            +{car.medias.length - 1}
           </div>
         )}
-
-        <button
-          onClick={() => setLiked(!liked)}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow transition-transform hover:scale-110"
-        >
-          <Star size={14} fill={liked ? "#f59e0b" : "none"} stroke={liked ? "#f59e0b" : "#9ca3af"} />
-        </button>
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">
-            {car.type || "Car"}
-          </span>
-          {car.brandName && (
-            <>
-              <span className="text-emerald-300">·</span>
-              <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">
-                {car.brandName}
-              </span>
-            </>
-          )}
-        </div>
+      {/* Content Section */}
+      <div className="p-3.5 flex flex-col flex-1">
+        {/* Brand */}
+        {car.brandName && (
+          <div className="text-teal-600 text-xs font-bold mb-1 uppercase tracking-wide">
+            {car.brandName}
+          </div>
+        )}
 
-        <h3 className="text-emerald-950 font-bold text-sm leading-snug group-hover:text-emerald-600 transition-colors mb-1">
-          {car.name || car.brandName || "Car Listing"}
-          {car.model && <span className="ml-1 text-emerald-400 font-normal">({car.model})</span>}
+        {/* Name */}
+        <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-emerald-600">
+          {car.name || car.brandName || "Premium Car"}
+          {car.model && (
+            <span className="block text-xs text-gray-500 font-normal mt-0.5">{car.model}</span>
+          )}
         </h3>
 
-        <div className="flex flex-wrap gap-2 mb-3 text-[10px] font-semibold uppercase tracking-wide">
-          {car.km && (
-            <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">{car.km} km</span>
-          )}
-          {car.vehicleNumber && (
-            <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full truncate max-w-[140px]">
-              {car.vehicleNumber}
-            </span>
-          )}
+        {/* Rating & Reviews */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={12} fill="#fbbf24" stroke="#fbbf24" />
+            ))}
+          </div>
+          <span className="text-xs text-gray-500">(150+)</span>
         </div>
 
+        {/* Key Details */}
+        <div className="mb-2 pb-2 border-b border-gray-100">
+          {car.km && <p className="text-xs text-gray-600">🛣️ <span className="font-medium">{car.km} km</span></p>}
+          {car.owner && <p className="text-xs text-gray-600">👤 <span className="font-medium">{car.owner}</span></p>}
+        </div>
+
+        {/* Price Section */}
+        <div className="mb-2 py-2">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-black text-gray-900">{formatPrice(car.price)}</span>
+            {car.customerPrice && (
+              <span className="text-xs text-gray-500 line-through">{formatPrice(car.customerPrice)}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Delivery/Location Info */}
         {car.user && (
-          <div className="flex items-center gap-1.5 text-emerald-600/60 text-xs mb-2">
-            <MapPin size={11} />
-            <span className="truncate">{car.user.shopName || car.user.name}</span>
-            {car.user.city && <span>· {car.user.city}</span>}
+          <div className="text-gray-600 text-xs mb-3 pb-2 border-b border-gray-100">
+            <MapPin size={10} className="inline mr-1" />
+            <span className="font-medium truncate">{car.user.shopName || car.user.name}</span>
+            {car.user.city && <span> · {car.user.city}</span>}
           </div>
         )}
 
-        {car.description && (
-          <p className="text-emerald-700/50 text-xs mb-3 line-clamp-2">{car.description}</p>
-        )}
-
-        <div className="grid grid-cols-3 gap-2 mb-3 text-[10px] text-emerald-700/70">
-          <div className="rounded-xl bg-emerald-50 px-2 py-2 text-center">
-            <div className="font-bold text-emerald-900">Owner</div>
-            <div className="truncate">{car.owner || "—"}</div>
-          </div>
-          <div className="rounded-xl bg-emerald-50 px-2 py-2 text-center">
-            <div className="font-bold text-emerald-900">Model</div>
-            <div className="truncate">{car.model || "—"}</div>
-          </div>
-          <div className="rounded-xl bg-emerald-50 px-2 py-2 text-center">
-            <div className="font-bold text-emerald-900">KM</div>
-            <div className="truncate">{car.km || "—"}</div>
-          </div>
+        {/* Stock Status */}
+        <div className="text-emerald-700 text-xs font-semibold mb-3">
+          ✓ Verified Listing
         </div>
 
-        <div className="flex items-end justify-between mt-auto pt-3 border-t border-emerald-50">
-          <div>
-            <div className="text-emerald-700 font-black text-xl">{formatPrice(car.price)}</div>
-            <div className="text-emerald-400/60 text-xs">Pre-owned car</div>
-          </div>
-          <button
-            onClick={() => onContact(car)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-          >
-            <Phone size={12} /> Contact
-          </button>
-        </div>
+        {/* Contact Button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onContact(car); }}
+          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
+        >
+          <Phone size={14} /> Contact Now
+        </button>
       </div>
     </div>
   );
@@ -305,7 +308,7 @@ export default function CarListingsModal({ isOpen, onClose }) {
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl">🚗</div>
+                    <img src={LOGO_SRC} alt="MotorMandi" className="h-10 w-auto object-contain" />
                     <div>
                       <h2 className="text-emerald-950 font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>
                         OLD CAR LISTINGS
@@ -387,7 +390,7 @@ export default function CarListingsModal({ isOpen, onClose }) {
 
             <div className="flex-1 px-4 sm:px-6 py-6 max-w-7xl mx-auto w-full">
               {loading && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
                   {Array.from({ length: 8 }).map((_, index) => <SkeletonCard key={index} />)}
                 </div>
               )}
@@ -428,7 +431,7 @@ export default function CarListingsModal({ isOpen, onClose }) {
                     Showing {filtered.length} listing{filtered.length !== 1 ? "s" : ""}
                     {search && ` for "${search}"`}
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
                     {filtered.map((car) => (
                       <CarCard key={car.id} car={car} onContact={setContactCar} onItemClick={setSelectedCar} />
                     ))}

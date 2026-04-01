@@ -65,6 +65,9 @@ const tyreApi = {
     return request(`tyre/list${qs ? `?${qs}` : ""}`);
   },
 
+  /** GET /tyre/view?id=:id */
+  getDetail: (id) => request(`tyre/view?id=${id}`),
+
   /** GET /tyre/:id */
   getById: (id) => request(`tyre/${id}`),
 
@@ -98,6 +101,9 @@ const wheelApi = {
     return request(`wheel${qs ? `?${qs}` : ""}`);
   },
 
+  /** GET /wheel/view?id=:id */
+  getDetail: (id) => request(`wheel/view?id=${id}`),
+
   /** GET /wheel/:id */
   getById: (id) => request(`wheel/${id}`),
 
@@ -128,6 +134,9 @@ const carApi = {
     const qs = query.toString();
     return request(`vehicle${qs ? `?${qs}` : ""}`);
   },
+
+  /** GET /vehicle/view?id=:id */
+  getDetail: (id) => request(`vehicle/view?id=${id}`),
 
   /** GET /vehicle/:id */
   getById: (id) => request(`vehicle/${id}`),
@@ -160,6 +169,9 @@ const bikeApi = {
     return request(`vehicle${qs ? `?${qs}` : ""}`);
   },
 
+  /** GET /vehicle/view?id=:id */
+  getDetail: (id) => request(`vehicle/view?id=${id}`),
+
   /** GET /vehicle/:id */
   getById: (id) => request(`vehicle/${id}`),
 
@@ -171,6 +183,38 @@ const bikeApi = {
 
   /** DELETE /vehicle/:id  (auth required) */
   remove: (id, token) => request(`vehicle/${id}`, { method: "DELETE", token }),
+};
+
+// ── Accessories API Module ───────────────────────────────────────────────────
+const accessoriesApi = {
+  /**
+   * GET /accessory
+   * @param {object} params - { page, limit, search }
+   */
+  getList: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.page)   query.set("page",   params.page);
+    if (params.limit)  query.set("limit",  params.limit);
+    if (params.search) query.set("search", params.search);
+
+    const qs = query.toString();
+    return request(`accessory${qs ? `?${qs}` : ""}`);
+  },
+
+  /** GET /accessory/view?id=:id */
+  getDetail: (id) => request(`accessory/view?id=${id}`),
+
+  /** GET /accessory/:id */
+  getById: (id) => request(`accessory/${id}`),
+
+  /** POST /accessory/store  (auth required) */
+  create: (data, token) => request("accessory/store", { method: "POST", body: data, token }),
+
+  /** PUT /accessory/:id  (auth required) */
+  update: (id, data, token) => request(`accessory/${id}`, { method: "PUT", body: data, token }),
+
+  /** DELETE /accessory/:id  (auth required) */
+  remove: (id, token) => request(`accessory/${id}`, { method: "DELETE", token }),
 };
 
 // ── Order API Module ──────────────────────────────────────────────────────────
@@ -208,13 +252,14 @@ const searchApi = {
 
 // ── Default Export ────────────────────────────────────────────────────────────
 const ApiProvider = {
-  tyres:  tyreApi,
-  wheels: wheelApi,
-  cars:   carApi,
-  bikes:  bikeApi,
-  orders: orderApi,
-  auth:   authApi,
-  search: searchApi,
+  tyres:       tyreApi,
+  wheels:      wheelApi,
+  cars:        carApi,
+  bikes:       bikeApi,
+  accessories: accessoriesApi,
+  orders:      orderApi,
+  auth:        authApi,
+  search:      searchApi,
 };
 
 export default ApiProvider;

@@ -633,10 +633,11 @@ import { useEffect, useState } from "react";
 import {
   X, Search, Filter, MapPin, Phone, RefreshCw,
   ChevronLeft, ChevronRight, AlertCircle, Package,
-  Star, SlidersHorizontal, CheckCircle, Gauge, Hash, Layers
+  Star, SlidersHorizontal, CheckCircle, Gauge, Hash, Layers, Heart
 } from "lucide-react";
 import useWheels from "../hooks/userWheel";
 import WheelDetailModal from "./WheelDetailModal";
+import LOGO_SRC from "../assets/motorMandiLogo.png";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -682,142 +683,126 @@ function WheelCard({ wheel, onContact, onItemClick }) {
     ? Math.max(0, parseFloat(wheel.customerPrice) - parseFloat(wheel.price))
     : 0;
 
-  return (
-    <div onClick={() => onItemClick && onItemClick(wheel)} className="group bg-white border border-emerald-100 hover:border-emerald-400/60 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-100/80 flex flex-col cursor-pointer">
+  const discountPercent = wheel.price && wheel.customerPrice
+    ? Math.round(((parseFloat(wheel.customerPrice) - parseFloat(wheel.price)) / parseFloat(wheel.customerPrice)) * 100)
+    : 0;
 
-      {/* ── Image ── */}
-      <div className="relative h-48 bg-gradient-to-br from-emerald-50 to-green-50 overflow-hidden flex items-center justify-center">
+  return (
+    <div onClick={() => onItemClick && onItemClick(wheel)} className="group bg-white border border-gray-200 hover:border-emerald-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-100/60 flex flex-col cursor-pointer h-full">
+
+      {/* Image Section */}
+      <div className="relative bg-gray-100 overflow-hidden flex items-center justify-center aspect-square">
         {firstImage && !imgError ? (
           <img
             src={firstImage}
             alt={wheel.name || wheel.brandName || "Wheel"}
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
-          <span className="text-7xl select-none">⚙️</span>
+          <span className="text-6xl select-none">⚙️</span>
         )}
 
-        {/* Condition badge */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
-          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${conditionClass}`}>
+        {/* Top Left Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {discountPercent > 0 && (
+            <div className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded">
+              {discountPercent}% OFF
+            </div>
+          )}
+          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded border capitalize bg-white ${conditionClass}`}>
             {wheel.condition || "—"}
           </span>
-          {savings > 0 && (
-            <span className="bg-red-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-              Save {formatPrice(savings)}
-            </span>
-          )}
         </div>
-
-        {/* Multiple images indicator */}
-        {medias.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            +{medias.length - 1} photos
-          </div>
-        )}
 
         {/* Wishlist */}
         <button
-          onClick={() => setLiked(!liked)}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow transition-transform hover:scale-110"
+          onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+          className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110"
         >
-          <Star size={14} fill={liked ? "#f59e0b" : "none"} stroke={liked ? "#f59e0b" : "#9ca3af"} />
+          <Heart size={16} fill={liked ? "#ef4444" : "none"} stroke={liked ? "#ef4444" : "#999"} />
         </button>
 
-        {/* Thumbnail strip (shown on hover if multiple images) */}
+        {/* Multiple images indicator */}
         {medias.length > 1 && (
-          <div className="absolute bottom-0 left-0 right-0 flex gap-1 p-2 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-            {medias.map((m, i) => (
-              <button
-                key={m.id}
-                onClick={() => setActiveImg(i)}
-                className={`w-8 h-8 rounded-md overflow-hidden border-2 flex-shrink-0 transition-all ${i === activeImg ? "border-emerald-400 scale-110" : "border-white/40"}`}
-              >
-                <img src={m.media} alt="" className="w-full h-full object-cover" />
-              </button>
-            ))}
+          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+            +{medias.length - 1}
           </div>
         )}
       </div>
 
-      {/* ── Body ── */}
-      <div className="p-4 flex flex-col flex-1">
+      {/* Content Section */}
+      <div className="p-3.5 flex flex-col flex-1">
+        {/* Brand Name */}
+        {wheel.brandName && (
+          <div className="text-teal-600 text-xs font-bold mb-1 uppercase tracking-wide">
+            {wheel.brandName}
+          </div>
+        )}
 
-        {/* Brand / Company meta */}
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">
-            ⚙️ Wheel
-          </span>
-          {wheel.brandName && (
-            <>
-              <span className="text-emerald-300">·</span>
-              <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">{wheel.brandName}</span>
-            </>
-          )}
-        </div>
-
-        {/* Name / Brand + Model */}
-        <h3 className="text-emerald-950 font-bold text-sm leading-snug group-hover:text-emerald-600 transition-colors mb-1">
-          {wheel.name || `${wheel.brandName || "Wheel"} – ${wheel.carCompany || ""}`}
+        {/* Name */}
+        <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-emerald-600">
+          {wheel.name || wheel.carCompany || "Premium Wheel"}
           {wheel.size && (
-            <span className="ml-1 text-emerald-400 font-normal">({wheel.size}")</span>
+            <span className="block text-xs text-gray-500 font-normal mt-0.5">Size: {wheel.size}"</span>
           )}
         </h3>
 
-        {/* Car company */}
-        {wheel.carCompany && (
-          <p className="text-emerald-600/60 text-xs mb-1">Fits: {wheel.carCompany}</p>
-        )}
-
-        {/* Specs row */}
-        <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2">
-          {wheel.pcd && (
-            <div className="flex items-center gap-1 text-emerald-600/60 text-xs">
-              <Hash size={10} className="text-emerald-400" />
-              <span>PCD: <span className="font-semibold text-emerald-700">{wheel.pcd}</span></span>
-            </div>
-          )}
-          {wheel.code && (
-            <div className="flex items-center gap-1 text-emerald-600/60 text-xs">
-              <Layers size={10} className="text-emerald-400" />
-              <span>Code: <span className="font-semibold text-emerald-700">{wheel.code}</span></span>
-            </div>
-          )}
+        {/* Rating & Reviews */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={12} fill="#fbbf24" stroke="#fbbf24" />
+            ))}
+          </div>
+          <span className="text-xs text-gray-500">(220+)</span>
         </div>
 
-        {/* Stock */}
-        {wheel.stock != null && (
-          <div className="flex items-center gap-1.5 text-emerald-600/60 text-xs mb-1">
-            <Package size={11} />
-            <span>{wheel.stock} in stock</span>
-          </div>
-        )}
+        {/* Specifications */}
+        <div className="mb-2 pb-2 border-b border-gray-100 text-xs text-gray-600 space-y-0.5">
+          {wheel.carCompany && <p>🚗 <span className="font-medium">{wheel.carCompany}</span></p>}
+          {wheel.pcd && <p>⚙️ <span className="font-medium">PCD: {wheel.pcd}</span></p>}
+        </div>
 
-        {/* Seller shop */}
-        {wheel.user && (
-          <div className="flex items-center gap-1.5 text-emerald-600/60 text-xs mb-3">
-            <MapPin size={11} />
-            <span className="truncate">{wheel.user.shopName || wheel.user.name}</span>
-            {wheel.user.city && <span>· {wheel.user.city}</span>}
-          </div>
-        )}
-
-        {/* Price row */}
-        <div className="flex items-end justify-between mt-auto pt-3 border-t border-emerald-50">
-          <div>
-            <div className="text-emerald-700 font-black text-xl">{formatPrice(wheel.customerPrice)}</div>
+        {/* Price Section */}
+        <div className="mb-2 py-2">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-black text-gray-900">{formatPrice(wheel.customerPrice)}</span>
             {wheel.price && wheel.price !== wheel.customerPrice && (
-              <div className="text-emerald-400/60 text-xs line-through">{formatPrice(wheel.price)}</div>
+              <span className="text-xs text-gray-500 line-through">{formatPrice(wheel.price)}</span>
             )}
           </div>
-          <button
-            onClick={() => onContact(wheel)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-          >
-            <Phone size={12} /> Contact
-          </button>
         </div>
+
+        {/* Savings Badge */}
+        {savings > 0 && (
+          <div className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-2">
+            ✓ Save {formatPrice(savings)}
+          </div>
+        )}
+
+        {/* Shop Info */}
+        {wheel.user && (
+          <div className="text-gray-600 text-xs mb-3 pb-2 border-b border-gray-100">
+            <MapPin size={10} className="inline mr-1" />
+            <span className="font-medium truncate">{wheel.user.shopName || wheel.user.name}</span>
+          </div>
+        )}
+
+        {/* Stock Status */}
+        {wheel.stock != null && (
+          <div className="text-emerald-700 text-xs font-semibold mb-3">
+            {wheel.stock > 5 ? "✓ In Stock" : `Only ${wheel.stock} left`}
+          </div>
+        )}
+
+        {/* Contact Button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onContact(wheel); }}
+          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
+        >
+          <Phone size={14} /> Contact Now
+        </button>
       </div>
     </div>
   );
@@ -969,35 +954,34 @@ export default function WheelListingsModal({ isOpen, onClose }) {
 
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md modal-enter"
+        className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm modal-enter"
         onClick={onClose}
       />
 
-      {/* Panel — slides up from bottom, same as TyreListingsModal */}
+      {/* Panel */}
       <div className="fixed inset-0 z-[110] overflow-y-auto">
         <div className="min-h-full flex flex-col">
           <div
-            className="flex-1 bg-white mt-16 rounded-t-3xl panel-enter flex flex-col"
+            className="flex-1 bg-white flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
 
             {/* ── Sticky Header ── */}
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 py-4 rounded-t-3xl">
-              <div className="max-w-7xl mx-auto">
+            <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-8 py-4 shadow-sm">
+              <div>
 
                 {/* Title row */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl">⚙️</div>
+                    <img src={LOGO_SRC} alt="MotorMandi" className="h-12 w-auto object-contain" />
                     <div>
                       <h2
-                        className="text-emerald-950 font-black text-xl leading-none"
-                        style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}
+                        className="text-gray-900 font-black text-2xl"
                       >
-                        WHEELS & RIMS
+                        Wheels & Rims
                       </h2>
                       {pagination && (
-                        <p className="text-emerald-500 text-xs">{pagination.totalRecords} wheels found</p>
+                        <p className="text-gray-500 text-sm">{pagination.totalRecords} products available</p>
                       )}
                     </div>
                   </div>
@@ -1005,15 +989,15 @@ export default function WheelListingsModal({ isOpen, onClose }) {
                     <button
                       onClick={handleRefresh}
                       disabled={loading}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all disabled:opacity-40"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-40"
                     >
-                      <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                      <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                     </button>
                     <button
                       onClick={onClose}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-all"
                     >
-                      <X size={18} />
+                      <X size={20} />
                     </button>
                   </div>
                 </div>
@@ -1021,29 +1005,29 @@ export default function WheelListingsModal({ isOpen, onClose }) {
                 {/* ── Filters ── */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   {/* Search */}
-                  <div className="flex-1 flex items-center gap-2 bg-emerald-50 rounded-xl px-4 py-2.5">
-                    <Search size={16} className="text-emerald-400 shrink-0" />
+                  <div className="flex-1 flex items-center gap-3 bg-gray-100 rounded-lg px-4 py-2.5">
+                    <Search size={18} className="text-gray-500 shrink-0" />
                     <input
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search brand, model, size, PCD..."
-                      className="bg-transparent text-emerald-900 placeholder-emerald-400 text-sm w-full outline-none"
+                      placeholder="Search brand, size, PCD, model..."
+                      className="bg-transparent text-gray-900 placeholder-gray-500 text-sm w-full outline-none"
                     />
                     {search && (
-                      <button onClick={() => setSearch("")} className="text-emerald-400 hover:text-emerald-600">
-                        <X size={14} />
+                      <button onClick={() => setSearch("")} className="text-gray-400 hover:text-gray-600">
+                        <X size={16} />
                       </button>
                     )}
                   </div>
 
                   {/* Condition filter */}
-                  <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-2.5">
-                    <SlidersHorizontal size={14} className="text-emerald-500" />
+                  <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-4 py-2.5">
+                    <SlidersHorizontal size={16} className="text-gray-600" />
                     <select
                       value={condition}
                       onChange={(e) => setCondition(e.target.value)}
-                      className="bg-transparent text-emerald-700 text-sm font-semibold outline-none cursor-pointer"
+                      className="bg-transparent text-gray-900 text-sm font-semibold outline-none cursor-pointer"
                     >
                       <option value="all">All Conditions</option>
                       <option value="new">New</option>
@@ -1056,15 +1040,19 @@ export default function WheelListingsModal({ isOpen, onClose }) {
                 {(condition !== "all" || search) && (
                   <div className="flex gap-2 flex-wrap mt-3">
                     {search && (
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                      <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-2">
                         🔍 "{search}"
-                        <button onClick={() => setSearch("")}><X size={10} /></button>
+                        <button onClick={() => setSearch("")} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
                       </span>
                     )}
                     {condition !== "all" && (
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 capitalize">
+                      <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-2 capitalize">
                         {condition}
-                        <button onClick={() => setCondition("all")}><X size={10} /></button>
+                        <button onClick={() => setCondition("all")} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
                       </span>
                     )}
                   </div>
@@ -1073,41 +1061,41 @@ export default function WheelListingsModal({ isOpen, onClose }) {
             </div>
 
             {/* ── Body ── */}
-            <div className="flex-1 px-4 sm:px-6 py-6 max-w-7xl mx-auto w-full">
+            <div className="flex-1 px-4 sm:px-8 py-8 max-w-full w-full bg-gray-50">
 
               {/* Loading skeletons */}
               {loading && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                  {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
+                  {Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)}
                 </div>
               )}
 
               {/* Error */}
               {!loading && error && (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                    <AlertCircle size={28} className="text-red-400" />
+                <div className="flex flex-col items-center justify-center py-32 text-center">
+                  <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                    <AlertCircle size={40} className="text-red-400" />
                   </div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">Failed to load wheels</p>
-                  <p className="text-emerald-600/60 text-sm mb-5">{error}</p>
+                  <p className="text-gray-900 font-bold text-2xl mb-2">Failed to load wheels</p>
+                  <p className="text-gray-600 text-base mb-8">{error}</p>
                   <button
                     onClick={handleRefresh}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all hover:scale-105"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-lg flex items-center gap-2 transition-all hover:scale-105"
                   >
-                    <RefreshCw size={16} /> Try Again
+                    <RefreshCw size={18} /> Try Again
                   </button>
                 </div>
               )}
 
               {/* Empty */}
               {!loading && !error && filtered.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="text-7xl mb-4">⚙️</div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">No wheels found</p>
-                  <p className="text-emerald-600/60 text-sm mb-5">Try adjusting your search or filters</p>
+                <div className="flex flex-col items-center justify-center py-32 text-center">
+                  <div className="text-9xl mb-6">⚙️</div>
+                  <p className="text-gray-900 font-bold text-2xl mb-2">No wheels found</p>
+                  <p className="text-gray-600 text-base mb-8">Try adjusting your search or filters</p>
                   <button
                     onClick={() => { setSearch(""); setCondition("all"); }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl transition-all hover:scale-105"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-lg transition-all hover:scale-105"
                   >
                     Clear Filters
                   </button>
@@ -1117,12 +1105,12 @@ export default function WheelListingsModal({ isOpen, onClose }) {
               {/* Grid */}
               {!loading && !error && filtered.length > 0 && (
                 <>
-                  <p className="text-emerald-600/50 text-xs font-semibold mb-4">
-                    Showing {filtered.length} listing{filtered.length !== 1 ? "s" : ""}
-                    {search && ` for "${search}"`}
+                  <p className="text-gray-600 text-sm font-semibold mb-6">
+                    📍 Showing <span className="font-bold text-emerald-600">{filtered.length}</span> listing{filtered.length !== 1 ? "s" : ""}
+                    {search && ` for <span class="text-emerald-600">"${search}"</span>`}
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
                     {filtered.map((wheel) => (
                       <WheelCard key={wheel.id} wheel={wheel} onContact={setContactWheel} onItemClick={setSelectedWheel} />
                     ))}
@@ -1130,23 +1118,23 @@ export default function WheelListingsModal({ isOpen, onClose }) {
 
                   {/* Pagination */}
                   {pagination && pagination.totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-3 mt-10">
+                    <div className="flex items-center justify-center gap-2 mt-12">
                       <button
                         onClick={() => handlePageChange(page - 1)}
                         disabled={page <= 1}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                       >
                         <ChevronLeft size={18} />
                       </button>
 
-                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+                      {Array.from({ length: Math.min(pagination.totalPages, 5) }, (_, i) => i + 1).map((p) => (
                         <button
                           key={p}
                           onClick={() => handlePageChange(p)}
-                          className={`w-10 h-10 rounded-xl font-bold text-sm transition-all ${
+                          className={`w-10 h-10 rounded-lg font-semibold text-sm transition-all ${
                             p === page
-                              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
-                              : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                              ? "bg-emerald-600 text-white shadow-lg"
+                              : "border border-gray-300 text-gray-700 hover:bg-white"
                           }`}
                         >
                           {p}
@@ -1156,7 +1144,7 @@ export default function WheelListingsModal({ isOpen, onClose }) {
                       <button
                         onClick={() => handlePageChange(page + 1)}
                         disabled={page >= pagination.totalPages}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                       >
                         <ChevronRight size={18} />
                       </button>
@@ -1167,16 +1155,16 @@ export default function WheelListingsModal({ isOpen, onClose }) {
             </div>
 
             {/* ── Footer ── */}
-            <div className="border-t border-emerald-100 px-6 py-4">
-              <div className="max-w-7xl mx-auto flex items-center justify-between">
-                <p className="text-emerald-600/50 text-xs">
-                  {pagination ? `${pagination.totalRecords} total listings` : "Live data"}
+            <div className="border-t border-gray-200 px-4 sm:px-8 py-4 bg-white">
+              <div className="flex items-center justify-between">
+                <p className="text-gray-500 text-sm">
+                  {pagination ? `${pagination.totalRecords} total listings available` : "Live data"}
                 </p>
                 <button
                   onClick={onClose}
-                  className="text-sm text-emerald-600 hover:text-emerald-500 font-semibold flex items-center gap-1 transition-colors"
+                  className="text-sm text-emerald-600 hover:text-emerald-500 font-semibold flex items-center gap-1.5 transition-colors"
                 >
-                  <X size={14} /> Close
+                  <X size={16} /> Close
                 </button>
               </div>
             </div>

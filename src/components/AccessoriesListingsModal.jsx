@@ -1,26 +1,26 @@
+// ── components/AccessoriesListingsModal.jsx ──────────────────────────────────────
+// Full-screen modal that shows live accessories listings fetched from the API.
+// Triggered when user clicks "Accessories" in the Categories section.
+// ──────────────────────────────────────────────────────────────────────────────
+
 import { useEffect, useState } from "react";
 import {
-  X, Search, MapPin, Phone, RefreshCw, ChevronLeft, ChevronRight,
-  AlertCircle, Star, SlidersHorizontal, CheckCircle, Heart
+  X, Search, Filter, MapPin, Phone, Tag, RefreshCw,
+  ChevronLeft, ChevronRight, AlertCircle, Package,
+  Star, ShoppingBag, SlidersHorizontal, CheckCircle, Heart
 } from "lucide-react";
-import useBikes from "../hooks/useBikes";
-import ItemDetailModal from "./ItemDetailModal";
+import useAccessories from "../hooks/useAccessories";
+import AccessoryDetailModal from "./AccessoryDetailModal";
 import LOGO_SRC from "../assets/motorMandiLogo.png";
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const formatPrice = (price) => {
-  const value = parseFloat(price);
-  if (Number.isNaN(value)) return "N/A";
-  return `₹${value.toLocaleString("en-IN")}`;
+  const n = parseFloat(price);
+  if (isNaN(n)) return "N/A";
+  return `₹${n.toLocaleString("en-IN")}`;
 };
 
-const conditionStyles = {
-  excellent: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  good: "bg-lime-50 text-lime-700 border-lime-200",
-  fair: "bg-amber-50 text-amber-700 border-amber-200",
-  old: "bg-amber-50 text-amber-700 border-amber-200",
-  used: "bg-amber-50 text-amber-700 border-amber-200",
-};
-
+// ── Skeleton Card ─────────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
     <div className="bg-white border border-emerald-100 rounded-2xl overflow-hidden animate-pulse">
@@ -29,13 +29,8 @@ function SkeletonCard() {
         <div className="h-3 bg-emerald-100 rounded w-1/3" />
         <div className="h-4 bg-emerald-100 rounded w-3/4" />
         <div className="h-3 bg-emerald-100 rounded w-1/2" />
-        <div className="grid grid-cols-3 gap-2 pt-1">
-          <div className="h-7 bg-emerald-100 rounded-xl" />
-          <div className="h-7 bg-emerald-100 rounded-xl" />
-          <div className="h-7 bg-emerald-100 rounded-xl" />
-        </div>
         <div className="flex justify-between items-center pt-2">
-          <div className="h-6 bg-emerald-100 rounded w-24" />
+          <div className="h-6 bg-emerald-100 rounded w-20" />
           <div className="h-8 bg-emerald-100 rounded w-16" />
         </div>
       </div>
@@ -43,33 +38,36 @@ function SkeletonCard() {
   );
 }
 
-function BikeCard({ bike, onContact, onItemClick }) {
+// ── Accessory Card ────────────────────────────────────────────────────────────
+function AccessoryCard({ accessory, onContact, onClick }) {
   const [imgError, setImgError] = useState(false);
   const [liked, setLiked] = useState(false);
-  const firstImage = bike.medias?.[0]?.media;
-  const conditionKey = bike.condition?.toLowerCase();
-  const conditionClass = conditionStyles[conditionKey] || conditionStyles.old;
+  const firstImage = accessory.medias?.[0]?.media;
 
-  const discount = bike.price && bike.customerPrice
-    ? Math.round(((parseFloat(bike.customerPrice) - parseFloat(bike.price)) / parseFloat(bike.customerPrice)) * 100)
+  const discount = accessory.ownerPrice && accessory.customerPrice
+    ? Math.round(((parseFloat(accessory.customerPrice) - parseFloat(accessory.ownerPrice)) / parseFloat(accessory.customerPrice)) * 100)
+    : 0;
+
+  const savings = accessory.ownerPrice && accessory.customerPrice
+    ? Math.max(0, parseFloat(accessory.customerPrice) - parseFloat(accessory.ownerPrice))
     : 0;
 
   return (
     <div
-      onClick={() => onItemClick && onItemClick(bike)}
-      className="group bg-white border border-gray-200 hover:border-emerald-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-100/60 flex flex-col cursor-pointer h-full"
+      onClick={onClick}
+      className="group bg-white border border-emerald-100 hover:border-emerald-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-100/60 flex flex-col h-full cursor-pointer"
     >
       {/* Image Section */}
       <div className="relative bg-gray-100 overflow-hidden flex items-center justify-center aspect-square">
         {firstImage && !imgError ? (
           <img
             src={firstImage}
-            alt={bike.name || "Bike"}
+            alt={accessory.title || "Accessory"}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
-          <span className="text-6xl select-none">🏍️</span>
+          <span className="text-6xl select-none">🔧</span>
         )}
 
         {/* Top Left Badges */}
@@ -79,42 +77,37 @@ function BikeCard({ bike, onContact, onItemClick }) {
               {discount}% OFF
             </div>
           )}
-          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded border capitalize bg-white ${conditionClass}`}>
-            {bike.condition || "—"}
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded border bg-white text-emerald-700 border-emerald-200">
+            New
           </span>
         </div>
 
         {/* Wishlist */}
         <button
-          onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+          onClick={() => setLiked(!liked)}
           className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110"
         >
           <Heart size={16} fill={liked ? "#ef4444" : "none"} stroke={liked ? "#ef4444" : "#999"} />
         </button>
 
         {/* Multiple images indicator */}
-        {bike.medias?.length > 1 && (
+        {accessory.medias?.length > 1 && (
           <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            +{bike.medias.length - 1}
+            +{accessory.medias.length - 1}
           </div>
         )}
       </div>
 
       {/* Content Section */}
       <div className="p-3.5 flex flex-col flex-1">
-        {/* Brand */}
-        {bike.brandName && (
-          <div className="text-teal-600 text-xs font-bold mb-1 uppercase tracking-wide">
-            {bike.brandName}
-          </div>
-        )}
+        {/* Product Type */}
+        <div className="text-teal-600 text-xs font-bold mb-1 uppercase tracking-wide">
+          Auto Part
+        </div>
 
-        {/* Name */}
+        {/* Title */}
         <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-emerald-600">
-          {bike.name || bike.brandName || "Premium Bike"}
-          {bike.model && (
-            <span className="block text-xs text-gray-500 font-normal mt-0.5">{bike.model}</span>
-          )}
+          {accessory.title || "Accessory"}
         </h3>
 
         {/* Rating & Reviews */}
@@ -124,42 +117,50 @@ function BikeCard({ bike, onContact, onItemClick }) {
               <Star key={i} size={12} fill="#fbbf24" stroke="#fbbf24" />
             ))}
           </div>
-          <span className="text-xs text-gray-500">(180+)</span>
+          <span className="text-xs text-gray-500">(120+)</span>
         </div>
 
-        {/* Key Details */}
-        <div className="mb-2 pb-2 border-b border-gray-100">
-          {bike.year && <p className="text-xs text-gray-600">📅 <span className="font-medium">{bike.year}</span></p>}
-          {bike.cc && <p className="text-xs text-gray-600">⚡ <span className="font-medium">{bike.cc}</span></p>}
-        </div>
+        {/* Description */}
+        {accessory.description && (
+          <p className="text-gray-600 text-xs mb-2 line-clamp-2">
+            {accessory.description}
+          </p>
+        )}
 
         {/* Price Section */}
-        <div className="mb-2 py-2">
+        <div className="mb-2 pt-2 border-t border-gray-100">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-lg font-black text-gray-900">{formatPrice(bike.price)}</span>
-            {bike.customerPrice && (
-              <span className="text-xs text-gray-500 line-through">{formatPrice(bike.customerPrice)}</span>
+            <span className="text-lg font-black text-gray-900">{formatPrice(accessory.ownerPrice)}</span>
+            {accessory.customerPrice && (
+              <span className="text-xs text-gray-500 line-through">{formatPrice(accessory.customerPrice)}</span>
             )}
           </div>
         </div>
 
-        {/* Location Info */}
-        {bike.user && (
-          <div className="text-gray-600 text-xs mb-3 pb-2 border-b border-gray-100">
-            <MapPin size={10} className="inline mr-1" />
-            <span className="font-medium truncate">{bike.user.shopName || bike.user.name}</span>
-            {bike.user.city && <span> · {bike.user.city}</span>}
+        {/* Savings Badge */}
+        {savings > 0 && (
+          <div className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-2">
+            ✓ Save {formatPrice(savings)}
           </div>
         )}
 
-        {/* Stock Status */}
+        {/* Seller Location Info */}
+        {accessory.user && (
+          <div className="text-gray-600 text-xs mb-3 pb-2 border-b border-gray-100">
+            <MapPin size={10} className="inline mr-1" />
+            <span className="font-medium truncate">{accessory.user.shopName || accessory.user.name}</span>
+            {accessory.user.city && <span> · {accessory.user.city}</span>}
+          </div>
+        )}
+
+        {/* Verified Badge */}
         <div className="text-emerald-700 text-xs font-semibold mb-3">
-          ✓ Verified Listing
+          ✓ Verified Seller
         </div>
 
         {/* Contact Button */}
         <button
-          onClick={(e) => { e.stopPropagation(); onContact(bike); }}
+          onClick={() => onContact && onContact(accessory)}
           className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
         >
           <Phone size={14} /> Contact Now
@@ -169,8 +170,9 @@ function BikeCard({ bike, onContact, onItemClick }) {
   );
 }
 
-function ContactPopup({ bike, onClose }) {
-  if (!bike) return null;
+// ── Contact Popup ─────────────────────────────────────────────────────────────
+function ContactPopup({ accessory, onClose }) {
+  if (!accessory) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose}>
@@ -185,29 +187,29 @@ function ContactPopup({ bike, onClose }) {
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">🏍️</div>
+          <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">🔧</div>
           <div>
-            <h3 className="text-emerald-950 font-black text-sm">{bike.name || "Bike Listing"}</h3>
-            <p className="text-emerald-600/60 text-xs">{bike.brandName || "Brand"} · {bike.model || "Model"}</p>
+            <h3 className="text-emerald-950 font-black text-sm">{accessory.title || "Accessory"}</h3>
+            <p className="text-emerald-600/60 text-xs">Auto Parts & Accessories</p>
           </div>
         </div>
 
-        {bike.user && (
+        {accessory.user && (
           <div className="bg-emerald-50 rounded-2xl p-4 mb-4">
-            <p className="text-emerald-800 font-bold text-sm mb-1">{bike.user.shopName || bike.user.name}</p>
-            {bike.user.address && <p className="text-emerald-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11} />{bike.user.address}</p>}
+            <p className="text-emerald-800 font-bold text-sm mb-1">{accessory.user.shopName || accessory.user.name}</p>
+            {accessory.user.address && <p className="text-emerald-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11} />{accessory.user.address}</p>}
             <a
-              href={`tel:${bike.user.phone}`}
+              href={`tel:${accessory.user.phone}`}
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all hover:scale-105 justify-center mt-2"
             >
-              <Phone size={16} /> {bike.user.phone}
+              <Phone size={16} /> {accessory.user.phone}
             </a>
-            {bike.user.email && (
+            {accessory.user.email && (
               <a
-                href={`mailto:${bike.user.email}`}
+                href={`mailto:${accessory.user.email}`}
                 className="flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:bg-emerald-50 justify-center mt-2"
               >
-                ✉️ {bike.user.email}
+                ✉️ {accessory.user.email}
               </a>
             )}
           </div>
@@ -215,12 +217,12 @@ function ContactPopup({ bike, onClose }) {
 
         <div className="grid grid-cols-2 gap-3 mb-4 text-xs text-emerald-700/80">
           <div className="bg-emerald-50 rounded-2xl p-3">
-            <div className="font-bold text-emerald-900 mb-1">Vehicle Number</div>
-            <div>{bike.vehicleNumber || "—"}</div>
+            <div className="font-bold text-emerald-900 mb-1">Price</div>
+            <div>{formatPrice(accessory.ownerPrice)}</div>
           </div>
           <div className="bg-emerald-50 rounded-2xl p-3">
-            <div className="font-bold text-emerald-900 mb-1">Condition</div>
-            <div>{bike.condition || "—"}</div>
+            <div className="font-bold text-emerald-900 mb-1">Status</div>
+            <div className="capitalize">{accessory.status || "Active"}</div>
           </div>
         </div>
 
@@ -233,21 +235,21 @@ function ContactPopup({ bike, onClose }) {
   );
 }
 
-export default function BikeListingsModal({ isOpen, onClose }) {
-  const { bikes, loading, error, pagination, fetchBikes } = useBikes();
+// ── Main Modal Component ──────────────────────────────────────────────────────
+export default function AccessoriesListingsModal({ isOpen, onClose }) {
+  const { accessories, loading, error, pagination, fetchAccessories } = useAccessories();
   const [search, setSearch] = useState("");
-  const [condition, setCondition] = useState("all");
   const [page, setPage] = useState(1);
-  const [contactBike, setContactBike] = useState(null);
-  const [selectedBike, setSelectedBike] = useState(null);
+  const [contactAccessory, setContactAccessory] = useState(null);
+  const [selectedAccessory, setSelectedAccessory] = useState(null);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     if (isOpen && !hasLoaded) {
-      fetchBikes({ page: 1, limit: 10 });
+      fetchAccessories({ page: 1, limit: 20 });
       setHasLoaded(true);
     }
-  }, [isOpen, hasLoaded, fetchBikes]);
+  }, [isOpen, hasLoaded, fetchAccessories]);
 
   useEffect(() => {
     if (!isOpen) setHasLoaded(false);
@@ -261,28 +263,22 @@ export default function BikeListingsModal({ isOpen, onClose }) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const filtered = bikes.filter((bike) => {
+  const filtered = accessories.filter((acc) => {
     const q = search.toLowerCase();
-    const matchSearch = !q ||
-      (bike.name || "").toLowerCase().includes(q) ||
-      (bike.brandName || "").toLowerCase().includes(q) ||
-      (bike.model || "").toLowerCase().includes(q) ||
-      (bike.vehicleNumber || "").toLowerCase().includes(q) ||
-      (bike.user?.shopName || "").toLowerCase().includes(q) ||
-      (bike.user?.name || "").toLowerCase().includes(q);
-
-    const matchCondition = condition === "all" || (bike.condition || "").toLowerCase() === condition;
-    return matchSearch && matchCondition;
+    return !q ||
+      (acc.title || "").toLowerCase().includes(q) ||
+      (acc.description || "").toLowerCase().includes(q) ||
+      (acc.user?.shopName || "").toLowerCase().includes(q);
   });
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    fetchBikes({ page: newPage, limit: 10 });
+    fetchAccessories({ page: newPage, limit: 20 });
     window.scrollTo(0, 0);
   };
 
   const handleRefresh = () => {
-    fetchBikes({ page, limit: 10 });
+    fetchAccessories({ page, limit: 20 });
   };
 
   if (!isOpen) return null;
@@ -310,10 +306,10 @@ export default function BikeListingsModal({ isOpen, onClose }) {
                     <img src={LOGO_SRC} alt="MotorMandi" className="h-10 w-auto object-contain" />
                     <div>
                       <h2 className="text-emerald-950 font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>
-                        OLD BIKE LISTINGS
+                        ACCESSORIES & PARTS
                       </h2>
                       {pagination && (
-                        <p className="text-emerald-500 text-xs">{pagination.totalRecords} bikes found</p>
+                        <p className="text-emerald-500 text-xs">{pagination.totalRecords} accessories found</p>
                       )}
                     </div>
                   </div>
@@ -341,7 +337,7 @@ export default function BikeListingsModal({ isOpen, onClose }) {
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search brand, model, number, shop..."
+                      placeholder="Search parts, accessories, category..."
                       className="bg-transparent text-emerald-900 placeholder-emerald-400 text-sm w-full outline-none"
                     />
                     {search && (
@@ -350,38 +346,14 @@ export default function BikeListingsModal({ isOpen, onClose }) {
                       </button>
                     )}
                   </div>
-
-                  <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-2.5">
-                    <SlidersHorizontal size={14} className="text-emerald-500" />
-                    <select
-                      value={condition}
-                      onChange={(e) => setCondition(e.target.value)}
-                      className="bg-transparent text-emerald-700 text-sm font-semibold outline-none cursor-pointer"
-                    >
-                      <option value="all">All Conditions</option>
-                      <option value="excellent">Excellent</option>
-                      <option value="good">Good</option>
-                      <option value="fair">Fair</option>
-                      <option value="old">Old</option>
-                      <option value="used">Used</option>
-                    </select>
-                  </div>
                 </div>
 
-                {(condition !== "all" || search) && (
+                {search && (
                   <div className="flex gap-2 flex-wrap mt-3">
-                    {search && (
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                        🔍 "{search}"
-                        <button onClick={() => setSearch("")}><X size={10} /></button>
-                      </span>
-                    )}
-                    {condition !== "all" && (
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 capitalize">
-                        {condition}
-                        <button onClick={() => setCondition("all")}><X size={10} /></button>
-                      </span>
-                    )}
+                    <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                      🔍 "{search}"
+                      <button onClick={() => setSearch("")}><X size={10} /></button>
+                    </span>
                   </div>
                 )}
               </div>
@@ -390,7 +362,7 @@ export default function BikeListingsModal({ isOpen, onClose }) {
             <div className="flex-1 px-4 sm:px-6 py-6 max-w-7xl mx-auto w-full">
               {loading && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
-                  {Array.from({ length: 8 }).map((_, index) => <SkeletonCard key={index} />)}
+                  {Array.from({ length: 10 }).map((_, index) => <SkeletonCard key={index} />)}
                 </div>
               )}
 
@@ -399,7 +371,7 @@ export default function BikeListingsModal({ isOpen, onClose }) {
                   <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                     <AlertCircle size={28} className="text-red-400" />
                   </div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">Failed to load bikes</p>
+                  <p className="text-emerald-950 font-bold text-lg mb-1">Failed to load accessories</p>
                   <p className="text-emerald-600/60 text-sm mb-5">{error}</p>
                   <button
                     onClick={handleRefresh}
@@ -412,14 +384,14 @@ export default function BikeListingsModal({ isOpen, onClose }) {
 
               {!loading && !error && filtered.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="text-7xl mb-4">🏍️</div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">No bikes found</p>
-                  <p className="text-emerald-600/60 text-sm mb-5">Try adjusting your search or filters</p>
+                  <div className="text-7xl mb-4">🔧</div>
+                  <p className="text-emerald-950 font-bold text-lg mb-1">No accessories found</p>
+                  <p className="text-emerald-600/60 text-sm mb-5">Try adjusting your search</p>
                   <button
-                    onClick={() => { setSearch(""); setCondition("all"); }}
+                    onClick={() => setSearch("")}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl transition-all hover:scale-105"
                   >
-                    Clear Filters
+                    Clear Search
                   </button>
                 </div>
               )}
@@ -427,12 +399,17 @@ export default function BikeListingsModal({ isOpen, onClose }) {
               {!loading && !error && filtered.length > 0 && (
                 <>
                   <p className="text-emerald-600/50 text-xs font-semibold mb-4">
-                    Showing {filtered.length} listing{filtered.length !== 1 ? "s" : ""}
+                    Showing {filtered.length} item{filtered.length !== 1 ? "s" : ""}
                     {search && ` for "${search}"`}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
-                    {filtered.map((bike) => (
-                      <BikeCard key={bike.id} bike={bike} onContact={setContactBike} onItemClick={setSelectedBike} />
+                    {filtered.map((accessory) => (
+                      <AccessoryCard
+                        key={accessory.id}
+                        accessory={accessory}
+                        onContact={setContactAccessory}
+                        onClick={() => setSelectedAccessory(accessory)}
+                      />
                     ))}
                   </div>
 
@@ -450,9 +427,9 @@ export default function BikeListingsModal({ isOpen, onClose }) {
                         <button
                           key={p}
                           onClick={() => handlePageChange(p)}
-                          className={`w-10 h-10 rounded-xl font-bold text-sm transition-all ${
+                          className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold text-sm transition-all ${
                             p === page
-                              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                              ? "bg-emerald-600 text-white"
                               : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                           }`}
                         >
@@ -472,33 +449,12 @@ export default function BikeListingsModal({ isOpen, onClose }) {
                 </>
               )}
             </div>
-
-            <div className="border-t border-emerald-100 px-6 py-4">
-              <div className="max-w-7xl mx-auto flex items-center justify-between">
-                <p className="text-emerald-600/50 text-xs">
-                  {pagination ? `${pagination.totalRecords} total listings` : "Live data"}
-                </p>
-                <button
-                  onClick={onClose}
-                  className="text-sm text-emerald-600 hover:text-emerald-500 font-semibold flex items-center gap-1 transition-colors"
-                >
-                  <X size={14} /> Close
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {contactBike && (
-        <ContactPopup bike={contactBike} onClose={() => setContactBike(null)} />
-      )}
-
-      <ItemDetailModal
-        isOpen={!!selectedBike}
-        onClose={() => setSelectedBike(null)}
-        item={selectedBike}
-      />
+      {contactAccessory && <ContactPopup accessory={contactAccessory} onClose={() => setContactAccessory(null)} />}
+      {selectedAccessory && <AccessoryDetailModal accessory={selectedAccessory} onClose={() => setSelectedAccessory(null)} />}
     </>
   );
 }
