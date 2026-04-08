@@ -13,23 +13,24 @@ import CarListingsModal from "../components/CarListingsModal";
 import BikeListingsModal from "../components/BikeListingsModal";
 import AccessoriesListingsModal from "../components/AccessoriesListingsModal";
 import SearchResultsModal from "../components/SearchResultsModal";
+import NearbyShopsListingsModal from "../components/NearbyShopsListingsModal";
+import useNearbyShops from "../hooks/useNearbyShops";
+import ApiProvider from "../api/ApiProvider";
+
+// SVG icon imports
+import TyreSvg from "../assets/svg/tyre.svg";
+import RimSvg from "../assets/svg/rim.svg";
+import CarSvg from "../assets/svg/car.svg";
+import BikeSvg from "../assets/svg/bike.svg";
+import AccessorySvg from "../assets/svg/accessory.svg";
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const categories = [
-  { icon: "🛞", label: "Tyres",        sub: "New & Used",    count: "2,400+", color: "from-emerald-500/20 to-emerald-600/5",  key: "tyres"       },
-  { icon: "⚙️", label: "Wheels & Rims", sub: "Alloy, Steel",  count: "1,800+", color: "from-green-500/20 to-green-600/5",     key: "rims"        },
-  { icon: "🚗", label: "Cars",          sub: "All Brands",    count: "950+",   color: "from-teal-500/20 to-teal-600/5",       key: "cars"        },
-  { icon: "🏍️", label: "Bikes",         sub: "Street, Sport", count: "640+",   color: "from-lime-500/20 to-lime-600/5",       key: "bikes"       },
-  { icon: "🔧", label: "Accessories",   sub: "Parts & More",  count: "3,100+", color: "from-emerald-400/20 to-emerald-500/5", key: "accessories" },
-];
-
-const listings = [
-  { id: 1, type: "Tyre",        name: "Michelin Pilot Sport 5",       condition: "New",  price: "₹8,400",     oldPrice: "₹10,200", image: "🛞",  brand: "Michelin",      location: "Delhi",     badge: "Hot Deal",  badgeColor: "bg-emerald-600" },
-  { id: 2, type: "Rim",         name: "BBS CH-R Alloy Wheels",         condition: "Used", price: "₹32,000",    oldPrice: null,      image: "⚙️",  brand: "BBS",           location: "Mumbai",    badge: "Verified",  badgeColor: "bg-green-600"   },
-  { id: 3, type: "Car",         name: "Honda City 2022 ZX",            condition: "Used", price: "₹9,20,000",  oldPrice: null,      image: "🚗",  brand: "Honda",         location: "Pune",      badge: "Featured",  badgeColor: "bg-teal-600"    },
-  { id: 4, type: "Bike",        name: "Royal Enfield Meteor 350",      condition: "Used", price: "₹1,48,000",  oldPrice: "₹1,65,000", image: "🏍️", brand: "Royal Enfield", location: "Bangalore", badge: "Hot Deal",  badgeColor: "bg-emerald-600" },
-  { id: 5, type: "Tyre",        name: "Apollo Apterra H/T",            condition: "New",  price: "₹5,200",     oldPrice: "₹6,000",  image: "🛞",  brand: "Apollo",        location: "Hyderabad", badge: null,        badgeColor: ""               },
-  { id: 6, type: "Accessories", name: "K&N Performance Air Filter",    condition: "New",  price: "₹3,800",     oldPrice: null,      image: "🔧",  brand: "K&N",           location: "Chennai",   badge: "Top Rated", badgeColor: "bg-green-700"   },
+  { icon: "tyres", label: "Tyres",        sub: "New & Used",    count: "2,400+", color: "from-emerald-500/20 to-emerald-600/5",  key: "tyres"       },
+  { icon: "wheels", label: "Wheels & Rims", sub: "Alloy, Steel",  count: "1,800+", color: "from-green-500/20 to-green-600/5",     key: "rims"        },
+  { icon: "car", label: "Cars",          sub: "All Brands",    count: "950+",   color: "from-teal-500/20 to-teal-600/5",       key: "cars"        },
+  { icon: "bike", label: "Bikes",         sub: "Street, Sport", count: "640+",   color: "from-lime-500/20 to-lime-600/5",       key: "bikes"       },
+  { icon: "accessories", label: "Accessories",   sub: "Parts & More",  count: "3,100+", color: "from-emerald-400/20 to-emerald-500/5", key: "accessories" },
 ];
 
 const testimonials = [
@@ -39,15 +40,6 @@ const testimonials = [
 ];
 
 const navLinks = ["Home", "Category", "Shops", , "Contact"];
-
-const allShops = [
-  { id: 1, name: "SpeedZone Auto Works", type: "Car Repair",  rating: 4.8, reviews: 312, distance: "0.8 km", address: "Plot 14, Sector 7, Delhi",        phone: "+91 98100 11234", open: true,  hours: "8AM–8PM", tags: ["AC Repair","Engine","Painting"],    lat: 28.6562, lng: 77.2410, color: "#059669" },
-  { id: 2, name: "Moto Fix Garage",      type: "Bike Repair", rating: 4.6, reviews: 198, distance: "1.2 km", address: "Shop 3, MG Road, Delhi",          phone: "+91 98200 55678", open: true,  hours: "9AM–7PM", tags: ["Engine","Tyres","Brakes"],          lat: 28.6480, lng: 77.2350, color: "#10b981" },
-  { id: 3, name: "AutoCare 360",         type: "Car & Bike",  rating: 4.5, reviews: 540, distance: "1.9 km", address: "23 Ring Road, Delhi",             phone: "+91 91234 77890", open: false, hours: "10AM–6PM",tags: ["Detailing","Denting","Tyres"],      lat: 28.6610, lng: 77.2300, color: "#047857" },
-  { id: 4, name: "Wheel Masters",        type: "Tyre & Rim",  rating: 4.9, reviews: 421, distance: "2.3 km", address: "GT Road, Karol Bagh, Delhi",      phone: "+91 99887 11223", open: true,  hours: "8AM–9PM", tags: ["Alloy Wheels","Tyres","Balancing"], lat: 28.6530, lng: 77.2180, color: "#065f46" },
-  { id: 5, name: "RoadRunner Motors",    type: "Car Repair",  rating: 4.3, reviews: 156, distance: "3.1 km", address: "Basement, Connaught Pl, Delhi",   phone: "+91 90011 34567", open: true,  hours: "9AM–8PM", tags: ["Transmission","AC","Electrics"],    lat: 28.6330, lng: 77.2180, color: "#059669" },
-  { id: 6, name: "Bike Doctor",          type: "Bike Repair", rating: 4.7, reviews: 287, distance: "3.5 km", address: "Near Metro, Lajpat Nagar",        phone: "+91 88001 22334", open: false, hours: "8AM–7PM", tags: ["Servicing","Brakes","Chain"],       lat: 28.5700, lng: 77.2430, color: "#10b981" },
-];
 
 // ── Animated Counter ─────────────────────────────────────────────────────────
 function AnimatedStat({ value, label }) {
@@ -241,37 +233,53 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick, on
           <a href="#" className="hidden sm:flex items-center gap-2 text-emerald-600 text-sm font-bold hover:text-emerald-500 transition-colors">All Categories <ArrowRight size={18} /></a>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {categories.map((cat, i) => (
-            <div
-              key={cat.label}
-              onClick={() => {
-                if (cat.key === "tyres") onTyresClick();
-                if (cat.key === "rims")  onWheelsClick();
-                if (cat.key === "cars")  onCarsClick();
-                if (cat.key === "bikes") onBikesClick();
-                if (cat.key === "accessories") onAccessoriesClick();
-              }}
-              className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${["tyres", "rims", "cars", "bikes", "accessories"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{cat.icon}</div>
-              <div className="text-emerald-900 font-black text-lg leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>{cat.label}</div>
-              <div className="text-emerald-600/60 text-xs mt-1">{cat.sub}</div>
-              <div className="mt-3 text-emerald-600 text-xs font-bold">{cat.count} listings</div>
+          {categories.map((cat, i) => {
+            const getIconComponent = (iconKey) => {
+              const icons = {
+                tyres: TyreSvg,
+                wheels: RimSvg,
+                car: CarSvg,
+                bike: BikeSvg,
+                accessories: AccessorySvg,
+              };
+              const svgPath = icons[iconKey] || AccessorySvg;
+              return <img src={svgPath} alt={iconKey} className="w-10 h-10 object-contain" />;
+            };
 
-              {/* "Live" badge for selected category listings */}
-              {(cat.key === "tyres" || cat.key === "cars" || cat.key === "bikes" || cat.key === "accessories") && (
-                <div className="absolute top-3 right-3 flex items-center gap-1 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                  LIVE
+            return (
+              <div
+                key={cat.label}
+                onClick={() => {
+                  if (cat.key === "tyres") onTyresClick();
+                  if (cat.key === "rims")  onWheelsClick();
+                  if (cat.key === "cars")  onCarsClick();
+                  if (cat.key === "bikes") onBikesClick();
+                  if (cat.key === "accessories") onAccessoriesClick();
+                }}
+                className={`group relative bg-gradient-to-br ${cat.color} border border-emerald-100 hover:border-emerald-400/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100 ${["tyres", "rims", "cars", "bikes", "accessories"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-emerald-400/50" : "cursor-default"}`}
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
+                  {getIconComponent(cat.icon)}
                 </div>
-              )}
+                <div className="text-emerald-900 font-black text-lg leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>{cat.label}</div>
+                <div className="text-emerald-600/60 text-xs mt-1">{cat.sub}</div>
+                <div className="mt-3 text-emerald-600 text-xs font-bold">{cat.count} listings</div>
 
-              <div className={`absolute bottom-4 right-4 w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center transition-opacity ${cat.key === "tyres" ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                <ArrowRight size={12} className="text-emerald-600" />
+                {/* "Live" badge for selected category listings */}
+                {(cat.key === "tyres" || cat.key === "cars" || cat.key === "bikes" || cat.key === "accessories") && (
+                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                    LIVE
+                  </div>
+                )}
+
+                <div className={`absolute bottom-4 right-4 w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center transition-opacity ${cat.key === "tyres" ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                  <ArrowRight size={12} className="text-emerald-600" />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Hint text under categories */}
@@ -286,10 +294,33 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick, on
 // ── Listing Card ─────────────────────────────────────────────────────────────
 function ListingCard({ item }) {
   const [liked, setLiked] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const getItemIcon = (type) => {
+    const iconMap = {
+      "Tyre": TyreSvg,
+      "Rim": RimSvg,
+      "Car": CarSvg,
+      "Bike": BikeSvg,
+      "Accessories": AccessorySvg,
+    };
+    const svgPath = iconMap[type] || AccessorySvg;
+    return <img src={svgPath} alt={type} className="w-20 h-20 object-contain" />;
+  };
+
   return (
     <div className="group bg-white border border-emerald-100 hover:border-emerald-400/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100">
-      <div className="relative bg-emerald-50 h-44 flex items-center justify-center text-8xl">
-        {item.image}
+      <div className="relative bg-emerald-50 h-44 flex items-center justify-center overflow-hidden">
+        {item.imageUrl && !imgError ? (
+          <img 
+            src={item.imageUrl} 
+            alt={item.name}
+            onError={() => setImgError(true)}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+        ) : (
+          getItemIcon(item.type)
+        )}
         {item.badge && <span className={`absolute top-3 left-3 ${item.badgeColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide`}>{item.badge}</span>}
         <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full ${item.condition === "New" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-600 border border-amber-200"}`}>{item.condition}</span>
         <button onClick={() => setLiked(!liked)} className="absolute bottom-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors hover:bg-red-50 shadow-sm">
@@ -313,10 +344,144 @@ function ListingCard({ item }) {
 }
 
 // ── Featured Listings ─────────────────────────────────────────────────────────
-function FeaturedListings() {
+function FeaturedListings({ onViewMore }) {
   const [activeTab, setActiveTab] = useState("All");
+  const [apiData, setApiData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const tabs = ["All", "Tyres", "Rims", "Cars", "Bikes", "Accessories"];
-  const filtered = activeTab === "All" ? listings : listings.filter(l => l.type.toLowerCase().includes(activeTab.toLowerCase().replace("s", "")) || l.type === activeTab);
+
+  // Fetch data from all APIs on component mount
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch data from all 5 APIs (limit to 6 items each)
+        const [tyresRes, wheelsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
+          ApiProvider.tyres.getList({ limit: 6, page: 1 }),
+          ApiProvider.wheels.getList({ limit: 6, page: 1 }),
+          ApiProvider.cars.getList({ limit: 6, page: 1 }),
+          ApiProvider.bikes.getList({ limit: 6, page: 1 }),
+          ApiProvider.accessories.getList({ limit: 6, page: 1 }),
+        ]);
+
+        // Transform API responses to listing format
+        const transformedData = {
+          tyres: (tyresRes.data || []).map(item => ({
+            id: item.id,
+            type: "Tyre",
+            name: item.title || item.name || "Tyre",
+            condition: item.condition || "New",
+            price: `₹${(item.price || 0).toLocaleString()}`,
+            oldPrice: item.oldPrice ? `₹${item.oldPrice.toLocaleString()}` : null,
+            brand: item.brand || "Unknown",
+            location: item.location || "Unknown",
+            badge: item.isHot ? "Hot Deal" : item.isFeatured ? "Featured" : null,
+            badgeColor: item.isHot ? "bg-emerald-600" : "bg-green-600",
+            imageUrl: item.medias?.[0]?.media || null
+          })),
+          wheels: (wheelsRes.data || []).map(item => ({
+            id: item.id,
+            type: "Rim",
+            name: item.title || item.name || "Wheel",
+            condition: item.condition || "New",
+            price: `₹${(item.price || 0).toLocaleString()}`,
+            oldPrice: item.oldPrice ? `₹${item.oldPrice.toLocaleString()}` : null,
+            brand: item.brand || "Unknown",
+            location: item.location || "Unknown",
+            badge: item.isHot ? "Hot Deal" : item.isFeatured ? "Featured" : null,
+            badgeColor: item.isHot ? "bg-emerald-600" : "bg-green-600",
+            imageUrl: item.medias?.[0]?.media || null
+          })),
+          cars: (carsRes.data || []).map(item => ({
+            id: item.id,
+            type: "Car",
+            name: item.title || item.name || "Car",
+            condition: item.condition || "Used",
+            price: `₹${(item.price || 0).toLocaleString()}`,
+            oldPrice: item.oldPrice ? `₹${item.oldPrice.toLocaleString()}` : null,
+            brand: item.brand || "Unknown",
+            location: item.location || "Unknown",
+            badge: item.isFeatured ? "Featured" : null,
+            badgeColor: "bg-teal-600",
+            imageUrl: item.medias?.[0]?.media || null
+          })),
+          bikes: (bikesRes.data || []).map(item => ({
+            id: item.id,
+            type: "Bike",
+            name: item.title || item.name || "Bike",
+            condition: item.condition || "Used",
+            price: `₹${(item.price || 0).toLocaleString()}`,
+            oldPrice: item.oldPrice ? `₹${item.oldPrice.toLocaleString()}` : null,
+            brand: item.brand || "Unknown",
+            location: item.location || "Unknown",
+            badge: item.isHot ? "Hot Deal" : null,
+            badgeColor: "bg-emerald-600",
+            imageUrl: item.medias?.[0]?.media || null
+          })),
+          accessories: (accessoriesRes.data || []).map(item => ({
+            id: item.id,
+            type: "Accessories",
+            name: item.title || item.name || "Accessory",
+            condition: item.condition || "New",
+            price: `₹${(item.price || 0).toLocaleString()}`,
+            oldPrice: item.oldPrice ? `₹${item.oldPrice.toLocaleString()}` : null,
+            brand: item.brand || "Unknown",
+            location: item.location || "Unknown",
+            badge: item.isTopRated ? "Top Rated" : null,
+            badgeColor: "bg-green-700",
+            imageUrl: item.medias?.[0]?.media || null
+          }))
+        };
+
+        setApiData(transformedData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching listings:", err);
+        setError(err.message || "Failed to load listings");
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Get filtered data based on active tab
+  const getFilteredData = () => {
+    const allData = [
+      ...(apiData.tyres || []),
+      ...(apiData.wheels || []),
+      ...(apiData.cars || []),
+      ...(apiData.bikes || []),
+      ...(apiData.accessories || [])
+    ];
+
+    if (activeTab === "All") return allData.slice(0, 6);
+    if (activeTab === "Tyres") return (apiData.tyres || []).slice(0, 6);
+    if (activeTab === "Rims") return (apiData.wheels || []).slice(0, 6);
+    if (activeTab === "Cars") return (apiData.cars || []).slice(0, 6);
+    if (activeTab === "Bikes") return (apiData.bikes || []).slice(0, 6);
+    if (activeTab === "Accessories") return (apiData.accessories || []).slice(0, 6);
+    return [];
+  };
+
+  const filteredData = getFilteredData();
+
+  const handleViewMore = () => {
+    const categoryMap = {
+      "All": null,
+      "Tyres": "tyres",
+      "Rims": "wheels",
+      "Cars": "cars",
+      "Bikes": "bikes",
+      "Accessories": "accessories"
+    };
+    onViewMore(categoryMap[activeTab]);
+  };
+
   return (
     <section className="bg-white py-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -329,34 +494,80 @@ function FeaturedListings() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {(filtered.length ? filtered : listings).map(item => <ListingCard key={item.id} item={item} />)}
-        </div>
-        <div className="text-center mt-10">
-          <button className="border border-emerald-300 hover:bg-emerald-50 text-emerald-700 font-bold px-8 py-3 rounded-xl transition-all hover:scale-105 inline-flex items-center gap-2">View All Listings <ArrowRight size={18} /></button>
-        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="w-10 h-10 border-3 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-emerald-600 font-medium">Loading featured listings...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-600 text-sm">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {/* Listings Grid */}
+        {!loading && !error && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredData.length > 0 ? (
+                filteredData.map(item => <ListingCard key={item.id} item={item} />)
+              ) : (
+                <div className="col-span-3 text-center py-12">
+                  <p className="text-emerald-600 font-medium">No listings available for this category</p>
+                </div>
+              )}
+            </div>
+            <div className="text-center mt-10">
+              <button onClick={handleViewMore} className="border border-emerald-300 hover:bg-emerald-50 text-emerald-700 font-bold px-8 py-3 rounded-xl transition-all hover:scale-105 inline-flex items-center gap-2">View All Listings <ArrowRight size={18} /></button>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
 }
 
 // ── NEAREST SHOPS ─────────────────────────────────────────────────────────────
-function NearestShops() {
+function NearestShops({ onOpenNearbyShops }) {
+  const { shops, loading, error, userLocation, getUserLocation, fetchAndDisplay } = useNearbyShops();
   const [activeType, setActiveType] = useState("All");
-  const [selectedShop, setSelectedShop] = useState(allShops[0]);
-  const [locationGranted, setLocationGranted] = useState(false);
-  const [locating, setLocating] = useState(false);
+  const [selectedShop, setSelectedShop] = useState(null);
   const [showMap, setShowMap] = useState(true);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
 
-  const types = ["All", "Car Repair", "Bike Repair", "Car & Bike", "Tyre & Rim"];
-  const filtered = activeType === "All" ? allShops : allShops.filter(s => s.type === activeType);
+  // Auto-set first shop when shops load
+  useEffect(() => {
+    if (shops.length > 0 && !selectedShop) {
+      setSelectedShop(shops[0]);
+    }
+  }, [shops, selectedShop]);
 
-  const handleLocate = () => {
-    setLocating(true);
-    setTimeout(() => { setLocationGranted(true); setLocating(false); }, 1800);
+  const types = ["All"];
+  const shopTypes = new Set(shops.map(s => s.name));
+  
+  const filtered = activeType === "All" 
+    ? shops 
+    : shops.filter(s => {
+        // Filter by distance or other properties if needed
+        return true;
+      });
+
+  const handleLocate = async () => {
+    try {
+      const location = await getUserLocation();
+      await fetchAndDisplay(location);
+    } catch (err) {
+      console.error("Failed to get location:", err);
+    }
   };
 
   useEffect(() => {
@@ -375,7 +586,10 @@ function NearestShops() {
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
     script.onload = () => {
       const L = window.L;
-      const map = L.map(mapRef.current, { zoomControl: false }).setView([28.6480, 77.2350], 13);
+      const center = userLocation 
+        ? [userLocation.lat, userLocation.lng]
+        : [28.6480, 77.2350];
+      const map = L.map(mapRef.current, { zoomControl: false }).setView(center, 13);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
       L.control.zoom({ position: "bottomright" }).addTo(map);
       mapInstanceRef.current = map;
@@ -386,7 +600,7 @@ function NearestShops() {
     return () => {
       if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; }
     };
-  }, [showMap]);
+  }, [showMap, userLocation]);
 
   const updateMarkers = () => {
     const L = window.L;
@@ -394,28 +608,52 @@ function NearestShops() {
     const map = mapInstanceRef.current;
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
-    allShops.forEach(shop => {
-      const icon = L.divIcon({
+
+    // Add user location marker
+    if (userLocation) {
+      const userIcon = L.divIcon({
         className: "",
-        html: `<div style="background:${shop.open ? shop.color : "#9ca3af"};color:white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-size:16px"><span style="transform:rotate(45deg)">${shop.type.includes("Bike") ? "🏍️" : shop.type.includes("Tyre") ? "🛞" : "🚗"}</span></div>`,
-        iconSize: [36, 36],
-        iconAnchor: [18, 36],
+        html: `<div style="background:#3b82f6;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-size:16px">📍</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       });
-      const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map)
-        .bindPopup(`<div style="font-family:sans-serif;min-width:180px"><strong style="color:#065f46;font-size:14px">${shop.name}</strong><br/><span style="color:#6b7280;font-size:12px">${shop.type}</span><br/><div style="margin-top:6px;display:flex;align-items:center;gap:4px"><span style="color:#f59e0b">★</span><span style="font-size:12px;font-weight:bold">${shop.rating}</span><span style="color:#9ca3af;font-size:11px">(${shop.reviews} reviews)</span></div><div style="margin-top:4px;font-size:12px;color:#374151">📍 ${shop.address}</div><div style="margin-top:4px;font-size:12px;color:${shop.open ? "#059669" : "#ef4444"};font-weight:bold">${shop.open ? "✓ Open Now" : "✗ Closed"} · ${shop.hours}</div></div>`);
+      L.marker([userLocation.lat, userLocation.lng], { icon: userIcon }).addTo(map)
+        .bindPopup(`<div style="font-family:sans-serif;text-align:center"><strong style="color:#3b82f6;font-size:14px">Your Location</strong></div>`);
+    }
+
+    // Add shop markers
+    shops.forEach(shop => {
+      const shopIcon = L.divIcon({
+        className: "",
+        html: `<div style="background:#059669;color:white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-size:18px"><span style="transform:rotate(45deg)">🏪</span></div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+      });
+      const marker = L.marker([shop.lat, shop.lng], { icon: shopIcon }).addTo(map)
+        .bindPopup(`<div style="font-family:sans-serif;min-width:200px"><strong style="color:#065f46;font-size:14px">${shop.name}</strong><br/><span style="color:#6b7280;font-size:12px">${shop.email || 'Shop'}</span><br/><div style="margin-top:6px;display:flex;align-items:center;gap:4px"><span style="color:#f59e0b">★</span><span style="font-size:12px;font-weight:bold">${shop.rating?.toFixed(1) || 'N/A'}</span></div><div style="margin-top:4px;font-size:12px;color:#374151">📍 ${shop.address || shop.phone}</div><div style="margin-top:4px;font-size:12px;color:${shop.shopStatus === 'open' ? '#059669' : '#ef4444'};font-weight:bold">${shop.shopStatus === 'open' ? '✓ Open' : '✗ Closed'}</div><div style="margin-top:6px;font-size:11px;font-weight:bold;color:#059669">📏 ${(shop.distance / 1000).toFixed(1)} km away</div></div>`);
       marker.on("click", () => setSelectedShop(shop));
       markersRef.current.push(marker);
     });
   };
 
-  useEffect(() => { if (mapInstanceRef.current && window.L) updateMarkers(); }, [filtered]);
-  useEffect(() => { if (mapInstanceRef.current && selectedShop) mapInstanceRef.current.flyTo([selectedShop.lat, selectedShop.lng], 15, { duration: 0.8 }); }, [selectedShop]);
+  // Update markers when shops or filters change
+  useEffect(() => { 
+    if (mapInstanceRef.current && window.L) updateMarkers(); 
+  }, [filtered, shops, userLocation]);
+
+  // Fly to selected shop
+  useEffect(() => { 
+    if (mapInstanceRef.current && selectedShop) 
+      mapInstanceRef.current.flyTo([selectedShop.lat, selectedShop.lng], 15, { duration: 0.8 }); 
+  }, [selectedShop]);
 
   const typeIcon = (type) => {
     if (type.includes("Bike")) return <Bike size={14} />;
     if (type.includes("Tyre")) return <span className="text-xs">🛞</span>;
     return <Car size={14} />;
   };
+
+  const isLocating = loading && !shops.length;
 
   return (
     <section className="bg-white py-2 px-4 relative z-0" id="shops">
@@ -424,18 +662,26 @@ function NearestShops() {
           <div>
             <p className="text-emerald-600 text-xs font-bold tracking-widest uppercase mb-2">Find Nearby</p>
             <h2 className="text-4xl font-black text-emerald-950" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>NEAREST REPAIR SHOPS</h2>
-            <p className="text-emerald-700/50 text-sm mt-2">Locate trusted car & bike workshops near you on the map</p>
+            <p className="text-emerald-700/50 text-sm mt-2">
+              {shops.length > 0 
+                ? `${shops.length} shops near you` 
+                : 'Locate trusted car & bike workshops near you on the map'}
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={handleLocate} disabled={locating || locationGranted}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${locationGranted ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-emerald-600 hover:bg-emerald-500 text-white hover:scale-105"}`}>
-              {locating ? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>Locating...</span></>) :
-               locationGranted ? (<><LocateFixed size={16} /><span>Location Found</span></>) :
+          <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={handleLocate} disabled={loading}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${shops.length > 0 ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-emerald-600 hover:bg-emerald-500 text-white hover:scale-105"}`}>
+              {loading ? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>Locating...</span></>) :
+               shops.length > 0 ? (<><LocateFixed size={16} /><span>Location Found</span></>) :
                (<><Navigation size={16} /><span>Use My Location</span></>)}
             </button>
             <button onClick={() => setShowMap(!showMap)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-all">
               <MapPin size={16} />{showMap ? "List View" : "Map View"}
+            </button>
+            <button onClick={onOpenNearbyShops}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white hover:scale-105 transition-all">
+              <Navigation size={16} />Nearby Shops
             </button>
           </div>
         </div>
@@ -444,40 +690,66 @@ function NearestShops() {
           {types.map(t => (
             <button key={t} onClick={() => setActiveType(t)}
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${activeType === t ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}>
-              {t !== "All" && typeIcon(t)}{t}
+              {t}
             </button>
           ))}
         </div>
 
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-2">
+            <div className="text-red-600 text-sm"><strong>Error:</strong> {error}</div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
           <div className="lg:col-span-2 space-y-3 max-h-[560px] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "#d1fae5 transparent" }}>
-            {filtered.map(shop => (
-              <div key={shop.id} onClick={() => setSelectedShop(shop)}
-                className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${selectedShop?.id === shop.id ? "border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100" : "border-emerald-100 bg-white hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-50"}`}>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="text-emerald-950 font-black text-sm">{shop.name}</h3>
-                    <div className="flex items-center gap-1 text-emerald-600/70 text-xs mt-0.5">{typeIcon(shop.type)}<span>{shop.type}</span></div>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${shop.open ? "bg-emerald-100 text-emerald-700" : "bg-red-50 text-red-500"}`}>{shop.open ? "Open" : "Closed"}</span>
-                </div>
-                <div className="flex items-center gap-1 mb-2">
-                  {[1,2,3,4,5].map(s => <Star key={s} size={11} fill={s <= Math.floor(shop.rating) ? "#f59e0b" : "none"} stroke="#f59e0b" />)}
-                  <span className="text-emerald-800 font-bold text-xs ml-1">{shop.rating}</span>
-                  <span className="text-emerald-600/50 text-xs">({shop.reviews})</span>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-emerald-700/60 mb-3">
-                  <span className="flex items-center gap-1"><MapPin size={11} />{shop.distance}</span>
-                  <span className="flex items-center gap-1"><Clock size={11} />{shop.hours}</span>
-                </div>
-                <div className="flex gap-1 flex-wrap">
-                  {shop.tags.map(tag => <span key={tag} className="bg-emerald-100/70 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">{tag}</span>)}
-                </div>
-                <div className={`absolute right-4 bottom-4 transition-all ${selectedShop?.id === shop.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                  <ChevronRight size={16} className="text-emerald-500" />
-                </div>
+            {isLocating ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <span className="w-8 h-8 border-3 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-3"></span>
+                <p className="text-emerald-600 font-medium text-sm">Fetching nearby shops...</p>
               </div>
-            ))}
+            ) : filtered.length > 0 ? (
+              filtered.map(shop => (
+                <div key={shop.id} onClick={() => setSelectedShop(shop)}
+                  className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${selectedShop?.id === shop.id ? "border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100" : "border-emerald-100 bg-white hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-50"}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="text-emerald-950 font-black text-sm">{shop.name}</h3>
+                      <div className="flex items-center gap-1 text-emerald-600/70 text-xs mt-0.5">
+                      <span className="text-emerald-600 text-sm font-bold">🏪</span>
+                        <span>{shop.shopName || 'Shop'}</span>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${shop.shopStatus === 'open' ? "bg-emerald-100 text-emerald-700" : "bg-red-50 text-red-500"}`}>
+                      {shop.shopStatus === 'open' ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[1,2,3,4,5].map(s => <Star key={s} size={11} fill={s <= Math.floor(shop.rating || 0) ? "#f59e0b" : "none"} stroke="#f59e0b" />)}
+                    <span className="text-emerald-800 font-bold text-xs ml-1">{shop.rating?.toFixed(1) || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-emerald-700/60 mb-3">
+                    <span className="flex items-center gap-1"><MapPin size={11} />{(shop.distance / 1000).toFixed(1)} km</span>
+                    <span className="flex items-center gap-1"><Phone size={11} />{shop.phone}</span>
+                  </div>
+                  {shop.address && (
+                    <div className="text-xs text-emerald-700/70 mb-2 truncate">
+                      📍 {shop.address}
+                    </div>
+                  )}
+                  <div className={`absolute right-4 bottom-4 transition-all ${selectedShop?.id === shop.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                    <ChevronRight size={16} className="text-emerald-500" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <MapPin size={40} className="text-emerald-300 mb-3" />
+                <p className="text-emerald-600 font-medium text-sm">No shops found</p>
+                <p className="text-emerald-500/60 text-xs mt-1">Click "Use My Location" to find nearby shops</p>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-3 flex flex-col gap-4">
@@ -486,12 +758,20 @@ function NearestShops() {
                 <>
                   <div ref={mapRef} style={{ width: "100%", height: "100%", position: "relative", zIndex: 0, isolation: "isolate" }} />
                   <div className="absolute top-3 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md border border-emerald-100">
-                    <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-bold"><MapPin size={12} className="text-emerald-600" />MotorMandi Shops Near You</div>
+                    <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-bold">
+                      <span className="text-blue-500 text-sm">📍</span>
+                      <span>{shops.length > 0 ? `${shops.length} Shops Near You` : 'MotorMandi Shops'}</span>
+                    </div>
                   </div>
                   <div className="absolute bottom-10 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-md border border-emerald-100 space-y-1">
-                    {[["🚗","Car Repair"],["🏍️","Bike Repair"],["🛞","Tyre & Rim"]].map(([icon,label]) => (
-                      <div key={label} className="flex items-center gap-2 text-emerald-800 text-xs font-medium"><span>{icon}</span><span>{label}</span></div>
-                    ))}
+                    <div className="flex items-center gap-2 text-emerald-800 text-xs font-medium">
+                      <span className="text-blue-500 text-sm">📍</span>
+                      <span>Your Location</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-emerald-800 text-xs font-medium">
+                      <span className="text-emerald-600 text-sm">🏪</span>
+                      <span>Shops</span>
+                    </div>
                   </div>
                 </>
               ) : (
@@ -507,28 +787,50 @@ function NearestShops() {
                   <div>
                     <h3 className="font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>{selectedShop.name}</h3>
                     <div className="flex items-center gap-2 text-emerald-400 text-xs mt-0.5">
-                      {typeIcon(selectedShop.type)}<span>{selectedShop.type}</span><span>·</span>
-                      <span className={selectedShop.open ? "text-emerald-400" : "text-red-400"}>{selectedShop.open ? "✓ Open Now" : "✗ Closed"}</span>
+                      <span className="text-emerald-500 text-sm">🏪</span>
+                      <span>{selectedShop.status}</span><span>·</span>
+                      <span className={selectedShop.shopStatus === 'open' ? "text-emerald-400" : "text-red-400"}>
+                        {selectedShop.shopStatus === 'open' ? '✓ Open Now' : '✗ Closed'}
+                      </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="flex items-center gap-1 justify-end"><Star size={14} fill="#f59e0b" stroke="#f59e0b" /><span className="font-black text-amber-400">{selectedShop.rating}</span></div>
-                    <p className="text-emerald-500 text-xs">{selectedShop.reviews} reviews</p>
+                    <div className="flex items-center gap-1 justify-end">
+                      <Star size={14} fill="#f59e0b" stroke="#f59e0b" />
+                      <span className="font-black text-amber-400">{selectedShop.rating?.toFixed(1) || 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
-                  <div className="flex items-center gap-2 text-emerald-300/80"><MapPin size={14} className="text-emerald-500 shrink-0" /><span className="text-xs">{selectedShop.address}</span></div>
-                  <div className="flex items-center gap-2 text-emerald-300/80"><Phone size={14} className="text-emerald-500 shrink-0" /><span className="text-xs">{selectedShop.phone}</span></div>
-                  <div className="flex items-center gap-2 text-emerald-300/80"><Clock size={14} className="text-emerald-500 shrink-0" /><span className="text-xs">{selectedShop.hours}</span></div>
-                  <div className="flex items-center gap-2 text-emerald-300/80"><Navigation size={14} className="text-emerald-500 shrink-0" /><span className="text-xs">{selectedShop.distance} away</span></div>
-                </div>
-                <div className="flex gap-2 flex-wrap mb-4">
-                  {selectedShop.tags.map(tag => <span key={tag} className="bg-emerald-800/50 border border-emerald-700/50 text-emerald-300 text-[10px] font-semibold px-2 py-0.5 rounded-full">{tag}</span>)}
+                  {selectedShop.address && (
+                    <div className="flex items-center gap-2 text-emerald-300/80">
+                      <MapPin size={14} className="text-emerald-500 shrink-0" />
+                      <span className="text-xs">{selectedShop.address}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-emerald-300/80">
+                    <Phone size={14} className="text-emerald-500 shrink-0" />
+                    <span className="text-xs">{selectedShop.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-300/80">
+                    <Navigation size={14} className="text-emerald-500 shrink-0" />
+                    <span className="text-xs">{(selectedShop.distance / 1000).toFixed(1)} km away</span>
+                  </div>
+                  {selectedShop.email && (
+                    <div className="flex items-center gap-2 text-emerald-300/80">
+                      <Mail size={14} className="text-emerald-500 shrink-0" />
+                      <span className="text-xs">{selectedShop.email}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-3">
-                  <a href={`tel:${selectedShop.phone}`} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105"><Phone size={16} /> Call Now</a>
+                  <a href={`tel:${selectedShop.phone}`} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105">
+                    <Phone size={16} /> Call Now
+                  </a>
                   <a href={`https://www.google.com/maps/dir/?api=1&destination=${selectedShop.lat},${selectedShop.lng}`} target="_blank" rel="noreferrer"
-                    className="flex-1 bg-white/10 hover:bg-white/20 border border-emerald-700/50 text-emerald-300 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all"><Navigation size={16} /> Get Directions</a>
+                    className="flex-1 bg-white/10 hover:bg-white/20 border border-emerald-700/50 text-emerald-300 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all">
+                    <Navigation size={16} /> Get Directions
+                  </a>
                 </div>
               </div>
             )}
@@ -668,9 +970,9 @@ function Footer() {
           <div>
             <h4 className="text-white font-black text-sm tracking-widest uppercase mb-4">Contact</h4>
             <div className="space-y-3">
-              <a href="#" className="flex items-center gap-2 text-emerald-400/60 hover:text-emerald-400 text-sm transition-colors"><Phone size={14} /> +91 98765 43210</a>
+              <a href="#" className="flex items-center gap-2 text-emerald-400/60 hover:text-emerald-400 text-sm transition-colors"><Phone size={14} /> +91 8708045979</a>
               <a href="#" className="flex items-center gap-2 text-emerald-400/60 hover:text-emerald-400 text-sm transition-colors"><Mail size={14} /> hello@motormandi.in</a>
-              <a href="#" className="flex items-center gap-2 text-emerald-400/60 hover:text-emerald-400 text-sm transition-colors"><MapPin size={14} /> Mumbai, India</a>
+              <a href="#" className="flex items-center gap-2 text-emerald-400/60 hover:text-emerald-400 text-sm transition-colors"><MapPin size={14} /> Haryan, India</a>
             </div>
           </div>
         </div>
@@ -690,6 +992,7 @@ export default function HomePage() {
   const [carModalOpen, setCarModalOpen] = useState(false);
   const [bikeModalOpen, setBikeModalOpen] = useState(false);
   const [accessoriesModalOpen, setAccessoriesModalOpen] = useState(false);
+  const [nearbyShopsModalOpen, setNearbyShopsModalOpen] = useState(false);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -710,14 +1013,26 @@ export default function HomePage() {
         onBikesClick={() => navigate('/bikes')}
         onAccessoriesClick={() => navigate('/accessories')}
       />
-      <FeaturedListings />
-      <NearestShops />
+      <FeaturedListings 
+        onViewMore={(category) => {
+          if (category === "tyres") navigate('/tyres');
+          else if (category === "wheels") navigate('/wheels');
+          else if (category === "cars") navigate('/cars');
+          else if (category === "bikes") navigate('/bikes');
+          else if (category === "accessories") navigate('/accessories');
+          else window.scrollTo(0, 0);
+        }}
+      />
+      <NearestShops onOpenNearbyShops={() => setNearbyShopsModalOpen(true)} />
       <WhyChooseUs />
       <Testimonials />
       <CTABanner />
       <Footer />
 
-
+      <NearbyShopsListingsModal
+        isOpen={nearbyShopsModalOpen}
+        onClose={() => setNearbyShopsModalOpen(false)}
+      />
     </div>
   );
 }

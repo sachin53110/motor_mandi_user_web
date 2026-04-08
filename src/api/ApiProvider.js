@@ -250,6 +250,30 @@ const searchApi = {
   },
 };
 
+// ── Shop API Module ──────────────────────────────────────────────────────────
+const shopApi = {
+  /**
+   * GET /user/near-shops?lat=:lat&lng=:lng&page=:page&limit=:limit
+   * @param {object} params - { lat, lng, page, limit }
+   */
+  getNearby: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.lat)   query.set("lat",   params.lat);
+    if (params.lng)   query.set("lng",   params.lng);
+    if (params.page)  query.set("page",  params.page || 1);
+    if (params.limit) query.set("limit", params.limit || 10);
+
+    const qs = query.toString();
+    return request(`user/near-shops${qs ? `?${qs}` : ""}`);
+  },
+
+  /** GET /shop/view?id=:id */
+  getDetail: (id) => request(`shop/view?id=${id}`),
+
+  /** GET /shop/:id */
+  getById: (id) => request(`shop/${id}`),
+};
+
 // ── Default Export ────────────────────────────────────────────────────────────
 const ApiProvider = {
   tyres:       tyreApi,
@@ -260,6 +284,7 @@ const ApiProvider = {
   orders:      orderApi,
   auth:        authApi,
   search:      searchApi,
+  shops:       shopApi,
 };
 
 export default ApiProvider;
