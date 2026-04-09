@@ -253,18 +253,31 @@ const searchApi = {
 // ── Shop API Module ──────────────────────────────────────────────────────────
 const shopApi = {
   /**
-   * GET /user/near-shops?lat=:lat&lng=:lng&page=:page&limit=:limit
-   * @param {object} params - { lat, lng, page, limit }
+   * GET /user/near-shops?page=:page&limit=:limit&lat=:lat&lng=:lng (lat/lng optional)
+   * @param {object} params - { page, limit, lat, lng }
    */
   getNearby: (params = {}) => {
     const query = new URLSearchParams();
+    query.set("page",  params.page || 1);
+    query.set("limit", params.limit || 20);
     if (params.lat)   query.set("lat",   params.lat);
     if (params.lng)   query.set("lng",   params.lng);
-    if (params.page)  query.set("page",  params.page || 1);
-    if (params.limit) query.set("limit", params.limit || 10);
 
     const qs = query.toString();
     return request(`user/near-shops${qs ? `?${qs}` : ""}`);
+  },
+
+  /**
+   * GET /shop for fetching all shops without location filter
+   * @param {object} params - { page, limit }
+   */
+  getList: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.page)  query.set("page",  params.page || 1);
+    if (params.limit) query.set("limit", params.limit || 20);
+
+    const qs = query.toString();
+    return request(`shop${qs ? `?${qs}` : ""}`);
   },
 
   /** GET /shop/view?id=:id */

@@ -4,7 +4,7 @@ import { Phone, MapPin, Star, Clock } from "lucide-react";
 
 const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }) => {
   const [selectedShop, setSelectedShop] = useState(null);
-  const GOOGLE_MAP_KEY = "AIzaSyByWZryRtT2dQJCMX8yOVtvNrWICobwZzo";
+  const GOOGLE_MAP_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   const mapContainerStyle = {
     width: "100%",

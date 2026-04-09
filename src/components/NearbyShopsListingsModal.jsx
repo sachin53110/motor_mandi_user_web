@@ -1,22 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, MapPin, Phone, Star, Clock, Zap, AlertCircle } from "lucide-react";
 import NearbyShopsMap from "./NearbyShopsMap";
 import useNearbyShops from "../hooks/useNearbyShops";
 
 const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
-  const { shops, loading, error, userLocation, fetchAndDisplay, getUserLocation } = useNearbyShops();
+  const { shops, loading, error, userLocation, locationEnabled, fetchShops } = useNearbyShops();
   const [isMapView, setIsMapView] = useState(false);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen) {
-      // Get user location and fetch nearby shops
-      getUserLocation()
-        .then((location) => {
-          fetchAndDisplay(location);
-        })
-        .catch((err) => {
-          console.error("Location error:", err);
-        });
+    if (isOpen && !fetchedRef.current) {
+      fetchedRef.current = true;
+      // Fetch shops based on location permission status
+      fetchShops({ page: 1, limit: 20 });
+    } else if (!isOpen) {
+      fetchedRef.current = false;
     }
   }, [isOpen]);
 
@@ -28,10 +26,19 @@ const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Nearby Shops</h2>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {locationEnabled ? "Nearby Shops" : "Available Shops"}
+            </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {shops.length > 0 ? `${shops.length} shops found near you` : "Loading shops..."}
+              {shops.length > 0 
+                ? `${shops.length} ${locationEnabled ? "shops found near you" : "shops available"}` 
+                : loading ? "Loading shops..." : "No shops found"}
             </p>
+            {!locationEnabled && !loading && (
+              <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
+                <AlertCircle size={14} /> Location permission not granted - showing all available shops
+              </p>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -71,7 +78,9 @@ const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
           {loading && (
             <div className="flex flex-col items-center justify-center p-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mb-4"></div>
-              <p className="text-gray-600">Finding nearby shops...</p>
+              <p className="text-gray-600">
+                {locationEnabled ? "Finding nearby shops..." : "Loading shops..."}
+              </p>
             </div>
           )}
 

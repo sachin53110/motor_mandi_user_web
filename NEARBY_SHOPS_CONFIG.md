@@ -16,10 +16,10 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://scaredrealm.com/s
 
 ### Using Environment Variables
 
-Create a `.env` file in the project root:
+Create a `.env.local` file in the project root (this will NOT be committed to git):
 ```
 VITE_API_BASE_URL=http://localhost:3001/api/v1/
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyByWZryRtT2dQJCMX8yOVtvNrWICobwZzo
+VITE_GOOGLE_MAPS_API_KEY=your_actual_google_maps_api_key_here
 ```
 
 Then reference in code:
@@ -31,8 +31,9 @@ const GOOGLE_MAP_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 ## Google Maps API Configuration
 
 ### Current Setup
-- **Key**: `AIzaSyByWZryRtT2dQJCMX8yOVtvNrWICobwZzo`
+- **Key**: Stored in `.env.local` (not committed to git)
 - **Location**: `src/components/NearbyShopsMap.jsx` (line 7)
+- **Environment Variable**: `VITE_GOOGLE_MAPS_API_KEY`
 
 ### To Get Your Own Google Maps API Key
 

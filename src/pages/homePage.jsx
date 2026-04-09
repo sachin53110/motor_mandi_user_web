@@ -536,13 +536,27 @@ function FeaturedListings({ onViewMore }) {
 
 // ── NEAREST SHOPS ─────────────────────────────────────────────────────────────
 function NearestShops({ onOpenNearbyShops }) {
-  const { shops, loading, error, userLocation, getUserLocation, fetchAndDisplay } = useNearbyShops();
+  const { shops, loading, error, userLocation, locationEnabled, requestLocationPermission, fetchShops } = useNearbyShops();
   const [activeType, setActiveType] = useState("All");
   const [selectedShop, setSelectedShop] = useState(null);
   const [showMap, setShowMap] = useState(true);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+  const initializedRef = useRef(false);
+
+  // Request location permission and fetch shops ONCE on component mount
+  useEffect(() => {
+    if (initializedRef.current) return; // Prevent re-running
+    initializedRef.current = true;
+
+    const initializeShops = async () => {
+      await requestLocationPermission();
+      // Fetch shops after requesting location permission
+      fetchShops({ page: 1, limit: 20 });
+    };
+    initializeShops();
+  }, []); // Empty dependency array - runs only once
 
   // Auto-set first shop when shops load
   useEffect(() => {

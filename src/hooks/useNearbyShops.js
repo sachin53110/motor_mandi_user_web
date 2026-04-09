@@ -7,17 +7,31 @@ const useNearbyShops = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [locationEnabled, setLocationEnabled] = useState(false);
 
   const fetchNearbyShops = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await ApiProvider.shops.getNearby(params);
+      // Always call the same endpoint, but only include lat/lng if location is enabled
+      const apiParams = {
+        page: params.page || 1,
+        limit: params.limit || 20,
+      };
+
+      // Only add lat/lng if location permission is granted and coordinates exist
+      if (locationEnabled && params.lat && params.lng) {
+        apiParams.lat = params.lat;
+        apiParams.lng = params.lng;
+      }
+
+      const response = await ApiProvider.shops.getNearby(apiParams);
+      
       if (response.status) {
-        setShops(response.data?.result || []);
+        setShops(response.data?.result || response.data || []);
         setPagination(response.data?.pagination || null);
       } else {
-        throw new Error(response.message || "Failed to fetch nearby shops");
+        throw new Error(response.message || "Failed to fetch shops");
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -25,7 +39,7 @@ const useNearbyShops = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locationEnabled]);
 
   const getUserLocation = useCallback(() => {
     return new Promise((resolve, reject) => {
@@ -34,39 +48,61 @@ const useNearbyShops = () => {
           (position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation({ lat: latitude, lng: longitude });
+            setLocationEnabled(true);
             resolve({ lat: latitude, lng: longitude });
           },
           (error) => {
-            setError(`Geolocation error: ${error.message}`);
+            setLocationEnabled(false);
+            setUserLocation(null);
             reject(error);
           }
         );
       } else {
+        setLocationEnabled(false);
         const err = new Error("Geolocation is not supported by this browser");
-        setError(err.message);
         reject(err);
       }
     });
   }, []);
 
-  const fetchAndDisplay = useCallback(async (locationParams) => {
-    try {
-      await fetchNearbyShops({
-        lat: locationParams.lat,
-        lng: locationParams.lng,
-        page: 1,
-        limit: 20,
-      });
-    } catch (err) {
-      setError(err.message || "Failed to fetch shops");
-    }
-  }, [fetchNearbyShops]);
+  const requestLocationPermission = useCallback(() => {
+    return new Promise((resolve) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+            setLocationEnabled(true);
+            resolve(true);
+          },
+          (error) => {
+            setLocationEnabled(false);
+            setUserLocation(null);
+            resolve(false);
+          }
+        );
+      } else {
+        setLocationEnabled(false);
+        resolve(false);
+      }
+    });
+  }, []);
+
+  const fetchShops = useCallback(async (params = {}) => {
+    await fetchNearbyShops({
+      lat: locationEnabled && userLocation ? userLocation.lat : undefined,
+      lng: locationEnabled && userLocation ? userLocation.lng : undefined,
+      page: params.page || 1,
+      limit: params.limit || 20,
+    });
+  }, [fetchNearbyShops, locationEnabled, userLocation]);
 
   const reset = useCallback(() => {
     setShops([]);
     setError(null);
     setPagination(null);
     setUserLocation(null);
+    setLocationEnabled(false);
   }, []);
 
   return {
@@ -75,9 +111,10 @@ const useNearbyShops = () => {
     error,
     pagination,
     userLocation,
-    fetchNearbyShops,
+    locationEnabled,
     getUserLocation,
-    fetchAndDisplay,
+    requestLocationPermission,
+    fetchShops,
     reset,
   };
 };
