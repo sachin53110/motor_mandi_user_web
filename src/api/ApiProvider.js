@@ -268,16 +268,18 @@ const shopApi = {
   },
 
   /**
-   * GET /shop for fetching all shops without location filter
-   * @param {object} params - { page, limit }
+   * GET /user/near-shops for fetching all shops without location filter
+   * @param {object} params - { page, limit, lat, lng }
    */
   getList: (params = {}) => {
     const query = new URLSearchParams();
     if (params.page)  query.set("page",  params.page || 1);
     if (params.limit) query.set("limit", params.limit || 20);
+    if (params.lat)   query.set("lat", params.lat);
+    if (params.lng)   query.set("lng", params.lng);
 
     const qs = query.toString();
-    return request(`shop${qs ? `?${qs}` : ""}`);
+    return request(`user/near-shops${qs ? `?${qs}` : ""}`);
   },
 
   /** GET /shop/view?id=:id */

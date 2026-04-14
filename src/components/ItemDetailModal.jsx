@@ -59,21 +59,21 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
         <div className="min-h-full flex flex-col">
           <div className="flex-1 bg-white mt-12 rounded-t-3xl panel-enter flex flex-col" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 py-4 rounded-t-3xl">
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-blue-100 px-4 sm:px-6 py-4 rounded-t-3xl">
               <div className="max-w-4xl mx-auto flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl">
+                  <div className="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl">
                     {getItemIcon(item)}
                   </div>
                   <div>
-                    <h2 className="text-emerald-950 font-black text-lg leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    <h2 className="text-blue-950 font-black text-lg leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                       {getItemTitle(item)}
                     </h2>
                   </div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-all"
                 >
                   <X size={18} />
                 </button>
@@ -85,7 +85,7 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Image Section */}
                 <div className="lg:col-span-1">
-                  <div className="relative bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl overflow-hidden h-72 border border-emerald-200 mb-4 flex items-center justify-center group">
+                  <div className="relative bg-gradient-to-br from-teal-50 to-blue-50 rounded-2xl overflow-hidden h-72 border border-blue-200 mb-4 flex items-center justify-center group">
                     {item.medias && item.medias.length > 0 ? (
                       <>
                         <img
@@ -120,7 +120,7 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                                   onClick={() => setImageIndex(idx)}
                                   className={`w-2 h-2 rounded-full transition-all ${
                                     idx === imageIndex
-                                      ? "bg-emerald-500 w-6"
+                                      ? "bg-blue-500 w-6"
                                       : "bg-white/50 hover:bg-white/75"
                                   }`}
                                 />
@@ -140,12 +140,12 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                       className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all text-sm ${
                         liked
                           ? "bg-red-100 text-red-700 border border-red-200"
-                          : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                          : "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
                       }`}
                     >
                       <Heart size={16} fill={liked ? "currentColor" : "none"} /> Move
                     </button>
-                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all text-sm">
+                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-all text-sm">
                       <Share2 size={16} /> Share
                     </button>
                   </div>
@@ -154,14 +154,14 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                 {/* Details Section */}
                 <div className="lg:col-span-2 space-y-6">
                   {/* Price */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
+                  <div className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-200">
                     <div className="flex items-baseline justify-between mb-2">
-                      <span className="text-emerald-600/60 text-sm font-semibold">Price</span>
+                      <span className="text-blue-600/60 text-sm font-semibold">Price</span>
                       {(item.customerPrice || item.price) && (
-                        <span className="text-emerald-500/60 text-xs line-through">{formatPrice(item.customerPrice || item.price)}</span>
+                        <span className="text-blue-500/60 text-xs line-through">{formatPrice(item.customerPrice || item.price)}</span>
                       )}
                     </div>
-                    <div className="text-4xl font-black text-emerald-700">{formatPrice(item.price || item.ownerPrice)}</div>
+                    <div className="text-4xl font-black text-blue-700">{formatPrice(item.price || item.ownerPrice)}</div>
                   </div>
 
                   {/* Key Details Grid */}
@@ -169,23 +169,23 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                     {/* Vehicle Details */}
                     {isVehicle && (
                       <>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Brand</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.brandName || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Brand</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.brandName || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Model</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.model || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Model</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.model || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">KM Driven</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.km || "—"} km</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">KM Driven</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.km || "—"} km</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Condition</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Condition</div>
                           <div className={`text-sm font-bold px-2 py-1 rounded-full w-fit capitalize ${
                             item.condition?.toLowerCase() === "excellent"
-                              ? "bg-emerald-100 text-emerald-700"
+                              ? "bg-blue-100 text-blue-700"
                               : "bg-amber-100 text-amber-700"
                           }`}>
                             {item.condition || "—"}
@@ -197,23 +197,23 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                     {/* Tyre Details */}
                     {isTyre && (
                       <>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Size</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.size || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Size</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.size || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Type</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.type || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Type</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.type || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Quantity</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.quantity || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Quantity</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.quantity || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Condition</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Condition</div>
                           <div className={`text-sm font-bold px-2 py-1 rounded-full w-fit capitalize ${
                             item.condition?.toLowerCase() === "new"
-                              ? "bg-emerald-100 text-emerald-700"
+                              ? "bg-blue-100 text-blue-700"
                               : "bg-amber-100 text-amber-700"
                           }`}>
                             {item.condition || "—"}
@@ -225,23 +225,23 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                     {/* Wheel Details */}
                     {isWheel && (
                       <>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Size</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.size || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Size</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.size || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">PCD</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.pcd || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">PCD</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.pcd || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Stock</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.stock || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Stock</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.stock || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Condition</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Condition</div>
                           <div className={`text-sm font-bold px-2 py-1 rounded-full w-fit capitalize ${
                             item.condition?.toLowerCase() === "new"
-                              ? "bg-emerald-100 text-emerald-700"
+                              ? "bg-blue-100 text-blue-700"
                               : "bg-amber-100 text-amber-700"
                           }`}>
                             {item.condition || "—"}
@@ -253,13 +253,13 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                     {/* Rim Details */}
                     {isRim && (
                       <>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Size</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.size || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Size</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.size || "—"}</div>
                         </div>
-                        <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                          <div className="text-emerald-600/60 text-xs font-semibold mb-1">Quantity</div>
-                          <div className="text-emerald-950 font-bold text-lg">{item.quantity || "—"}</div>
+                        <div className="bg-white border border-blue-100 rounded-xl p-4">
+                          <div className="text-blue-600/60 text-xs font-semibold mb-1">Quantity</div>
+                          <div className="text-blue-950 font-bold text-lg">{item.quantity || "—"}</div>
                         </div>
                       </>
                     )}
@@ -267,21 +267,21 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
 
                   {/* Description */}
                   {item.description && (
-                    <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200">
-                      <div className="text-emerald-600/60 text-xs font-semibold mb-2">Description</div>
-                      <p className="text-emerald-900 text-sm">{item.description}</p>
+                    <div className="bg-blue-50 rounded-2xl p-4 border border-blue-200">
+                      <div className="text-blue-600/60 text-xs font-semibold mb-2">Description</div>
+                      <p className="text-blue-900 text-sm">{item.description}</p>
                     </div>
                   )}
 
                   {/* Seller Information */}
                   {item.user && (
-                    <div className="bg-emerald-950 rounded-2xl p-6 text-white">
+                    <div className="bg-blue-950 rounded-2xl p-6 text-white">
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h3 className="font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                             {item.user.shopName || item.user.name}
                           </h3>
-                          <p className="text-emerald-400 text-sm flex items-center gap-1">
+                          <p className="text-blue-400 text-sm flex items-center gap-1">
                             <CheckCircle size={14} /> Verified Seller
                           </p>
                         </div>
@@ -291,26 +291,26 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                               <Star key={i} size={14} fill="#f59e0b" stroke="#f59e0b" />
                             ))}
                           </div>
-                          <p className="text-emerald-400 text-xs">Highly Rated</p>
+                          <p className="text-blue-400 text-xs">Highly Rated</p>
                         </div>
                       </div>
 
                       <div className="space-y-2 mb-4">
                         {item.user.address && (
-                          <div className="flex items-center gap-2 text-emerald-300 text-sm">
-                            <MapPin size={14} className="text-emerald-500 shrink-0" />
+                          <div className="flex items-center gap-2 text-blue-300 text-sm">
+                            <MapPin size={14} className="text-blue-500 shrink-0" />
                             <span>{item.user.address}</span>
                           </div>
                         )}
                         {item.user.phone && (
-                          <div className="flex items-center gap-2 text-emerald-300 text-sm">
-                            <Phone size={14} className="text-emerald-500 shrink-0" />
+                          <div className="flex items-center gap-2 text-blue-300 text-sm">
+                            <Phone size={14} className="text-blue-500 shrink-0" />
                             <span>{item.user.phone}</span>
                           </div>
                         )}
                         {item.user.email && (
-                          <div className="flex items-center gap-2 text-emerald-300 text-sm">
-                            <Mail size={14} className="text-emerald-500 shrink-0" />
+                          <div className="flex items-center gap-2 text-blue-300 text-sm">
+                            <Mail size={14} className="text-blue-500 shrink-0" />
                             <span>{item.user.email}</span>
                           </div>
                         )}
@@ -320,7 +320,7 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                         {item.user.phone && (
                           <a
                             href={`tel:${item.user.phone}`}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                           >
                             <Phone size={16} /> Call Now
                           </a>
@@ -328,7 +328,7 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                         {item.user.email && (
                           <a
                             href={`mailto:${item.user.email}`}
-                            className="flex-1 bg-white/10 hover:bg-white/20 border border-emerald-700/50 text-emerald-300 font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                            className="flex-1 bg-white/10 hover:bg-white/20 border border-blue-700/50 text-blue-300 font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                           >
                             <Mail size={16} /> Email
                           </a>
@@ -338,7 +338,7 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
                   )}
 
                   {/* Additional Info */}
-                  <div className="grid grid-cols-2 gap-3 text-xs text-emerald-600/60">
+                  <div className="grid grid-cols-2 gap-3 text-xs text-blue-600/60">
                     {item.createdAt && (
                       <div className="flex items-center gap-2">
                         <Calendar size={12} />
@@ -357,12 +357,12 @@ export default function ItemDetailModal({ isOpen, onClose, item }) {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-emerald-100 px-6 py-4">
+            <div className="border-t border-blue-100 px-6 py-4">
               <div className="max-w-4xl mx-auto flex items-center justify-between">
-                <p className="text-emerald-600/50 text-xs">Item Details - MotorMandi</p>
+                <p className="text-blue-600/50 text-xs">Item Details - MotorMandi</p>
                 <button
                   onClick={onClose}
-                  className="text-sm text-emerald-600 hover:text-emerald-500 font-semibold flex items-center gap-1 transition-colors"
+                  className="text-sm text-blue-600 hover:text-blue-500 font-semibold flex items-center gap-1 transition-colors"
                 >
                   <X size={14} /> Close
                 </button>

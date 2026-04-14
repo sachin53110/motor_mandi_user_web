@@ -5,7 +5,6 @@ import {
   Star, Phone, MapPin, Heart, Filter, X
 } from "lucide-react";
 import useAccessories from "../hooks/useAccessories";
-import LOGO_SRC from "../assets/motorMandiLogo.png";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -15,12 +14,12 @@ const formatPrice = (price) => {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white border border-emerald-100 rounded-2xl overflow-hidden animate-pulse">
-      <div className="h-48 bg-emerald-50" />
+    <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden animate-pulse">
+      <div className="h-48 bg-blue-50" />
       <div className="p-4 space-y-3">
-        <div className="h-3 bg-emerald-100 rounded w-1/3" />
-        <div className="h-4 bg-emerald-100 rounded w-3/4" />
-        <div className="h-3 bg-emerald-100 rounded w-1/2" />
+        <div className="h-3 bg-blue-100 rounded w-1/3" />
+        <div className="h-4 bg-blue-100 rounded w-3/4" />
+        <div className="h-3 bg-blue-100 rounded w-1/2" />
       </div>
     </div>
   );
@@ -42,10 +41,10 @@ function AccessoryCard({ accessory, onCardClick }) {
   return (
     <div
       onClick={onCardClick}
-      className="bg-white border border-emerald-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer transform hover:-translate-y-1"
+      className="bg-white border border-blue-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer transform hover:-translate-y-1"
     >
       {/* Image Container */}
-      <div className="relative h-48 bg-gradient-to-br from-emerald-50 to-emerald-100 overflow-hidden">
+      <div className="relative h-48 bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
         {!imgError && firstImage ? (
           <img
             src={firstImage}
@@ -54,7 +53,7 @@ function AccessoryCard({ accessory, onCardClick }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-emerald-300 text-3xl">
+          <div className="w-full h-full flex items-center justify-center text-blue-300 text-3xl">
             🔧
           </div>
         )}
@@ -72,7 +71,7 @@ function AccessoryCard({ accessory, onCardClick }) {
             e.stopPropagation();
             setLiked(!liked);
           }}
-          className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-emerald-50 transition"
+          className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 transition"
         >
           <Heart size={18} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "#666"} />
         </button>
@@ -81,7 +80,7 @@ function AccessoryCard({ accessory, onCardClick }) {
       {/* Content */}
       <div className="p-4 space-y-2">
         {/* Title */}
-        <h3 className="font-bold text-gray-900 text-sm line-clamp-2 hover:text-emerald-600 transition">
+        <h3 className="font-bold text-gray-900 text-sm line-clamp-2 hover:text-blue-600 transition">
           {accessory.title}
         </h3>
 
@@ -93,20 +92,20 @@ function AccessoryCard({ accessory, onCardClick }) {
         {/* Price Section */}
         <div className="space-y-1 pt-2 border-t border-gray-100">
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-emerald-600">{formatPrice(accessory.price)}</span>
+            <span className="text-lg font-bold text-blue-600">{formatPrice(accessory.price)}</span>
             {accessory.customerPrice && parseFloat(accessory.customerPrice) > parseFloat(accessory.price) && (
               <span className="text-xs text-gray-400 line-through">{formatPrice(accessory.customerPrice)}</span>
             )}
           </div>
           {savings > 0 && (
-            <p className="text-xs text-emerald-600 font-semibold">Save ₹{savings.toLocaleString("en-IN")}</p>
+            <p className="text-xs text-blue-600 font-semibold">Save ₹{savings.toLocaleString("en-IN")}</p>
           )}
         </div>
 
         {/* Location & Rating */}
         <div className="flex items-center justify-between text-xs text-gray-600 pt-2">
           <div className="flex items-center gap-1">
-            <MapPin size={12} className="text-emerald-600" />
+            <MapPin size={12} className="text-blue-600" />
             {accessory.user?.city || "Location"}
           </div>
           {accessory.rating && (
@@ -142,22 +141,13 @@ export default function AccessoryListPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-3">
-              <img src={LOGO_SRC} alt="MotorMandi" className="h-12 w-auto object-contain" />
-              <div>
-                <h1 className="text-xl font-black text-gray-900">Premium Accessories</h1>
-                <p className="text-sm text-gray-500">{pagination?.totalRecords || 0} products</p>
-              </div>
-            </div>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <section className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+          <h1 className="text-2xl font-black text-gray-900">Premium Accessories</h1>
+          <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} products</p>
 
-          {/* Search & Filter */}
-          <div className="pb-4 flex gap-3 items-center flex-wrap">
-            <div className="flex-1 min-w-[200px] flex items-center bg-gray-100 rounded-full px-4 py-2">
+          <div className="mt-3 flex gap-3 items-center flex-wrap">
+            <div className="flex-1 min-w-[200px] flex items-center bg-gray-100 rounded-xl px-4 py-2">
               <Search size={18} className="text-gray-400" />
               <input
                 type="text"
@@ -187,17 +177,13 @@ export default function AccessoryListPage() {
                 setCurrentPage(1);
                 fetchAccessories({ page: 1, limit });
               }}
-              className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
+              className="w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
               title="Refresh"
             >
               <RefreshCw size={18} />
             </button>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        </section>
         {/* Loading State */}
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -235,7 +221,7 @@ export default function AccessoryListPage() {
                 setSearchTerm("");
                 setCurrentPage(1);
               }}
-              className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               Clear Search
             </button>
@@ -274,7 +260,7 @@ export default function AccessoryListPage() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`w-10 h-10 rounded-lg flex items-center justify-center transition ${
                         currentPage === pageNum
-                          ? "bg-emerald-600 text-white"
+                          ? "bg-blue-600 text-white"
                           : "border border-gray-300 hover:bg-gray-50"
                       }`}
                     >

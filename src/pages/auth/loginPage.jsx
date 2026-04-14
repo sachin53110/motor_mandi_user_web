@@ -33,7 +33,7 @@ export default function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen flex  font-sans" style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+    <div className="auth-screen min-h-screen flex  font-sans" style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       {/* Left Panel */}
       <div
         className="hidden lg:flex flex-col justify-between w-1/2 p-12 relative overflow-hidden"
@@ -155,7 +155,7 @@ export default function AuthScreen() {
       </div>
 
       {/* Right Panel */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white">
+      <div className="auth-right-panel flex-1 flex items-center justify-center p-6 lg:p-12 bg-white">
         <div className="w-full" style={{ maxWidth: 420 }}>
 
           {/* Mobile logo */}
@@ -189,9 +189,9 @@ export default function AuthScreen() {
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px" style={{ background: "#e5e7eb" }} />
+                <div className="auth-divider flex-1 h-px" style={{ background: "#e5e7eb" }} />
                 <span className="text-xs" style={{ color: "#9ca3af" }}>or</span>
-                <div className="flex-1 h-px" style={{ background: "#e5e7eb" }} />
+                <div className="auth-divider flex-1 h-px" style={{ background: "#e5e7eb" }} />
               </div>
 
               <div className="space-y-4">
@@ -299,9 +299,9 @@ export default function AuthScreen() {
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px" style={{ background: "#e5e7eb" }} />
+                <div className="auth-divider flex-1 h-px" style={{ background: "#e5e7eb" }} />
                 <span className="text-xs" style={{ color: "#9ca3af" }}>or</span>
-                <div className="flex-1 h-px" style={{ background: "#e5e7eb" }} />
+                <div className="auth-divider flex-1 h-px" style={{ background: "#e5e7eb" }} />
               </div>
 
               <div className="space-y-4">

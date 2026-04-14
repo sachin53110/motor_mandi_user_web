@@ -21,7 +21,7 @@ const formatPrice = (price) => {
 };
 
 const conditionColors = {
-  new:  "bg-emerald-100 text-emerald-700 border-emerald-200",
+  new:  "bg-blue-100 text-blue-700 border-blue-200",
   old:  "bg-amber-50   text-amber-600   border-amber-200",
   used: "bg-amber-50   text-amber-600   border-amber-200",
 };
@@ -29,15 +29,15 @@ const conditionColors = {
 // ── Skeleton Card ─────────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="bg-white border border-emerald-100 rounded-2xl overflow-hidden animate-pulse">
-      <div className="h-48 bg-emerald-50" />
+    <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden animate-pulse">
+      <div className="h-48 bg-blue-50" />
       <div className="p-4 space-y-3">
-        <div className="h-3 bg-emerald-100 rounded w-1/3" />
-        <div className="h-4 bg-emerald-100 rounded w-3/4" />
-        <div className="h-3 bg-emerald-100 rounded w-1/2" />
+        <div className="h-3 bg-blue-100 rounded w-1/3" />
+        <div className="h-4 bg-blue-100 rounded w-3/4" />
+        <div className="h-3 bg-blue-100 rounded w-1/2" />
         <div className="flex justify-between items-center pt-2">
-          <div className="h-6 bg-emerald-100 rounded w-20" />
-          <div className="h-8 bg-emerald-100 rounded w-16" />
+          <div className="h-6 bg-blue-100 rounded w-20" />
+          <div className="h-8 bg-blue-100 rounded w-16" />
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@ function TyreCard({ tyre, onContact, onCardClick }) {
   return (
     <div
       onClick={onCardClick}
-      className="group bg-white border border-gray-200 hover:border-emerald-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-100/60 flex flex-col h-full cursor-pointer"
+      className="group bg-white border border-gray-200 hover:border-blue-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-100/60 flex flex-col h-full cursor-pointer"
     >
       {/* Image Section */}
       <div className="relative bg-gray-100 overflow-hidden flex items-center justify-center aspect-square">
@@ -116,7 +116,7 @@ function TyreCard({ tyre, onContact, onCardClick }) {
         )}
 
         {/* Name / Size */}
-        <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-emerald-600">
+        <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-blue-600">
           {tyre.name || "Premium Tyre"}
           {tyre.size && (
             <span className="block text-xs text-gray-500 font-normal mt-0.5">{tyre.size}</span>
@@ -150,13 +150,13 @@ function TyreCard({ tyre, onContact, onCardClick }) {
 
         {/* Savings Badge */}
         {savings > 0 && (
-          <div className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-2">
+          <div className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded mb-2">
             ✓ Save {formatPrice(savings)}
           </div>
         )}
 
         {/* Delivery Info */}
-        <div className="text-emerald-600 text-xs font-semibold mb-3 flex items-center gap-1">
+        <div className="text-blue-600 text-xs font-semibold mb-3 flex items-center gap-1">
           🚚 FREE delivery by Thu
         </div>
 
@@ -169,14 +169,14 @@ function TyreCard({ tyre, onContact, onCardClick }) {
         )}
 
         {/* Stock Status */}
-        <div className="text-emerald-700 text-xs font-semibold mb-3">
+        <div className="text-blue-700 text-xs font-semibold mb-3">
           {tyre.quantity && tyre.quantity > 5 ? "✓ In Stock" : "Only few left"}
         </div>
 
         {/* Contact Button */}
         <button
           onClick={() => onContact(tyre)}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
         >
           <Phone size={14} /> Contact Now
         </button>
@@ -192,36 +192,36 @@ function ContactPopup({ tyre, onClose }) {
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-white rounded-3xl p-7 max-w-sm w-full shadow-2xl border border-emerald-100"
+        className="relative bg-white rounded-3xl p-7 max-w-sm w-full shadow-2xl border border-blue-100"
         onClick={(e) => e.stopPropagation()}
         style={{ animation: "slideUp .25s cubic-bezier(.34,1.56,.64,1) both" }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors">
           <X size={16} />
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">🛞</div>
+          <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl">🛞</div>
           <div>
-            <h3 className="text-emerald-950 font-black text-sm">{tyre.name || "Tyre Listing"}</h3>
-            <p className="text-emerald-600/60 text-xs">Size: {tyre.size} · {tyre.type}</p>
+            <h3 className="text-blue-950 font-black text-sm">{tyre.name || "Tyre Listing"}</h3>
+            <p className="text-blue-600/60 text-xs">Size: {tyre.size} · {tyre.type}</p>
           </div>
         </div>
 
         {tyre.user && (
-          <div className="bg-emerald-50 rounded-2xl p-4 mb-4">
-            <p className="text-emerald-800 font-bold text-sm mb-1">{tyre.user.shopName || tyre.user.name}</p>
-            {tyre.user.address && <p className="text-emerald-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11}/>{tyre.user.address}</p>}
+          <div className="bg-blue-50 rounded-2xl p-4 mb-4">
+            <p className="text-blue-800 font-bold text-sm mb-1">{tyre.user.shopName || tyre.user.name}</p>
+            {tyre.user.address && <p className="text-blue-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11}/>{tyre.user.address}</p>}
             <a
               href={`tel:${tyre.user.phone}`}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all hover:scale-105 justify-center mt-2"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all hover:scale-105 justify-center mt-2"
             >
               <Phone size={16} /> {tyre.user.phone}
             </a>
             {tyre.user.email && (
               <a
                 href={`mailto:${tyre.user.email}`}
-                className="flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:bg-emerald-50 justify-center mt-2"
+                className="flex items-center gap-2 bg-white border border-blue-200 text-blue-700 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:bg-blue-50 justify-center mt-2"
               >
                 ✉️ {tyre.user.email}
               </a>
@@ -229,7 +229,7 @@ function ContactPopup({ tyre, onClose }) {
           </div>
         )}
 
-        <div className="flex items-center gap-2 text-emerald-500 text-xs">
+        <div className="flex items-center gap-2 text-blue-500 text-xs">
           <CheckCircle size={14} />
           <span>Verified seller on MotorMandi</span>
         </div>
@@ -448,7 +448,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                   <p className="text-gray-600 text-base mb-8">{error}</p>
                   <button
                     onClick={handleRefresh}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-lg flex items-center gap-2 transition-all hover:scale-105"
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-lg flex items-center gap-2 transition-all hover:scale-105"
                   >
                     <RefreshCw size={18} /> Try Again
                   </button>
@@ -463,7 +463,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                   <p className="text-gray-600 text-base mb-8">Try adjusting your search or filters</p>
                   <button
                     onClick={() => { setSearch(""); setCondition("all"); setTyreType("all"); }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-lg transition-all hover:scale-105"
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-lg transition-all hover:scale-105"
                   >
                     Clear Filters
                   </button>
@@ -474,8 +474,8 @@ export default function TyreListingsModal({ isOpen, onClose }) {
               {!loading && !error && filtered.length > 0 && (
                 <>
                   <p className="text-gray-600 text-sm font-semibold mb-6">
-                    📍 Showing <span className="font-bold text-emerald-600">{filtered.length}</span> listing{filtered.length !== 1 ? "s" : ""}
-                    {search && ` for <span class="text-emerald-600">"${search}"</span>`}
+                    📍 Showing <span className="font-bold text-blue-600">{filtered.length}</span> listing{filtered.length !== 1 ? "s" : ""}
+                    {search && ` for <span class="text-blue-600">"${search}"</span>`}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
                     {filtered.map((tyre) => (
@@ -505,7 +505,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                           onClick={() => handlePageChange(p)}
                           className={`w-10 h-10 rounded-lg font-semibold text-sm transition-all ${
                             p === page
-                              ? "bg-emerald-600 text-white shadow-lg"
+                              ? "bg-blue-600 text-white shadow-lg"
                               : "border border-gray-300 text-gray-700 hover:bg-white"
                           }`}
                         >
@@ -534,7 +534,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
                 </p>
                 <button
                   onClick={onClose}
-                  className="text-sm text-emerald-600 hover:text-emerald-500 font-semibold flex items-center gap-1.5 transition-colors"
+                  className="text-sm text-blue-600 hover:text-blue-500 font-semibold flex items-center gap-1.5 transition-colors"
                 >
                   <X size={16} /> Close
                 </button>

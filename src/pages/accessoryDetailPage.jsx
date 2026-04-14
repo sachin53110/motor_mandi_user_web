@@ -5,7 +5,6 @@ import {
   ChevronLeft, ChevronRight, Gauge, Package, AlertCircle, TrendingUp
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
-import LOGO_SRC from "../assets/motorMandiLogo.png";
 
 const formatPrice = (price) => {
   const value = parseFloat(price);
@@ -42,10 +41,10 @@ export default function AccessoryDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4 animate-bounce">🔧</div>
-          <p className="text-gray-600 font-semibold">Loading accessory details...</p>
+          <p className="text-gray-400 font-semibold">Loading accessory details...</p>
         </div>
       </div>
     );
@@ -53,13 +52,13 @@ export default function AccessoryDetailPage() {
 
   if (error || !accessory) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">⚠️</div>
-          <p className="text-gray-600 font-semibold mb-6">{error || "Accessory not found"}</p>
+          <p className="text-gray-400 font-semibold mb-6">{error || "Accessory not found"}</p>
           <button
             onClick={() => navigate("/accessories")}
-            className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
             Back to Accessories
           </button>
@@ -72,35 +71,32 @@ export default function AccessoryDetailPage() {
   const currentImage = images[imageIndex]?.media;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={LOGO_SRC} alt="MotorMandi" className="h-10 w-auto object-contain" />
-            <h1 className="text-lg font-bold text-gray-900 line-clamp-1">{accessory.title}</h1>
+    <div className="min-h-screen bg-gray-950">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <section className="mb-5 bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-white line-clamp-1">{accessory.title}</h1>
+            <p className="text-sm text-gray-400 mt-0.5">{accessory.brand || accessory.category || "Accessory"}</p>
           </div>
           <div className="flex gap-2">
-            <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition">
-              <Share2 size={18} />
+            <button className="w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gray-800 transition text-gray-400">
+              <Share2 size={16} />
             </button>
             <button
               onClick={() => setLiked(!liked)}
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition"
+              className="w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gray-800 transition"
             >
-              <Heart size={18} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "#666"} />
+              <Heart size={16} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "#9ca3af"} />
             </button>
           </div>
-        </div>
-      </header>
+        </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Image Gallery */}
           <div className="lg:col-span-2 space-y-4">
             {/* Main Image */}
             <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 relative">
-              <div className="aspect-square bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
+              <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                 {!imgError && currentImage ? (
                   <img
                     src={currentImage}
@@ -147,7 +143,7 @@ export default function AccessoryDetailPage() {
                     key={idx}
                     onClick={() => setImageIndex(idx)}
                     className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition ${
-                      idx === imageIndex ? "border-emerald-600" : "border-gray-200"
+                      idx === imageIndex ? "border-blue-600" : "border-gray-200"
                     }`}
                   >
                     <img
@@ -177,7 +173,7 @@ export default function AccessoryDetailPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Price</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-emerald-600">{formatPrice(accessory.price)}</span>
+                    <span className="text-3xl font-bold text-blue-400">{formatPrice(accessory.price)}</span>
                     {accessory.customerPrice && (
                       <span className="text-lg text-gray-400 line-through">{formatPrice(accessory.customerPrice)}</span>
                     )}
@@ -234,7 +230,7 @@ export default function AccessoryDetailPage() {
                       <p className="text-sm text-gray-600 mb-2">Phone</p>
                       <a
                         href={`tel:${accessory.user.phone}`}
-                        className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold"
+                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
                       >
                         <Phone size={16} />
                         {accessory.user.phone}
@@ -247,7 +243,7 @@ export default function AccessoryDetailPage() {
                       <p className="text-sm text-gray-600 mb-2">Email</p>
                       <a
                         href={`mailto:${accessory.user.email}`}
-                        className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold break-all"
+                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold break-all"
                       >
                         <Mail size={16} />
                         {accessory.user.email}
@@ -259,7 +255,7 @@ export default function AccessoryDetailPage() {
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Location</p>
                       <div className="flex items-center gap-2 text-gray-900">
-                        <MapPin size={16} className="text-emerald-600" />
+                        <MapPin size={16} className="text-blue-600" />
                         {accessory.user.city}
                       </div>
                     </div>

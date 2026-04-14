@@ -5,7 +5,6 @@ import {
   Star, Phone, MapPin, Heart, Filter, X
 } from "lucide-react";
 import useWheels from "../hooks/userWheel";
-import LOGO_SRC from "../assets/motorMandiLogo.png";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -14,7 +13,7 @@ const formatPrice = (price) => {
 };
 
 const conditionColors = {
-  new: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  new: "bg-blue-100 text-blue-700 border-blue-200",
   old: "bg-amber-50 text-amber-600 border-amber-200",
   used: "bg-amber-50 text-amber-600 border-amber-200",
 };
@@ -161,22 +160,13 @@ export default function WheelListPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-3">
-              <img src={LOGO_SRC} alt="MotorMandi" className="h-12 w-auto object-contain" />
-              <div>
-                <h1 className="text-xl font-black text-gray-900">Premium Wheels</h1>
-                <p className="text-sm text-gray-500">{pagination?.totalRecords || 0} products</p>
-              </div>
-            </div>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <section className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+          <h1 className="text-2xl font-black text-gray-900">Premium Wheels</h1>
+          <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} products</p>
 
-          {/* Search & Filter */}
-          <div className="pb-4 flex gap-3 items-center flex-wrap">
-            <div className="flex-1 min-w-[200px] flex items-center bg-gray-100 rounded-full px-4 py-2">
+          <div className="mt-3 flex gap-3 items-center flex-wrap">
+            <div className="flex-1 min-w-[200px] flex items-center bg-gray-100 rounded-xl px-4 py-2">
               <Search size={18} className="text-gray-400" />
               <input
                 type="text"
@@ -207,7 +197,7 @@ export default function WheelListPage() {
                 setCondition(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-green-500"
+              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
             >
               <option value="all">All Conditions</option>
               <option value="new">New</option>
@@ -219,17 +209,13 @@ export default function WheelListPage() {
                 setCurrentPage(1);
                 fetchWheels({ page: 1, limit, condition: condition !== "all" ? condition : undefined });
               }}
-              className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
+              className="w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
               title="Refresh"
             >
               <RefreshCw size={18} />
             </button>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        </section>
         {/* Loading State */}
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

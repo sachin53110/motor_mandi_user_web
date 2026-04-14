@@ -5,7 +5,6 @@ import {
   ChevronLeft, ChevronRight, Gauge, Package, AlertCircle, TrendingUp
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
-import LOGO_SRC from "../assets/motorMandiLogo.png";
 
 const formatPrice = (price) => {
   const value = parseFloat(price);
@@ -70,31 +69,29 @@ export default function WheelDetailPage() {
 
   const images = wheel.medias || [];
   const currentImage = images[imageIndex]?.media;
+  const title = wheel.name || wheel.title || "Wheel Listing";
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={LOGO_SRC} alt="MotorMandi" className="h-10 w-auto object-contain" />
-            <h1 className="text-lg font-bold text-gray-900 line-clamp-1">{wheel.title}</h1>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <section className="mb-5 bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 line-clamp-1">{title}</h1>
+            <p className="text-sm text-gray-600 mt-0.5">{wheel.brand || ""} {wheel.size || ""}</p>
           </div>
           <div className="flex gap-2">
-            <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition">
-              <Share2 size={18} />
+            <button className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition">
+              <Share2 size={16} />
             </button>
             <button
               onClick={() => setLiked(!liked)}
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition"
+              className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition"
             >
-              <Heart size={18} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "#666"} />
+              <Heart size={16} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "#666"} />
             </button>
           </div>
-        </div>
-      </header>
+        </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Image Gallery */}
           <div className="lg:col-span-2 space-y-4">
@@ -104,7 +101,7 @@ export default function WheelDetailPage() {
                 {!imgError && currentImage ? (
                   <img
                     src={currentImage}
-                    alt={wheel.title}
+                    alt={title}
                     className="w-full h-full object-cover"
                     onError={() => setImgError(true)}
                   />

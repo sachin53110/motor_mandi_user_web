@@ -1,6 +1,20 @@
 import { useState, useCallback } from "react";
 import ApiProvider from "../api/ApiProvider";
 
+const normalizeShop = (shop = {}) => {
+  const rawImage = shop?.image?.media || shop?.image?.url || shop?.media || null;
+  const imageUrl = typeof rawImage === "string" && rawImage.trim() ? rawImage.trim() : null;
+  const fallbackAddress = [shop?.city, shop?.state, shop?.country].filter(Boolean).join(", ");
+
+  return {
+    ...shop,
+    imageUrl,
+    shopName: shop?.shopName || shop?.name || "Shop",
+    phone: shop?.phone || "N/A",
+    address: shop?.address || fallbackAddress || "Address not available",
+  };
+};
+
 const useNearbyShops = () => {
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +42,12 @@ const useNearbyShops = () => {
       const response = await ApiProvider.shops.getNearby(apiParams);
       
       if (response.status) {
-        setShops(response.data?.result || response.data || []);
+        const rawShops = response.data?.result || response.data || [];
+        const normalizedShops = Array.isArray(rawShops)
+          ? rawShops.map(normalizeShop)
+          : [];
+
+        setShops(normalizedShops);
         setPagination(response.data?.pagination || null);
       } else {
         throw new Error(response.message || "Failed to fetch shops");

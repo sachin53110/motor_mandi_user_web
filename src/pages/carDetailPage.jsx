@@ -1,22 +1,92 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  X, Phone, Mail, MapPin, Star, CheckCircle, Heart, Share2,
-  ChevronLeft, ChevronRight, Gauge, Package, AlertCircle, TrendingUp
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MapPin,
+  Phone,
+  Share2,
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
-import LOGO_SRC from "../assets/motorMandiLogo.png";
+
+const toNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const formatPrice = (price) => {
-  const value = parseFloat(price);
-  if (Number.isNaN(value)) return "N/A";
-  return `₹${value.toLocaleString("en-IN")}`;
+  const value = toNumber(price);
+  if (!value || value <= 0) return "Price on request";
+  return `Rs. ${value.toLocaleString("en-IN")}`;
 };
+
+const formatCompactPrice = (price) => {
+  const value = toNumber(price);
+  if (!value || value <= 0) return "Price on request";
+
+  if (value >= 10000000) {
+    const crore = (value / 10000000)
+      .toFixed(2)
+      .replace(/\.00$/, "")
+      .replace(/(\.\d)0$/, "$1");
+    return `Rs. ${crore} Cr`;
+  }
+
+  if (value >= 100000) {
+    const lakh = (value / 100000)
+      .toFixed(2)
+      .replace(/\.00$/, "")
+      .replace(/(\.\d)0$/, "$1");
+    return `Rs. ${lakh} Lakh`;
+  }
+
+  return `Rs. ${value.toLocaleString("en-IN")}`;
+};
+
+const formatKm = (km) => {
+  const value = toNumber(km);
+  if (value === null) return "N/A";
+  return `${value.toLocaleString("en-IN")} km`;
+};
+
+const formatDate = (date) => {
+  if (!date) return "N/A";
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return "N/A";
+  return parsed.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const toTitleCase = (value) => {
+  if (!value || typeof value !== "string") return "N/A";
+  return value
+    .toLowerCase()
+    .split(" ")
+    .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+    .join(" ");
+};
+
+const normalizeImages = (medias = []) =>
+  medias
+    .map((item) => (typeof item === "string" ? item : item?.media))
+    .filter(Boolean);
+
+const tabButtonClass = (isActive) =>
+  `-mb-px border-b-2 pb-3 text-[15px] font-semibold transition ${
+    isActive
+      ? "border-teal-600 text-teal-700"
+      : "border-transparent text-gray-500 hover:text-gray-800"
+  }`;
 
 export default function CarDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const [imageIndex, setImageIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
   const [car, setCar] = useState(null);
@@ -28,7 +98,19 @@ export default function CarDetailPage() {
       try {
         setLoading(true);
         const data = await ApiProvider.cars.getDetail(id);
-        setCar(data.data || data);
+
+        if (data?.status === false) {
+          throw new Error(data.message || "Failed to load car details");
+        }
+
+        const payload = data?.result || data?.data || data?.car || data;
+        if (!payload || typeof payload !== "object") {
+          throw new Error("Invalid car detail response");
+        }
+
+        setCar(payload);
+        setImageIndex(0);
+        setImgError(false);
       } catch (err) {
         console.error("Fetch error:", err);
         setError(err.message || "Failed to load car details");
@@ -42,10 +124,9 @@ export default function CarDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🚗</div>
-          <p className="text-gray-600 font-semibold">Loading car details...</p>
+      <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4">
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-gray-700 font-semibold">Loading car details...</p>
         </div>
       </div>
     );
@@ -53,13 +134,12 @@ export default function CarDetailPage() {
 
   if (error || !car) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
-          <p className="text-gray-600 font-semibold mb-6">{error || "Car not found"}</p>
+      <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4">
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm max-w-md w-full">
+          <p className="text-gray-700 font-semibold mb-5">{error || "Car not found"}</p>
           <button
             onClick={() => navigate("/cars")}
-            className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition"
+            className="rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-700"
           >
             Back to Cars
           </button>
@@ -68,219 +148,357 @@ export default function CarDetailPage() {
     );
   }
 
-  const images = car.medias || [];
-  const currentImage = images[imageIndex]?.media;
+  const images = normalizeImages(car.medias);
+  const currentImage = images[imageIndex] || "";
+  const brand = car.brandName || car.brand || "";
+  const title =
+    car.name ||
+    car.title ||
+    [brand, car.model].filter(Boolean).join(" ") ||
+    "Used Car";
+  const odometer = car.km ?? car.kilometer ?? car.kms;
+  const odometerNumber = toNumber(odometer);
+  const fuelType = car.fuelType || car.fuel || "N/A";
+  const transmission = car.transmission || car.gearType || "N/A";
+  const listedOn = formatDate(car.createdAt);
+  const location =
+    [car.location, car.user?.city, car.user?.state, car.user?.country]
+      .filter(Boolean)
+      .join(", ") || "Location not shared";
+  const sellerName = car.user?.name || car.user?.shopName || "Seller";
+  const sellerPhone = car.user?.phone || car.phone || "";
+  const askingPrice = toNumber(car.price);
+  const referencePrice = toNumber(car.customerPrice);
+  const savings =
+    askingPrice && referencePrice && referencePrice > askingPrice
+      ? referencePrice - askingPrice
+      : null;
+
+  const overviewItems = [
+    { label: "Price", value: formatCompactPrice(askingPrice) },
+    { label: "Kilometer", value: formatKm(odometer) },
+    { label: "Fuel Type", value: fuelType },
+    { label: "Transmission", value: transmission },
+    { label: "Owner", value: toTitleCase(car.owner) },
+    { label: "Vehicle No.", value: car.vehicleNumber || "N/A" },
+  ];
+
+  const specRows = [
+    { label: "Brand", value: brand || "N/A" },
+    { label: "Model", value: car.model || "N/A" },
+    { label: "Condition", value: toTitleCase(car.condition) },
+    { label: "Status", value: toTitleCase(car.status) },
+    { label: "Listed On", value: listedOn },
+    { label: "Location", value: location },
+  ];
+
+  const sellerRows = [
+    { label: "Seller", value: sellerName },
+    { label: "Shop", value: car.user?.shopName || "N/A" },
+    { label: "Email", value: car.user?.email || "N/A" },
+    { label: "Address", value: car.user?.address || "N/A" },
+  ];
+
+  const descriptionPoints = (car.description || "")
+    .split(/\n|\./)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const reasonList = [
+    car.condition ? `${toTitleCase(car.condition)} condition listing` : null,
+    car.owner ? `${toTitleCase(car.owner)} owner history` : null,
+    odometerNumber !== null ? `${formatKm(odometer)} driven` : null,
+    car.status ? `Current status: ${toTitleCase(car.status)}` : null,
+    ...descriptionPoints,
+  ]
+    .filter(Boolean)
+    .filter((value, index, arr) => arr.indexOf(value) === index)
+    .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={LOGO_SRC} alt="MotorMandi" className="h-10 w-auto object-contain" />
-            <h1 className="text-lg font-bold text-gray-900 line-clamp-1">{car.title}</h1>
-          </div>
-          <div className="flex gap-2">
-            <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition">
-              <Share2 size={18} />
-            </button>
-            <button
-              onClick={() => setLiked(!liked)}
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition"
-            >
-              <Heart size={18} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "#666"} />
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#f5f6f8]">
+      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+        <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
+          <button onClick={() => navigate("/")} className="hover:text-gray-700 transition">
+            Home
+          </button>
+          <span>/</span>
+          <button onClick={() => navigate("/cars")} className="hover:text-gray-700 transition">
+            Used Cars
+          </button>
+          <span>/</span>
+          <span className="text-gray-700 line-clamp-1">{title}</span>
+        </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Image Gallery */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Main Image */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 relative">
-              <div className="aspect-square bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center">
-                {!imgError && currentImage ? (
-                  <img
-                    src={currentImage}
-                    alt={car.title}
-                    className="w-full h-full object-cover"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <div className="text-6xl">🚗</div>
+        <section className="rounded-3xl border border-gray-200 bg-white p-3 sm:p-5">
+          <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+            <div>
+              <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
+                <div className="aspect-[16/10] flex items-center justify-center">
+                  {currentImage && !imgError ? (
+                    <img
+                      src={currentImage}
+                      alt={title}
+                      className="h-full w-full object-cover"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <span className="text-lg font-semibold text-gray-400">No image available</span>
+                  )}
+                </div>
+
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setImageIndex((prev) => (prev - 1 + images.length) % images.length)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/95 p-2 shadow hover:bg-white"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageIndex((prev) => (prev + 1) % images.length)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/95 p-2 shadow hover:bg-white"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </>
                 )}
               </div>
 
-              {/* Image Navigation */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setImageIndex((i) => (i - 1 + images.length) % images.length)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    onClick={() => setImageIndex((i) => (i + 1) % images.length)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </>
-              )}
-
-              {/* Image Counter */}
               {images.length > 0 && (
-                <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
-                  {imageIndex + 1} / {images.length}
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                  {images.map((image, idx) => (
+                    <button
+                      key={`${image}-${idx}`}
+                      type="button"
+                      onClick={() => {
+                        setImageIndex(idx);
+                        setImgError(false);
+                      }}
+                      className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition ${
+                        idx === imageIndex
+                          ? "border-teal-600 ring-2 ring-teal-100"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <img src={image} alt={`${title} view ${idx + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setImageIndex(idx)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition ${
-                      idx === imageIndex ? "border-teal-600" : "border-gray-200"
-                    }`}
-                  >
-                    <img
-                      src={img.media}
-                      alt={`View ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="rounded-2xl border border-gray-200 bg-[#fafafa] p-4 sm:p-5">
+              <h1 className="text-2xl font-bold leading-snug text-gray-900">{title}</h1>
 
-            {/* Description */}
-            {car.description && (
-              <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Description</h2>
-                <p className="text-gray-700 whitespace-pre-line leading-relaxed">{car.description}</p>
+              <p className="mt-2 text-sm text-gray-600">
+                {[formatKm(odometer), fuelType, location].filter(Boolean).join(" | ")}
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-end gap-3">
+                <p className="text-4xl font-bold leading-none text-gray-900">{formatCompactPrice(askingPrice)}</p>
+                <button type="button" className="pb-1 text-sm font-semibold text-sky-600 hover:text-sky-700">
+                  Make Offer
+                </button>
               </div>
-            )}
+
+              <p className="mt-2 text-sm text-gray-500">
+                {referencePrice
+                  ? `New Car Price ${formatCompactPrice(referencePrice)}`
+                  : "New car price data unavailable"}
+                <button type="button" className="ml-2 font-semibold text-sky-600 hover:text-sky-700">
+                  Price Insights
+                </button>
+              </p>
+
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-600">
+                <span>Home Test Drive Available</span>
+                <button type="button" className="font-semibold text-sky-600 hover:text-sky-700">
+                  Book Now
+                </button>
+              </div>
+
+              <a
+                href={sellerPhone ? `tel:${sellerPhone}` : undefined}
+                className={`mt-4 flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold text-white transition ${
+                  sellerPhone ? "bg-[#ef3b24] hover:bg-[#d93621]" : "bg-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {sellerPhone ? "Get Seller Details" : "Seller details unavailable"}
+              </a>
+
+              <div className="mt-4 rounded-xl border border-gray-200 bg-white p-3.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Seller</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900">{sellerName}</p>
+                {sellerPhone && (
+                  <a href={`tel:${sellerPhone}`} className="mt-1 flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900">
+                    <Phone size={14} />
+                    {sellerPhone}
+                  </a>
+                )}
+                <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-600">
+                  <MapPin size={14} className="shrink-0" />
+                  <span className="line-clamp-1">{location}</span>
+                </p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-gray-400"
+                >
+                  <Share2 size={15} />
+                  Share
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLiked((prev) => !prev)}
+                  className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-gray-400"
+                >
+                  <Heart size={15} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "currentColor"} />
+                  {liked ? "Saved" : "Save"}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Price Section */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Price</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-teal-600">{formatPrice(car.price)}</span>
-                    {car.customerPrice && (
-                      <span className="text-lg text-gray-400 line-through">{formatPrice(car.customerPrice)}</span>
-                    )}
-                  </div>
-                </div>
+          <div className="mt-3 flex justify-end">
+            <button type="button" className="text-xs font-semibold text-sky-600 hover:text-sky-700">
+              Report Problem
+            </button>
+          </div>
+        </section>
 
-                {car.price && car.customerPrice && parseFloat(car.customerPrice) > parseFloat(car.price) && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-red-700">
-                      Save ₹{(parseFloat(car.customerPrice) - parseFloat(car.price)).toLocaleString("en-IN")}
+        <section className="mt-5">
+          <div className="border-b border-gray-200">
+            <div className="flex flex-wrap items-center gap-6">
+              <button
+                type="button"
+                onClick={() => setActiveTab("overview")}
+                className={tabButtonClass(activeTab === "overview")}
+              >
+                Car Overview
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("specs")}
+                className={tabButtonClass(activeTab === "specs")}
+              >
+                Specs & Features
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("price")}
+                className={tabButtonClass(activeTab === "price")}
+              >
+                Price Guide
+              </button>
+            </div>
+          </div>
+
+          {activeTab === "overview" && (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-2xl font-bold text-gray-900">Car Overview</h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {overviewItems.map((item) => (
+                    <div key={item.label} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{item.label}</p>
+                      <p className="mt-1 text-sm font-semibold text-gray-900">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-2xl font-bold text-gray-900">Reasons to Buy</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {(reasonList.length ? reasonList : ["Fresh listing with complete details"]).map((reason) => (
+                    <li key={reason} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </div>
+          )}
+
+          {activeTab === "specs" && (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Specifications</h2>
+                <div className="mt-3 space-y-3">
+                  {specRows.map((row) => (
+                    <div key={row.label} className="flex items-start justify-between gap-3 border-b border-gray-100 pb-2.5 text-sm last:border-b-0 last:pb-0">
+                      <span className="text-gray-500">{row.label}</span>
+                      <span className="text-right font-semibold text-gray-900">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Seller Details</h2>
+                <div className="mt-3 space-y-3">
+                  {sellerRows.map((row) => (
+                    <div key={row.label} className="flex items-start justify-between gap-3 border-b border-gray-100 pb-2.5 text-sm last:border-b-0 last:pb-0">
+                      <span className="text-gray-500">{row.label}</span>
+                      <span className="text-right font-semibold text-gray-900">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </div>
+          )}
+
+          {activeTab === "price" && (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Price Snapshot</h2>
+                <div className="mt-4 space-y-3 text-sm">
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5">
+                    <p className="text-gray-500">Asking Price</p>
+                    <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(askingPrice)}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5">
+                    <p className="text-gray-500">Market Reference</p>
+                    <p className="mt-1 text-xl font-bold text-gray-900">
+                      {referencePrice ? formatPrice(referencePrice) : "N/A"}
                     </p>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Specifications */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Specifications</h2>
-              <div className="space-y-3">
-                {car.brand && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Brand</span>
-                    <span className="font-semibold text-gray-900">{car.brand}</span>
-                  </div>
-                )}
-                {car.model && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Model</span>
-                    <span className="font-semibold text-gray-900">{car.model}</span>
-                  </div>
-                )}
-                {car.year && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Year</span>
-                    <span className="font-semibold text-gray-900">{car.year}</span>
-                  </div>
-                )}
-                {car.fuelType && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Fuel Type</span>
-                    <span className="font-semibold text-gray-900">{car.fuelType}</span>
-                  </div>
-                )}
-                {car.condition && (
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Condition</span>
-                    <span className="font-semibold text-gray-900 capitalize">{car.condition}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Seller Info */}
-            {car.user && (
-              <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Seller Information</h2>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Name</p>
-                    <p className="font-semibold text-gray-900">{car.user.name || "N/A"}</p>
-                  </div>
-
-                  {car.user.phone && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Phone</p>
-                      <a
-                        href={`tel:${car.user.phone}`}
-                        className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-semibold"
-                      >
-                        <Phone size={16} />
-                        {car.user.phone}
-                      </a>
-                    </div>
-                  )}
-
-                  {car.user.email && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Email</p>
-                      <a
-                        href={`mailto:${car.user.email}`}
-                        className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-semibold break-all"
-                      >
-                        <Mail size={16} />
-                        {car.user.email}
-                      </a>
-                    </div>
-                  )}
-
-                  {car.user.city && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Location</p>
-                      <div className="flex items-center gap-2 text-gray-900">
-                        <MapPin size={16} className="text-teal-600" />
-                        {car.user.city}
-                      </div>
+                  {savings && (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800">
+                      Potential upside against market: {formatPrice(savings)}
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
+              </article>
+
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Buying Tips</h2>
+                <ul className="mt-4 space-y-2.5 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                    Compare this asking price with similar listings in the same city.
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                    Verify RC, insurance validity and ownership transfer documents.
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                    Schedule a test drive before making the final offer.
+                  </li>
+                </ul>
+              </article>
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );

@@ -136,7 +136,7 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
                   <span
                     className={`text-xs px-2 py-1 rounded-full font-medium ${
                       selectedShop.shopStatus === "open"
-                        ? "bg-emerald-100 text-emerald-700"
+                        ? "bg-blue-100 text-blue-700"
                         : "bg-red-100 text-red-700"
                     }`}
                   >
@@ -148,7 +148,7 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
               {onShopSelect && (
                 <button
                   onClick={() => onShopSelect(selectedShop)}
-                  className="mt-3 w-full bg-emerald-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-emerald-700"
+                  className="mt-3 w-full bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700"
                 >
                   View Details
                 </button>

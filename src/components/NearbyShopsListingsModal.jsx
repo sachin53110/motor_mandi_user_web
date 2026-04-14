@@ -54,7 +54,7 @@ const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
             onClick={() => setIsMapView(false)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               !isMapView
-                ? "bg-emerald-600 text-white"
+                ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -64,7 +64,7 @@ const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
             onClick={() => setIsMapView(true)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               isMapView
-                ? "bg-emerald-600 text-white"
+                ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -77,7 +77,7 @@ const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
           {/* Loading State */}
           {loading && (
             <div className="flex flex-col items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
               <p className="text-gray-600">
                 {locationEnabled ? "Finding nearby shops..." : "Loading shops..."}
               </p>
@@ -113,87 +113,103 @@ const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
                   key={shop.id}
                   className="p-4 hover:bg-gray-50 transition-colors cursor-pointer group"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-800 text-lg group-hover:text-emerald-600 transition-colors">
-                      {shop.name}
-                    </h3>
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full font-medium ${
-                        shop.status === "active"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {shop.status}
-                    </span>
-                  </div>
-
-                  {/* Rating & Reviews */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="font-medium text-gray-700">
-                        {shop.rating?.toFixed(1) || "N/A"}
-                      </span>
+                  <div className="flex items-start gap-3">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
+                      {shop.imageUrl ? (
+                        <img
+                          src={shop.imageUrl}
+                          alt={shop.shopName || shop.name || "Shop"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-lg">🏪</div>
+                      )}
                     </div>
-                    {shop.reviews && (
-                      <span className="text-xs text-gray-500">
-                        ({shop.reviews} reviews)
-                      </span>
-                    )}
-                    <Zap className="w-4 h-4 text-orange-500 ml-2" />
-                    <span className="text-xs font-medium text-orange-600">
-                      {shop.distance ? `${(shop.distance / 1000).toFixed(1)} km` : "N/A"}
-                    </span>
-                  </div>
 
-                  {/* Address */}
-                  <div className="flex items-start gap-2 mb-2">
-                    <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">{shop.address}</span>
-                  </div>
-
-                  {/* Phone */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <Phone className="w-4 h-4 text-blue-500" />
-                    <a
-                      href={`tel:${shop.phone}`}
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      {shop.phone}
-                    </a>
-                  </div>
-
-                  {/* Hours */}
-                  {shop.hours && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <Clock className="w-4 h-4 text-purple-500" />
-                      <span className="text-sm text-gray-600">{shop.hours}</span>
-                      <span
-                        className={`text-xs font-medium ml-2 ${
-                          shop.shopStatus === "open"
-                            ? "text-emerald-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {shop.shopStatus === "open" ? "🟢 Open" : "🔴 Closed"}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Services Tags */}
-                  {shop.tags && shop.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {shop.tags.map((tag, idx) => (
+                    <div className="min-w-0 flex-1">
+                      <div className="flex justify-between items-start mb-2 gap-2">
+                        <h3 className="font-semibold text-gray-800 text-lg group-hover:text-blue-600 transition-colors truncate">
+                          {shop.name}
+                        </h3>
                         <span
-                          key={idx}
-                          className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                          className={`text-xs px-3 py-1 rounded-full font-medium ${
+                            shop.status === "active"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
                         >
-                          {tag}
+                          {shop.status}
                         </span>
-                      ))}
+                      </div>
+
+                      {/* Rating & Reviews */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span className="font-medium text-gray-700">
+                            {shop.rating?.toFixed(1) || "N/A"}
+                          </span>
+                        </div>
+                        {shop.reviews && (
+                          <span className="text-xs text-gray-500">
+                            ({shop.reviews} reviews)
+                          </span>
+                        )}
+                        <Zap className="w-4 h-4 text-orange-500 ml-2" />
+                        <span className="text-xs font-medium text-orange-600">
+                          {shop.distance ? `${(shop.distance / 1000).toFixed(1)} km` : "N/A"}
+                        </span>
+                      </div>
+
+                      {/* Address */}
+                      <div className="flex items-start gap-2 mb-2">
+                        <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-600">{shop.address}</span>
+                      </div>
+
+                      {/* Phone */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <Phone className="w-4 h-4 text-blue-500" />
+                        <a
+                          href={`tel:${shop.phone}`}
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          {shop.phone}
+                        </a>
+                      </div>
+
+                      {/* Hours */}
+                      {shop.hours && (
+                        <div className="flex items-center gap-2 mb-3">
+                          <Clock className="w-4 h-4 text-purple-500" />
+                          <span className="text-sm text-gray-600">{shop.hours}</span>
+                          <span
+                            className={`text-xs font-medium ml-2 ${
+                              shop.shopStatus === "open"
+                                ? "text-blue-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {shop.shopStatus === "open" ? "🟢 Open" : "🔴 Closed"}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Services Tags */}
+                      {shop.tags && shop.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {shop.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               ))}
             </div>

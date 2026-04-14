@@ -35,22 +35,22 @@ export default function TyreDetailModal({ isOpen, onClose, item }) {
         <div className="min-h-full flex flex-col">
           <div className="flex-1 bg-white mt-12 rounded-t-3xl panel-enter flex flex-col" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 py-4 rounded-t-3xl">
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-blue-100 px-4 sm:px-6 py-4 rounded-t-3xl">
               <div className="max-w-6xl mx-auto flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl">
+                  <div className="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl">
                     🛞
                   </div>
                   <div>
-                    <h2 className="text-emerald-950 font-black text-lg leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    <h2 className="text-blue-950 font-black text-lg leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                       {item.brandName || "Tyre"} - Size {item.size}
                     </h2>
-                    <p className="text-emerald-600 text-xs mt-1">{item.type || "Premium Tyres"}</p>
+                    <p className="text-blue-600 text-xs mt-1">{item.type || "Premium Tyres"}</p>
                   </div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-all"
                 >
                   <X size={18} />
                 </button>
@@ -62,7 +62,7 @@ export default function TyreDetailModal({ isOpen, onClose, item }) {
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Image Gallery */}
                 <div className="lg:col-span-2">
-                  <div className="relative bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl overflow-hidden h-96 border border-emerald-200 mb-4 flex items-center justify-center group">
+                  <div className="relative bg-gradient-to-br from-teal-50 to-blue-50 rounded-2xl overflow-hidden h-96 border border-blue-200 mb-4 flex items-center justify-center group">
                     {item.medias && item.medias.length > 0 && !imgError ? (
                       <>
                         <img
@@ -95,7 +95,7 @@ export default function TyreDetailModal({ isOpen, onClose, item }) {
                                   onClick={() => setImageIndex(idx)}
                                   className={`h-2 rounded-full transition-all ${
                                     idx === imageIndex
-                                      ? "bg-emerald-500 w-6"
+                                      ? "bg-blue-500 w-6"
                                       : "bg-white/50 hover:bg-white/75 w-2"
                                   }`}
                                 />
@@ -118,12 +118,12 @@ export default function TyreDetailModal({ isOpen, onClose, item }) {
                       className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all text-sm ${
                         liked
                           ? "bg-red-100 text-red-700 border border-red-200"
-                          : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                          : "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
                       }`}
                     >
                       <Heart size={16} fill={liked ? "currentColor" : "none"} /> Like
                     </button>
-                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all text-sm">
+                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-all text-sm">
                       <Share2 size={16} /> Share
                     </button>
                   </div>
@@ -132,49 +132,49 @@ export default function TyreDetailModal({ isOpen, onClose, item }) {
                 {/* Details Section */}
                 <div className="lg:col-span-3 space-y-6">
                   {/* Price */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
+                  <div className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-200">
                     <div className="flex items-baseline justify-between mb-3">
-                      <span className="text-emerald-600/60 text-sm font-semibold">Current Price</span>
+                      <span className="text-blue-600/60 text-sm font-semibold">Current Price</span>
                       {item.customerPrice && (
-                        <span className="text-emerald-500/60 text-xs line-through">{formatPrice(item.customerPrice)}</span>
+                        <span className="text-blue-500/60 text-xs line-through">{formatPrice(item.customerPrice)}</span>
                       )}
                     </div>
-                    <div className="text-4xl font-black text-emerald-700 mb-2">{formatPrice(item.price)}</div>
-                    <p className="text-emerald-600/70 text-sm">Price is per piece</p>
+                    <div className="text-4xl font-black text-blue-700 mb-2">{formatPrice(item.price)}</div>
+                    <p className="text-blue-600/70 text-sm">Price is per piece</p>
                   </div>
 
                   {/* Specifications Grid */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                      <div className="text-emerald-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
+                    <div className="bg-white border border-blue-100 rounded-xl p-4">
+                      <div className="text-blue-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
                         <Gauge size={14} /> Size
                       </div>
-                      <div className="text-emerald-950 font-bold text-lg">{item.size || "—"}</div>
+                      <div className="text-blue-950 font-bold text-lg">{item.size || "—"}</div>
                     </div>
 
-                    <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                      <div className="text-emerald-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
+                    <div className="bg-white border border-blue-100 rounded-xl p-4">
+                      <div className="text-blue-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
                         <Package size={14} /> Type
                       </div>
-                      <div className="capitalize text-emerald-950 font-bold text-lg">
+                      <div className="capitalize text-blue-950 font-bold text-lg">
                         {item.type === "TubeLess" ? "Tubeless" : item.type || "—"}
                       </div>
                     </div>
 
-                    <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                      <div className="text-emerald-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
+                    <div className="bg-white border border-blue-100 rounded-xl p-4">
+                      <div className="text-blue-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
                         <TrendingUp size={14} /> Quantity
                       </div>
-                      <div className="text-emerald-950 font-bold text-lg">{item.quantity || "—"} pcs</div>
+                      <div className="text-blue-950 font-bold text-lg">{item.quantity || "—"} pcs</div>
                     </div>
 
-                    <div className="bg-white border border-emerald-100 rounded-xl p-4">
-                      <div className="text-emerald-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
+                    <div className="bg-white border border-blue-100 rounded-xl p-4">
+                      <div className="text-blue-600/60 text-xs font-semibold mb-1 flex items-center gap-1">
                         <AlertCircle size={14} /> Condition
                       </div>
                       <div className={`text-sm font-bold px-2 py-1 rounded-full w-fit capitalize ${
                         item.condition?.toLowerCase() === "new"
-                          ? "bg-emerald-100 text-emerald-700"
+                          ? "bg-blue-100 text-blue-700"
                           : item.condition?.toLowerCase() === "used"
                           ? "bg-amber-100 text-amber-700"
                           : "bg-blue-100 text-blue-700"
@@ -184,30 +184,30 @@ export default function TyreDetailModal({ isOpen, onClose, item }) {
                     </div>
 
                     {item.brandName && (
-                      <div className="bg-white border border-emerald-100 rounded-xl p-4 col-span-2">
-                        <div className="text-emerald-600/60 text-xs font-semibold mb-1">Brand</div>
-                        <div className="text-emerald-950 font-bold text-lg">{item.brandName}</div>
+                      <div className="bg-white border border-blue-100 rounded-xl p-4 col-span-2">
+                        <div className="text-blue-600/60 text-xs font-semibold mb-1">Brand</div>
+                        <div className="text-blue-950 font-bold text-lg">{item.brandName}</div>
                       </div>
                     )}
                   </div>
 
                   {/* Description */}
                   {item.description && (
-                    <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200">
-                      <div className="text-emerald-600/60 text-xs font-semibold mb-2">Description</div>
-                      <p className="text-emerald-900 text-sm leading-relaxed">{item.description}</p>
+                    <div className="bg-blue-50 rounded-2xl p-4 border border-blue-200">
+                      <div className="text-blue-600/60 text-xs font-semibold mb-2">Description</div>
+                      <p className="text-blue-900 text-sm leading-relaxed">{item.description}</p>
                     </div>
                   )}
 
                   {/* Seller Information */}
                   {item.user && (
-                    <div className="bg-emerald-950 rounded-2xl p-6 text-white">
+                    <div className="bg-blue-950 rounded-2xl p-6 text-white">
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h3 className="font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                             {item.user.shopName || item.user.name}
                           </h3>
-                          <p className="text-emerald-400 text-sm flex items-center gap-1">
+                          <p className="text-blue-400 text-sm flex items-center gap-1">
                             <CheckCircle size={14} /> Verified Seller
                           </p>
                         </div>
@@ -217,27 +217,27 @@ export default function TyreDetailModal({ isOpen, onClose, item }) {
                               <Star key={i} size={14} fill="#f59e0b" stroke="#f59e0b" />
                             ))}
                           </div>
-                          <p className="text-emerald-400 text-xs">Highly Rated</p>
+                          <p className="text-blue-400 text-xs">Highly Rated</p>
                         </div>
                       </div>
 
-                      <div className="space-y-3 pt-4 border-t border-emerald-800">
+                      <div className="space-y-3 pt-4 border-t border-blue-800">
                         <a
                           href={`tel:${item.user.phone}`}
-                          className="flex items-center gap-3 text-emerald-300 hover:text-white transition-colors"
+                          className="flex items-center gap-3 text-blue-300 hover:text-white transition-colors"
                         >
                           <Phone size={18} /> {item.user.phone}
                         </a>
                         {item.user.email && (
                           <a
                             href={`mailto:${item.user.email}`}
-                            className="flex items-center gap-3 text-emerald-300 hover:text-white transition-colors text-sm break-all"
+                            className="flex items-center gap-3 text-blue-300 hover:text-white transition-colors text-sm break-all"
                           >
                             <Mail size={18} /> {item.user.email}
                           </a>
                         )}
                         {item.user.address && (
-                          <div className="flex items-start gap-3 text-emerald-300">
+                          <div className="flex items-start gap-3 text-blue-300">
                             <MapPin size={18} className="mt-1 flex-shrink-0" /> {item.user.address}
                           </div>
                         )}

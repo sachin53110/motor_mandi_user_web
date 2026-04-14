@@ -23,15 +23,15 @@ const formatPrice = (price) => {
 // ── Skeleton Card ─────────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="bg-white border border-emerald-100 rounded-2xl overflow-hidden animate-pulse">
-      <div className="h-48 bg-emerald-50" />
+    <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden animate-pulse">
+      <div className="h-48 bg-blue-50" />
       <div className="p-4 space-y-3">
-        <div className="h-3 bg-emerald-100 rounded w-1/3" />
-        <div className="h-4 bg-emerald-100 rounded w-3/4" />
-        <div className="h-3 bg-emerald-100 rounded w-1/2" />
+        <div className="h-3 bg-blue-100 rounded w-1/3" />
+        <div className="h-4 bg-blue-100 rounded w-3/4" />
+        <div className="h-3 bg-blue-100 rounded w-1/2" />
         <div className="flex justify-between items-center pt-2">
-          <div className="h-6 bg-emerald-100 rounded w-20" />
-          <div className="h-8 bg-emerald-100 rounded w-16" />
+          <div className="h-6 bg-blue-100 rounded w-20" />
+          <div className="h-8 bg-blue-100 rounded w-16" />
         </div>
       </div>
     </div>
@@ -55,7 +55,7 @@ function AccessoryCard({ accessory, onContact, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="group bg-white border border-emerald-100 hover:border-emerald-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-100/60 flex flex-col h-full cursor-pointer"
+      className="group bg-white border border-blue-100 hover:border-blue-400 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-100/60 flex flex-col h-full cursor-pointer"
     >
       {/* Image Section */}
       <div className="relative bg-gray-100 overflow-hidden flex items-center justify-center aspect-square">
@@ -77,7 +77,7 @@ function AccessoryCard({ accessory, onContact, onClick }) {
               {discount}% OFF
             </div>
           )}
-          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded border bg-white text-emerald-700 border-emerald-200">
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded border bg-white text-blue-700 border-blue-200">
             New
           </span>
         </div>
@@ -106,7 +106,7 @@ function AccessoryCard({ accessory, onContact, onClick }) {
         </div>
 
         {/* Title */}
-        <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-emerald-600">
+        <h3 className="text-gray-800 font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-blue-600">
           {accessory.title || "Accessory"}
         </h3>
 
@@ -139,7 +139,7 @@ function AccessoryCard({ accessory, onContact, onClick }) {
 
         {/* Savings Badge */}
         {savings > 0 && (
-          <div className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-2">
+          <div className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded mb-2">
             ✓ Save {formatPrice(savings)}
           </div>
         )}
@@ -154,14 +154,14 @@ function AccessoryCard({ accessory, onContact, onClick }) {
         )}
 
         {/* Verified Badge */}
-        <div className="text-emerald-700 text-xs font-semibold mb-3">
+        <div className="text-blue-700 text-xs font-semibold mb-3">
           ✓ Verified Seller
         </div>
 
         {/* Contact Button */}
         <button
           onClick={() => onContact && onContact(accessory)}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm"
         >
           <Phone size={14} /> Contact Now
         </button>
@@ -178,36 +178,36 @@ function ContactPopup({ accessory, onClose }) {
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-white rounded-3xl p-7 max-w-sm w-full shadow-2xl border border-emerald-100"
+        className="relative bg-white rounded-3xl p-7 max-w-sm w-full shadow-2xl border border-blue-100"
         onClick={(e) => e.stopPropagation()}
         style={{ animation: "slideUp .25s cubic-bezier(.34,1.56,.64,1) both" }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors">
           <X size={16} />
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">🔧</div>
+          <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl">🔧</div>
           <div>
-            <h3 className="text-emerald-950 font-black text-sm">{accessory.title || "Accessory"}</h3>
-            <p className="text-emerald-600/60 text-xs">Auto Parts & Accessories</p>
+            <h3 className="text-blue-950 font-black text-sm">{accessory.title || "Accessory"}</h3>
+            <p className="text-blue-600/60 text-xs">Auto Parts & Accessories</p>
           </div>
         </div>
 
         {accessory.user && (
-          <div className="bg-emerald-50 rounded-2xl p-4 mb-4">
-            <p className="text-emerald-800 font-bold text-sm mb-1">{accessory.user.shopName || accessory.user.name}</p>
-            {accessory.user.address && <p className="text-emerald-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11} />{accessory.user.address}</p>}
+          <div className="bg-blue-50 rounded-2xl p-4 mb-4">
+            <p className="text-blue-800 font-bold text-sm mb-1">{accessory.user.shopName || accessory.user.name}</p>
+            {accessory.user.address && <p className="text-blue-600/60 text-xs mb-2 flex items-center gap-1"><MapPin size={11} />{accessory.user.address}</p>}
             <a
               href={`tel:${accessory.user.phone}`}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all hover:scale-105 justify-center mt-2"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all hover:scale-105 justify-center mt-2"
             >
               <Phone size={16} /> {accessory.user.phone}
             </a>
             {accessory.user.email && (
               <a
                 href={`mailto:${accessory.user.email}`}
-                className="flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:bg-emerald-50 justify-center mt-2"
+                className="flex items-center gap-2 bg-white border border-blue-200 text-blue-700 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:bg-blue-50 justify-center mt-2"
               >
                 ✉️ {accessory.user.email}
               </a>
@@ -215,18 +215,18 @@ function ContactPopup({ accessory, onClose }) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 mb-4 text-xs text-emerald-700/80">
-          <div className="bg-emerald-50 rounded-2xl p-3">
-            <div className="font-bold text-emerald-900 mb-1">Price</div>
+        <div className="grid grid-cols-2 gap-3 mb-4 text-xs text-blue-700/80">
+          <div className="bg-blue-50 rounded-2xl p-3">
+            <div className="font-bold text-blue-900 mb-1">Price</div>
             <div>{formatPrice(accessory.ownerPrice)}</div>
           </div>
-          <div className="bg-emerald-50 rounded-2xl p-3">
-            <div className="font-bold text-emerald-900 mb-1">Status</div>
+          <div className="bg-blue-50 rounded-2xl p-3">
+            <div className="font-bold text-blue-900 mb-1">Status</div>
             <div className="capitalize">{accessory.status || "Active"}</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-emerald-500 text-xs">
+        <div className="flex items-center gap-2 text-blue-500 text-xs">
           <CheckCircle size={14} />
           <span>Verified seller on MotorMandi</span>
         </div>
@@ -299,17 +299,17 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
       <div className="fixed inset-0 z-[110] overflow-y-auto">
         <div className="min-h-full flex flex-col">
           <div className="flex-1 bg-white mt-16 rounded-t-3xl panel-enter flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 py-4 rounded-t-3xl">
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-blue-100 px-4 sm:px-6 py-4 rounded-t-3xl">
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <img src={LOGO_SRC} alt="MotorMandi" className="h-10 w-auto object-contain" />
                     <div>
-                      <h2 className="text-emerald-950 font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>
+                      <h2 className="text-blue-950 font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>
                         ACCESSORIES & PARTS
                       </h2>
                       {pagination && (
-                        <p className="text-emerald-500 text-xs">{pagination.totalRecords} accessories found</p>
+                        <p className="text-blue-500 text-xs">{pagination.totalRecords} accessories found</p>
                       )}
                     </div>
                   </div>
@@ -317,13 +317,13 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
                     <button
                       onClick={handleRefresh}
                       disabled={loading}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all disabled:opacity-40"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-all disabled:opacity-40"
                     >
                       <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                     </button>
                     <button
                       onClick={onClose}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-all"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-all"
                     >
                       <X size={18} />
                     </button>
@@ -331,17 +331,17 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1 flex items-center gap-2 bg-emerald-50 rounded-xl px-4 py-2.5">
-                    <Search size={16} className="text-emerald-400 shrink-0" />
+                  <div className="flex-1 flex items-center gap-2 bg-blue-50 rounded-xl px-4 py-2.5">
+                    <Search size={16} className="text-blue-400 shrink-0" />
                     <input
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search parts, accessories, category..."
-                      className="bg-transparent text-emerald-900 placeholder-emerald-400 text-sm w-full outline-none"
+                      className="bg-transparent text-blue-900 placeholder-blue-400 text-sm w-full outline-none"
                     />
                     {search && (
-                      <button onClick={() => setSearch("")} className="text-emerald-400 hover:text-emerald-600">
+                      <button onClick={() => setSearch("")} className="text-blue-400 hover:text-blue-600">
                         <X size={14} />
                       </button>
                     )}
@@ -350,7 +350,7 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
 
                 {search && (
                   <div className="flex gap-2 flex-wrap mt-3">
-                    <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                    <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
                       🔍 "{search}"
                       <button onClick={() => setSearch("")}><X size={10} /></button>
                     </span>
@@ -371,11 +371,11 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
                   <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                     <AlertCircle size={28} className="text-red-400" />
                   </div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">Failed to load accessories</p>
-                  <p className="text-emerald-600/60 text-sm mb-5">{error}</p>
+                  <p className="text-blue-950 font-bold text-lg mb-1">Failed to load accessories</p>
+                  <p className="text-blue-600/60 text-sm mb-5">{error}</p>
                   <button
                     onClick={handleRefresh}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all hover:scale-105"
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all hover:scale-105"
                   >
                     <RefreshCw size={16} /> Try Again
                   </button>
@@ -385,11 +385,11 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
               {!loading && !error && filtered.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <div className="text-7xl mb-4">🔧</div>
-                  <p className="text-emerald-950 font-bold text-lg mb-1">No accessories found</p>
-                  <p className="text-emerald-600/60 text-sm mb-5">Try adjusting your search</p>
+                  <p className="text-blue-950 font-bold text-lg mb-1">No accessories found</p>
+                  <p className="text-blue-600/60 text-sm mb-5">Try adjusting your search</p>
                   <button
                     onClick={() => setSearch("")}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl transition-all hover:scale-105"
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl transition-all hover:scale-105"
                   >
                     Clear Search
                   </button>
@@ -398,7 +398,7 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
 
               {!loading && !error && filtered.length > 0 && (
                 <>
-                  <p className="text-emerald-600/50 text-xs font-semibold mb-4">
+                  <p className="text-blue-600/50 text-xs font-semibold mb-4">
                     Showing {filtered.length} item{filtered.length !== 1 ? "s" : ""}
                     {search && ` for "${search}"`}
                   </p>
@@ -418,7 +418,7 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
                       <button
                         onClick={() => handlePageChange(page - 1)}
                         disabled={page <= 1}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                       >
                         <ChevronLeft size={18} />
                       </button>
@@ -429,8 +429,8 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
                           onClick={() => handlePageChange(p)}
                           className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold text-sm transition-all ${
                             p === page
-                              ? "bg-emerald-600 text-white"
-                              : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                              ? "bg-blue-600 text-white"
+                              : "border border-blue-200 text-blue-700 hover:bg-blue-50"
                           }`}
                         >
                           {p}
@@ -440,7 +440,7 @@ export default function AccessoriesListingsModal({ isOpen, onClose }) {
                       <button
                         onClick={() => handlePageChange(page + 1)}
                         disabled={page >= pagination.totalPages}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                       >
                         <ChevronRight size={18} />
                       </button>

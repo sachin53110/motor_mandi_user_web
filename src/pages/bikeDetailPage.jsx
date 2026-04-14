@@ -1,22 +1,92 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  X, Phone, Mail, MapPin, Star, CheckCircle, Heart, Share2,
-  ChevronLeft, ChevronRight, Gauge, Package, AlertCircle, TrendingUp
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MapPin,
+  Phone,
+  Share2,
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
-import LOGO_SRC from "../assets/motorMandiLogo.png";
+
+const toNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const formatPrice = (price) => {
-  const value = parseFloat(price);
-  if (Number.isNaN(value)) return "N/A";
-  return `₹${value.toLocaleString("en-IN")}`;
+  const value = toNumber(price);
+  if (!value || value <= 0) return "Price on request";
+  return `Rs. ${value.toLocaleString("en-IN")}`;
 };
+
+const formatCompactPrice = (price) => {
+  const value = toNumber(price);
+  if (!value || value <= 0) return "Price on request";
+
+  if (value >= 10000000) {
+    const crore = (value / 10000000)
+      .toFixed(2)
+      .replace(/\.00$/, "")
+      .replace(/(\.\d)0$/, "$1");
+    return `Rs. ${crore} Cr`;
+  }
+
+  if (value >= 100000) {
+    const lakh = (value / 100000)
+      .toFixed(2)
+      .replace(/\.00$/, "")
+      .replace(/(\.\d)0$/, "$1");
+    return `Rs. ${lakh} Lakh`;
+  }
+
+  return `Rs. ${value.toLocaleString("en-IN")}`;
+};
+
+const formatKm = (km) => {
+  const value = toNumber(km);
+  if (value === null) return "N/A";
+  return `${value.toLocaleString("en-IN")} km`;
+};
+
+const formatDate = (date) => {
+  if (!date) return "N/A";
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return "N/A";
+  return parsed.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const toTitleCase = (value) => {
+  if (!value || typeof value !== "string") return "N/A";
+  return value
+    .toLowerCase()
+    .split(" ")
+    .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+    .join(" ");
+};
+
+const normalizeImages = (medias = []) =>
+  medias
+    .map((item) => (typeof item === "string" ? item : item?.media))
+    .filter(Boolean);
+
+const tabButtonClass = (isActive) =>
+  `-mb-px border-b-2 pb-3 text-[15px] font-semibold transition ${
+    isActive
+      ? "border-teal-600 text-teal-700"
+      : "border-transparent text-gray-500 hover:text-gray-800"
+  }`;
 
 export default function BikeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const [imageIndex, setImageIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
   const [bike, setBike] = useState(null);
@@ -28,7 +98,19 @@ export default function BikeDetailPage() {
       try {
         setLoading(true);
         const data = await ApiProvider.bikes.getDetail(id);
-        setBike(data.data || data);
+
+        if (data?.status === false) {
+          throw new Error(data.message || "Failed to load bike details");
+        }
+
+        const payload = data?.result || data?.data || data?.bike || data;
+        if (!payload || typeof payload !== "object") {
+          throw new Error("Invalid bike detail response");
+        }
+
+        setBike(payload);
+        setImageIndex(0);
+        setImgError(false);
       } catch (err) {
         console.error("Fetch error:", err);
         setError(err.message || "Failed to load bike details");
@@ -42,10 +124,9 @@ export default function BikeDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🏍️</div>
-          <p className="text-gray-600 font-semibold">Loading bike details...</p>
+      <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4">
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-gray-700 font-semibold">Loading bike details...</p>
         </div>
       </div>
     );
@@ -53,13 +134,12 @@ export default function BikeDetailPage() {
 
   if (error || !bike) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
-          <p className="text-gray-600 font-semibold mb-6">{error || "Bike not found"}</p>
+      <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4">
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm max-w-md w-full">
+          <p className="text-gray-700 font-semibold mb-5">{error || "Bike not found"}</p>
           <button
             onClick={() => navigate("/bikes")}
-            className="px-6 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition"
+            className="rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-700"
           >
             Back to Bikes
           </button>
@@ -68,219 +148,359 @@ export default function BikeDetailPage() {
     );
   }
 
-  const images = bike.medias || [];
-  const currentImage = images[imageIndex]?.media;
+  const images = normalizeImages(bike.medias);
+  const currentImage = images[imageIndex] || "";
+  const brand = bike.brandName || bike.brand || "";
+  const title =
+    bike.name ||
+    bike.title ||
+    [brand, bike.model].filter(Boolean).join(" ") ||
+    "Used Bike";
+  const odometer = bike.km ?? bike.kilometer ?? bike.kms;
+  const odometerNumber = toNumber(odometer);
+  const fuelType = bike.fuelType || bike.fuel || "N/A";
+  const engineValue = bike.cc || bike.engineCapacity || bike.engine || "N/A";
+  const year = bike.year || bike.manufactureYear || "N/A";
+  const listedOn = formatDate(bike.createdAt);
+  const location =
+    [bike.location, bike.user?.city, bike.user?.state, bike.user?.country]
+      .filter(Boolean)
+      .join(", ") || "Location not shared";
+  const sellerName = bike.user?.name || bike.user?.shopName || "Seller";
+  const sellerPhone = bike.user?.phone || bike.phone || "";
+  const askingPrice = toNumber(bike.price);
+  const referencePrice = toNumber(bike.customerPrice);
+  const savings =
+    askingPrice && referencePrice && referencePrice > askingPrice
+      ? referencePrice - askingPrice
+      : null;
+
+  const overviewItems = [
+    { label: "Price", value: formatCompactPrice(askingPrice) },
+    { label: "Kilometer", value: formatKm(odometer) },
+    { label: "Fuel Type", value: fuelType },
+    { label: "Engine", value: engineValue === "N/A" ? "N/A" : `${engineValue} cc` },
+    { label: "Year", value: year },
+    { label: "Owner", value: toTitleCase(bike.owner) },
+  ];
+
+  const specRows = [
+    { label: "Brand", value: brand || "N/A" },
+    { label: "Model", value: bike.model || "N/A" },
+    { label: "Type", value: bike.bikeType || bike.type || "N/A" },
+    { label: "Condition", value: toTitleCase(bike.condition) },
+    { label: "Status", value: toTitleCase(bike.status) },
+    { label: "Listed On", value: listedOn },
+    { label: "Location", value: location },
+  ];
+
+  const sellerRows = [
+    { label: "Seller", value: sellerName },
+    { label: "Shop", value: bike.user?.shopName || "N/A" },
+    { label: "Email", value: bike.user?.email || "N/A" },
+    { label: "Address", value: bike.user?.address || "N/A" },
+  ];
+
+  const descriptionPoints = (bike.description || "")
+    .split(/\n|\./)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const reasonList = [
+    bike.condition ? `${toTitleCase(bike.condition)} condition bike` : null,
+    bike.owner ? `${toTitleCase(bike.owner)} owner history` : null,
+    odometerNumber !== null ? `${formatKm(odometer)} driven` : null,
+    bike.status ? `Current status: ${toTitleCase(bike.status)}` : null,
+    ...descriptionPoints,
+  ]
+    .filter(Boolean)
+    .filter((value, index, arr) => arr.indexOf(value) === index)
+    .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={LOGO_SRC} alt="MotorMandi" className="h-10 w-auto object-contain" />
-            <h1 className="text-lg font-bold text-gray-900 line-clamp-1">{bike.title}</h1>
-          </div>
-          <div className="flex gap-2">
-            <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition">
-              <Share2 size={18} />
-            </button>
-            <button
-              onClick={() => setLiked(!liked)}
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition"
-            >
-              <Heart size={18} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "#666"} />
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#f5f6f8]">
+      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+        <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
+          <button onClick={() => navigate("/")} className="hover:text-gray-700 transition">
+            Home
+          </button>
+          <span>/</span>
+          <button onClick={() => navigate("/bikes")} className="hover:text-gray-700 transition">
+            Used Bikes
+          </button>
+          <span>/</span>
+          <span className="text-gray-700 line-clamp-1">{title}</span>
+        </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Image Gallery */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Main Image */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 relative">
-              <div className="aspect-square bg-gradient-to-br from-lime-50 to-lime-100 flex items-center justify-center">
-                {!imgError && currentImage ? (
-                  <img
-                    src={currentImage}
-                    alt={bike.title}
-                    className="w-full h-full object-cover"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <div className="text-6xl">🏍️</div>
+        <section className="rounded-3xl border border-gray-200 bg-white p-3 sm:p-5">
+          <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+            <div>
+              <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
+                <div className="aspect-[16/10] flex items-center justify-center">
+                  {currentImage && !imgError ? (
+                    <img
+                      src={currentImage}
+                      alt={title}
+                      className="h-full w-full object-cover"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <span className="text-lg font-semibold text-gray-400">No image available</span>
+                  )}
+                </div>
+
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setImageIndex((prev) => (prev - 1 + images.length) % images.length)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/95 p-2 shadow hover:bg-white"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageIndex((prev) => (prev + 1) % images.length)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/95 p-2 shadow hover:bg-white"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </>
                 )}
               </div>
 
-              {/* Image Navigation */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setImageIndex((i) => (i - 1 + images.length) % images.length)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    onClick={() => setImageIndex((i) => (i + 1) % images.length)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </>
-              )}
-
-              {/* Image Counter */}
               {images.length > 0 && (
-                <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
-                  {imageIndex + 1} / {images.length}
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                  {images.map((image, idx) => (
+                    <button
+                      key={`${image}-${idx}`}
+                      type="button"
+                      onClick={() => {
+                        setImageIndex(idx);
+                        setImgError(false);
+                      }}
+                      className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition ${
+                        idx === imageIndex
+                          ? "border-teal-600 ring-2 ring-teal-100"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <img src={image} alt={`${title} view ${idx + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setImageIndex(idx)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition ${
-                      idx === imageIndex ? "border-lime-600" : "border-gray-200"
-                    }`}
-                  >
-                    <img
-                      src={img.media}
-                      alt={`View ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="rounded-2xl border border-gray-200 bg-[#fafafa] p-4 sm:p-5">
+              <h1 className="text-2xl font-bold leading-snug text-gray-900">{title}</h1>
 
-            {/* Description */}
-            {bike.description && (
-              <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Description</h2>
-                <p className="text-gray-700 whitespace-pre-line leading-relaxed">{bike.description}</p>
+              <p className="mt-2 text-sm text-gray-600">
+                {[formatKm(odometer), fuelType, location].filter(Boolean).join(" | ")}
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-end gap-3">
+                <p className="text-4xl font-bold leading-none text-gray-900">{formatCompactPrice(askingPrice)}</p>
+                <button type="button" className="pb-1 text-sm font-semibold text-sky-600 hover:text-sky-700">
+                  Make Offer
+                </button>
               </div>
-            )}
+
+              <p className="mt-2 text-sm text-gray-500">
+                {referencePrice
+                  ? `New Bike Price ${formatCompactPrice(referencePrice)}`
+                  : "New bike price data unavailable"}
+                <button type="button" className="ml-2 font-semibold text-sky-600 hover:text-sky-700">
+                  Price Insights
+                </button>
+              </p>
+
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-600">
+                <span>Test Ride Available</span>
+                <button type="button" className="font-semibold text-sky-600 hover:text-sky-700">
+                  Book Now
+                </button>
+              </div>
+
+              <a
+                href={sellerPhone ? `tel:${sellerPhone}` : undefined}
+                className={`mt-4 flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold text-white transition ${
+                  sellerPhone ? "bg-[#ef3b24] hover:bg-[#d93621]" : "bg-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {sellerPhone ? "Get Seller Details" : "Seller details unavailable"}
+              </a>
+
+              <div className="mt-4 rounded-xl border border-gray-200 bg-white p-3.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Seller</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900">{sellerName}</p>
+                {sellerPhone && (
+                  <a href={`tel:${sellerPhone}`} className="mt-1 flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900">
+                    <Phone size={14} />
+                    {sellerPhone}
+                  </a>
+                )}
+                <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-600">
+                  <MapPin size={14} className="shrink-0" />
+                  <span className="line-clamp-1">{location}</span>
+                </p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-gray-400"
+                >
+                  <Share2 size={15} />
+                  Share
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLiked((prev) => !prev)}
+                  className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:border-gray-400"
+                >
+                  <Heart size={15} fill={liked ? "#ef4444" : "none"} color={liked ? "#ef4444" : "currentColor"} />
+                  {liked ? "Saved" : "Save"}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Price Section */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Price</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-lime-600">{formatPrice(bike.price)}</span>
-                    {bike.customerPrice && (
-                      <span className="text-lg text-gray-400 line-through">{formatPrice(bike.customerPrice)}</span>
-                    )}
-                  </div>
-                </div>
+          <div className="mt-3 flex justify-end">
+            <button type="button" className="text-xs font-semibold text-sky-600 hover:text-sky-700">
+              Report Problem
+            </button>
+          </div>
+        </section>
 
-                {bike.price && bike.customerPrice && parseFloat(bike.customerPrice) > parseFloat(bike.price) && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-red-700">
-                      Save ₹{(parseFloat(bike.customerPrice) - parseFloat(bike.price)).toLocaleString("en-IN")}
+        <section className="mt-5">
+          <div className="border-b border-gray-200">
+            <div className="flex flex-wrap items-center gap-6">
+              <button
+                type="button"
+                onClick={() => setActiveTab("overview")}
+                className={tabButtonClass(activeTab === "overview")}
+              >
+                Bike Overview
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("specs")}
+                className={tabButtonClass(activeTab === "specs")}
+              >
+                Specs & Features
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("price")}
+                className={tabButtonClass(activeTab === "price")}
+              >
+                Price Guide
+              </button>
+            </div>
+          </div>
+
+          {activeTab === "overview" && (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-2xl font-bold text-gray-900">Bike Overview</h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {overviewItems.map((item) => (
+                    <div key={item.label} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{item.label}</p>
+                      <p className="mt-1 text-sm font-semibold text-gray-900">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-2xl font-bold text-gray-900">Reasons to Buy</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {(reasonList.length ? reasonList : ["Fresh listing with complete details"]).map((reason) => (
+                    <li key={reason} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </div>
+          )}
+
+          {activeTab === "specs" && (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Specifications</h2>
+                <div className="mt-3 space-y-3">
+                  {specRows.map((row) => (
+                    <div key={row.label} className="flex items-start justify-between gap-3 border-b border-gray-100 pb-2.5 text-sm last:border-b-0 last:pb-0">
+                      <span className="text-gray-500">{row.label}</span>
+                      <span className="text-right font-semibold text-gray-900">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Seller Details</h2>
+                <div className="mt-3 space-y-3">
+                  {sellerRows.map((row) => (
+                    <div key={row.label} className="flex items-start justify-between gap-3 border-b border-gray-100 pb-2.5 text-sm last:border-b-0 last:pb-0">
+                      <span className="text-gray-500">{row.label}</span>
+                      <span className="text-right font-semibold text-gray-900">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </div>
+          )}
+
+          {activeTab === "price" && (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Price Snapshot</h2>
+                <div className="mt-4 space-y-3 text-sm">
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5">
+                    <p className="text-gray-500">Asking Price</p>
+                    <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(askingPrice)}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5">
+                    <p className="text-gray-500">Market Reference</p>
+                    <p className="mt-1 text-xl font-bold text-gray-900">
+                      {referencePrice ? formatPrice(referencePrice) : "N/A"}
                     </p>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Specifications */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Specifications</h2>
-              <div className="space-y-3">
-                {bike.brand && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Brand</span>
-                    <span className="font-semibold text-gray-900">{bike.brand}</span>
-                  </div>
-                )}
-                {bike.model && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Model</span>
-                    <span className="font-semibold text-gray-900">{bike.model}</span>
-                  </div>
-                )}
-                {bike.year && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Year</span>
-                    <span className="font-semibold text-gray-900">{bike.year}</span>
-                  </div>
-                )}
-                {bike.bikeType && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Type</span>
-                    <span className="font-semibold text-gray-900">{bike.bikeType}</span>
-                  </div>
-                )}
-                {bike.condition && (
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Condition</span>
-                    <span className="font-semibold text-gray-900 capitalize">{bike.condition}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Seller Info */}
-            {bike.user && (
-              <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Seller Information</h2>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Name</p>
-                    <p className="font-semibold text-gray-900">{bike.user.name || "N/A"}</p>
-                  </div>
-
-                  {bike.user.phone && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Phone</p>
-                      <a
-                        href={`tel:${bike.user.phone}`}
-                        className="inline-flex items-center gap-2 text-lime-600 hover:text-lime-700 font-semibold"
-                      >
-                        <Phone size={16} />
-                        {bike.user.phone}
-                      </a>
-                    </div>
-                  )}
-
-                  {bike.user.email && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Email</p>
-                      <a
-                        href={`mailto:${bike.user.email}`}
-                        className="inline-flex items-center gap-2 text-lime-600 hover:text-lime-700 font-semibold break-all"
-                      >
-                        <Mail size={16} />
-                        {bike.user.email}
-                      </a>
-                    </div>
-                  )}
-
-                  {bike.user.city && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Location</p>
-                      <div className="flex items-center gap-2 text-gray-900">
-                        <MapPin size={16} className="text-lime-600" />
-                        {bike.user.city}
-                      </div>
+                  {savings && (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800">
+                      Potential upside against market: {formatPrice(savings)}
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
+              </article>
+
+              <article className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-xl font-bold text-gray-900">Buying Tips</h2>
+                <ul className="mt-4 space-y-2.5 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                    Compare this asking price with same model and year listings nearby.
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                    Check service records, tyres and chain condition before finalizing.
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-2 w-2 rounded-full bg-teal-600" />
+                    Confirm insurance and registration transfer details with the seller.
+                  </li>
+                </ul>
+              </article>
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
