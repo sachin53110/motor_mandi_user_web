@@ -2,9 +2,37 @@ import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/ap
 import { useState } from "react";
 import { Phone, MapPin, Star, Clock } from "lucide-react";
 
+const toNumber = (value) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+};
+
+const getValidCoords = (point) => {
+  const lat = toNumber(point?.lat);
+  const lng = toNumber(point?.lng);
+
+  if (lat === null || lng === null) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+  return { lat, lng };
+};
+
 const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }) => {
   const [selectedShop, setSelectedShop] = useState(null);
   const GOOGLE_MAP_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const userCoords = getValidCoords(userLocation);
+
+  const shopMarkers = shops.reduce((acc, shop, index) => {
+    const coords = getValidCoords(shop);
+    if (!coords) return acc;
+
+    const identity = shop?.id ?? shop?.shopName ?? shop?.name ?? "shop";
+    const key = `${identity}-${coords.lat}-${coords.lng}-${index}`;
+    acc.push({ shop, coords, key });
+    return acc;
+  }, []);
+
+  const selectedShopCoords = getValidCoords(selectedShop);
 
   const mapContainerStyle = {
     width: "100%",
@@ -12,10 +40,7 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
     borderRadius: "12px",
   };
 
-  const defaultCenter = {
-    lat: userLocation?.lat || 30.6928,
-    lng: userLocation?.lng || 76.7079,
-  };
+  const defaultCenter = userCoords || { lat: 30.6928, lng: 76.7079 };
 
   const mapOptions = {
     zoom: 14,
@@ -42,12 +67,9 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
         options={mapOptions}
       >
         {/* User Location Marker */}
-        {userLocation && (
+        {userCoords && (
           <Marker
-            position={{
-              lat: userLocation.lat,
-              lng: userLocation.lng,
-            }}
+            position={userCoords}
             title="Your Location"
             icon={{
               path: "M12 0C6.48 0 2 4.48 2 10c0 5.27 3.93 9.64 9 9.99h1v-9h2v3h2v-2h1v-2h-1V9c0-.55-.45-1-1-1s-1 .45-1 1v1h-1V7h2V5h-2V4h-2v1h-2v2h1c.55 0 1 .45 1 1v2h-2V9h1v2h-2v1h3V12H7v-1h2v-2h-1v-1h2z",
@@ -61,13 +83,10 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
         )}
 
         {/* Shop Markers */}
-        {shops.map((shop) => (
+        {shopMarkers.map(({ shop, coords, key }) => (
           <Marker
-            key={shop.id}
-            position={{
-              lat: shop.lat,
-              lng: shop.lng,
-            }}
+            key={key}
+            position={coords}
             title={shop.name}
             onClick={() => setSelectedShop(shop)}
             icon={{
@@ -82,12 +101,9 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
         ))}
 
         {/* Info Window for Selected Shop */}
-        {selectedShop && (
+        {selectedShop && selectedShopCoords && (
           <InfoWindow
-            position={{
-              lat: selectedShop.lat,
-              lng: selectedShop.lng,
-            }}
+            position={selectedShopCoords}
             onCloseClick={() => setSelectedShop(null)}
           >
             <div

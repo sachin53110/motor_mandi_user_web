@@ -108,9 +108,9 @@ const NearbyShopsListingsModal = ({ isOpen, onClose }) => {
           {/* List View */}
           {!isMapView && !loading && shops.length > 0 && (
             <div className="divide-y divide-gray-200">
-              {shops.map((shop) => (
+              {shops.map((shop, idx) => (
                 <div
-                  key={shop.id}
+                  key={`${shop.id ?? shop.shopName ?? shop.name ?? "shop"}-${shop.lat ?? "na"}-${shop.lng ?? "na"}-${idx}`}
                   className="p-4 hover:bg-gray-50 transition-colors cursor-pointer group"
                 >
                   <div className="flex items-start gap-3">

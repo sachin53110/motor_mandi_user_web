@@ -621,7 +621,7 @@ function FeaturedListings({ onViewMore }) {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {filteredData.length > 0 ? (
-                filteredData.map(item => <ListingCard key={item.id} item={item} />)
+                filteredData.map(item => <ListingCard key={`${item.type}-${item.id ?? item.name ?? "item"}`} item={item} />)
               ) : (
                 <div className="col-span-full text-center py-12">
                   <p className="text-slate-500 font-medium">No listings available for this category</p>
@@ -640,7 +640,7 @@ function FeaturedListings({ onViewMore }) {
 
 // ── NEAREST SHOPS ─────────────────────────────────────────────────────────────
 function NearestShops({ onOpenNearbyShops }) {
-  const { shops, loading, error, userLocation, locationEnabled, requestLocationPermission, fetchShops } = useNearbyShops();
+  const { shops, loading, error, userLocation, requestLocationPermission, fetchShops } = useNearbyShops();
   const [activeType, setActiveType] = useState("All");
   const [selectedShop, setSelectedShop] = useState(null);
   const [showMap, setShowMap] = useState(true);
@@ -648,6 +648,30 @@ function NearestShops({ onOpenNearbyShops }) {
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
   const initializedRef = useRef(false);
+
+  const toNumber = (value) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : null;
+  };
+
+  const getValidCoords = (point) => {
+    const lat = toNumber(point?.lat);
+    const lng = toNumber(point?.lng);
+
+    if (lat === null || lng === null) return null;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+    return { lat, lng };
+  };
+
+  const getShopKey = (shop, index) => {
+    const idPart = shop?.id ?? shop?.shopName ?? shop?.name ?? "shop";
+    const coords = getValidCoords(shop);
+    const latPart = coords ? coords.lat : "na";
+    const lngPart = coords ? coords.lng : "na";
+
+    return `${idPart}-${latPart}-${lngPart}-${index}`;
+  };
 
   // Request location permission and fetch shops ONCE on component mount
   useEffect(() => {
@@ -665,12 +689,17 @@ function NearestShops({ onOpenNearbyShops }) {
   // Auto-set first shop when shops load
   useEffect(() => {
     if (shops.length > 0 && !selectedShop) {
-      setSelectedShop(shops[0]);
+      const firstWithCoords = shops.find((shop) => {
+        const lat = Number(shop?.lat);
+        const lng = Number(shop?.lng);
+        return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+      });
+
+      setSelectedShop(firstWithCoords || shops[0]);
     }
   }, [shops, selectedShop]);
 
   const types = ["All"];
-  const shopTypes = new Set(shops.map(s => s.name));
   
   const filtered = activeType === "All" 
     ? shops 
@@ -681,8 +710,10 @@ function NearestShops({ onOpenNearbyShops }) {
 
   const handleLocate = async () => {
     try {
-      const location = await getUserLocation();
-      await fetchAndDisplay(location);
+      const granted = await requestLocationPermission();
+      if (granted) {
+        await fetchShops({ page: 1, limit: 20 });
+      }
     } catch (err) {
       console.error("Failed to get location:", err);
     }
@@ -704,8 +735,9 @@ function NearestShops({ onOpenNearbyShops }) {
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
     script.onload = () => {
       const L = window.L;
-      const center = userLocation 
-        ? [userLocation.lat, userLocation.lng]
+      const validUserCoords = getValidCoords(userLocation);
+      const center = validUserCoords
+        ? [validUserCoords.lat, validUserCoords.lng]
         : [28.6480, 77.2350];
       const map = L.map(mapRef.current, { zoomControl: false }).setView(center, 13);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
@@ -728,27 +760,35 @@ function NearestShops({ onOpenNearbyShops }) {
     markersRef.current = [];
 
     // Add user location marker
-    if (userLocation) {
+    const validUserCoords = getValidCoords(userLocation);
+    if (validUserCoords) {
       const userIcon = L.divIcon({
         className: "",
         html: `<div style="background:#3b82f6;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-size:16px">📍</div>`,
         iconSize: [32, 32],
         iconAnchor: [16, 16],
       });
-      L.marker([userLocation.lat, userLocation.lng], { icon: userIcon }).addTo(map)
+      L.marker([validUserCoords.lat, validUserCoords.lng], { icon: userIcon }).addTo(map)
         .bindPopup(`<div style="font-family:sans-serif;text-align:center"><strong style="color:#3b82f6;font-size:14px">Your Location</strong></div>`);
     }
 
     // Add shop markers
     shops.forEach(shop => {
+      const coords = getValidCoords(shop);
+      if (!coords) return;
+
+      const distanceKm = Number.isFinite(Number(shop.distance))
+        ? (Number(shop.distance) / 1000).toFixed(1)
+        : "N/A";
+
       const shopIcon = L.divIcon({
         className: "",
         html: `<div style="background:#059669;color:white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-size:18px"><span style="transform:rotate(45deg)">🏪</span></div>`,
         iconSize: [40, 40],
         iconAnchor: [20, 40],
       });
-      const marker = L.marker([shop.lat, shop.lng], { icon: shopIcon }).addTo(map)
-        .bindPopup(`<div style="font-family:sans-serif;min-width:200px"><strong style="color:#065f46;font-size:14px">${shop.name}</strong><br/><span style="color:#6b7280;font-size:12px">${shop.email || 'Shop'}</span><br/><div style="margin-top:6px;display:flex;align-items:center;gap:4px"><span style="color:#f59e0b">★</span><span style="font-size:12px;font-weight:bold">${shop.rating?.toFixed(1) || 'N/A'}</span></div><div style="margin-top:4px;font-size:12px;color:#374151">📍 ${shop.address || shop.phone}</div><div style="margin-top:4px;font-size:12px;color:${shop.shopStatus === 'open' ? '#059669' : '#ef4444'};font-weight:bold">${shop.shopStatus === 'open' ? '✓ Open' : '✗ Closed'}</div><div style="margin-top:6px;font-size:11px;font-weight:bold;color:#059669">📏 ${(shop.distance / 1000).toFixed(1)} km away</div></div>`);
+      const marker = L.marker([coords.lat, coords.lng], { icon: shopIcon }).addTo(map)
+        .bindPopup(`<div style="font-family:sans-serif;min-width:200px"><strong style="color:#065f46;font-size:14px">${shop.name}</strong><br/><span style="color:#6b7280;font-size:12px">${shop.email || 'Shop'}</span><br/><div style="margin-top:6px;display:flex;align-items:center;gap:4px"><span style="color:#f59e0b">★</span><span style="font-size:12px;font-weight:bold">${shop.rating?.toFixed(1) || 'N/A'}</span></div><div style="margin-top:4px;font-size:12px;color:#374151">📍 ${shop.address || shop.phone}</div><div style="margin-top:4px;font-size:12px;color:${shop.shopStatus === 'open' ? '#059669' : '#ef4444'};font-weight:bold">${shop.shopStatus === 'open' ? '✓ Open' : '✗ Closed'}</div><div style="margin-top:6px;font-size:11px;font-weight:bold;color:#059669">📏 ${distanceKm} km away</div></div>`);
       marker.on("click", () => setSelectedShop(shop));
       markersRef.current.push(marker);
     });
@@ -761,8 +801,10 @@ function NearestShops({ onOpenNearbyShops }) {
 
   // Fly to selected shop
   useEffect(() => { 
-    if (mapInstanceRef.current && selectedShop) 
-      mapInstanceRef.current.flyTo([selectedShop.lat, selectedShop.lng], 15, { duration: 0.8 }); 
+    const coords = getValidCoords(selectedShop);
+    if (mapInstanceRef.current && coords) {
+      mapInstanceRef.current.flyTo([coords.lat, coords.lng], 15, { duration: 0.8 });
+    }
   }, [selectedShop]);
 
   const typeIcon = (type) => {
@@ -772,6 +814,7 @@ function NearestShops({ onOpenNearbyShops }) {
   };
 
   const isLocating = loading && !shops.length;
+  const selectedShopCoords = getValidCoords(selectedShop);
 
   return (
     <section className="py-16 px-4 relative z-0" id="shops" style={{ backgroundColor: PAGE_SURFACE }}>
@@ -828,9 +871,12 @@ function NearestShops({ onOpenNearbyShops }) {
                 <p className="text-sky-700 font-medium text-sm">Fetching nearby shops...</p>
               </div>
             ) : filtered.length > 0 ? (
-              filtered.map(shop => (
-                <div key={shop.id} onClick={() => setSelectedShop(shop)}
-                  className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${selectedShop?.id === shop.id ? "border-sky-400 bg-sky-50 shadow-lg shadow-sky-100" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:shadow-slate-100"}`}>
+              filtered.map((shop, idx) => {
+                const isSelected = selectedShop === shop;
+
+                return (
+                <div key={getShopKey(shop, idx)} onClick={() => setSelectedShop(shop)}
+                  className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${isSelected ? "border-sky-400 bg-sky-50 shadow-lg shadow-sky-100" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:shadow-slate-100"}`}>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0">
@@ -869,11 +915,11 @@ function NearestShops({ onOpenNearbyShops }) {
                       📍 {shop.address}
                     </div>
                   )}
-                  <div className={`absolute right-4 bottom-4 transition-all ${selectedShop?.id === shop.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                  <div className={`absolute right-4 bottom-4 transition-all ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
                     <ChevronRight size={16} className="text-sky-600" />
                   </div>
                 </div>
-              ))
+              )})
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <MapPin size={40} className="text-sky-300 mb-3" />
@@ -967,10 +1013,20 @@ function NearestShops({ onOpenNearbyShops }) {
                   <a href={`tel:${selectedShop.phone}`} className="flex-1 bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105">
                     <Phone size={16} /> Call Now
                   </a>
-                  <a href={`https://www.google.com/maps/dir/?api=1&destination=${selectedShop.lat},${selectedShop.lng}`} target="_blank" rel="noreferrer"
-                    className="flex-1 bg-white/10 hover:bg-white/20 border border-slate-500/50 text-slate-200 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all">
-                    <Navigation size={16} /> Get Directions
-                  </a>
+                  {selectedShopCoords ? (
+                    <a href={`https://www.google.com/maps/dir/?api=1&destination=${selectedShopCoords.lat},${selectedShopCoords.lng}`} target="_blank" rel="noreferrer"
+                      className="flex-1 bg-white/10 hover:bg-white/20 border border-slate-500/50 text-slate-200 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all">
+                      <Navigation size={16} /> Get Directions
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="flex-1 bg-white/5 border border-slate-600/60 text-slate-400 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed"
+                    >
+                      <Navigation size={16} /> Directions Unavailable
+                    </button>
+                  )}
                 </div>
               </div>
             )}
