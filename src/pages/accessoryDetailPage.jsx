@@ -96,9 +96,7 @@ export default function AccessoryDetailPage() {
         </section>
 
         {inlineDetailSlot && (
-          <section className="mb-5 overflow-hidden rounded-xl bg-gray-900 p-3 border border-gray-800">
-            <AdSenseSlot slot={inlineDetailSlot} />
-          </section>
+          <AdSenseSlot slot={inlineDetailSlot} className="mb-5 overflow-hidden" />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

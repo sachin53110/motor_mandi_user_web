@@ -51,6 +51,7 @@ export default function AdSenseSlot({
     typeof window !== "undefined" && typeof IntersectionObserver === "undefined"
   );
   const [hasFailed, setHasFailed] = useState(false);
+  const [isUnfilled, setIsUnfilled] = useState(false);
 
   const enabled = import.meta.env.VITE_ADSENSE_ENABLED !== "false";
   const client = (import.meta.env.VITE_ADSENSE_CLIENT || DEFAULT_ADSENSE_CLIENT).trim();
@@ -106,7 +107,38 @@ export default function AdSenseSlot({
     };
   }, [canRender, client, hasFailed, isVisible]);
 
-  if (!canRender || hasFailed) return null;
+  useEffect(() => {
+    if (!canRender || !isVisible || !adRef.current) return;
+
+    const node = adRef.current;
+
+    const handleStatusChange = () => {
+      const status = node.getAttribute("data-ad-status");
+      if (status === "unfilled") {
+        setIsUnfilled(true);
+      }
+    };
+
+    const observer = new MutationObserver(() => {
+      handleStatusChange();
+    });
+
+    observer.observe(node, {
+      attributes: true,
+      attributeFilter: ["data-ad-status"],
+    });
+
+    const timer = window.setTimeout(() => {
+      handleStatusChange();
+    }, 4000);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [canRender, isVisible]);
+
+  if (!canRender || hasFailed || isUnfilled) return null;
 
   return (
     <div className={className} style={{ minHeight, ...style }}>

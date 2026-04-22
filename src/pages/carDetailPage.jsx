@@ -378,9 +378,7 @@ export default function CarDetailPage() {
         </section>
 
         {inlineDetailSlot && (
-          <section className="mt-5 overflow-hidden rounded-2xl bg-white p-3 border border-gray-200">
-            <AdSenseSlot slot={inlineDetailSlot} />
-          </section>
+          <AdSenseSlot slot={inlineDetailSlot} className="mt-5 overflow-hidden" />
         )}
 
         <section className="mt-5">

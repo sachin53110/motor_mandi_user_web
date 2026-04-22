@@ -84,9 +84,7 @@ export default function TyreDetailPage() {
         </section>
 
         {inlineDetailSlot && (
-          <section className="mb-5 overflow-hidden rounded-xl bg-white p-3 border border-blue-100">
-            <AdSenseSlot slot={inlineDetailSlot} />
-          </section>
+          <AdSenseSlot slot={inlineDetailSlot} className="mb-5 overflow-hidden" />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
