@@ -5,6 +5,7 @@ import {
   Star, Phone, MapPin, Heart, Filter, X
 } from "lucide-react";
 import useWheels from "../hooks/userWheel";
+import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -144,6 +145,9 @@ export default function WheelListPage() {
   const [condition, setCondition] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 20;
+  const inlineListSlot = (
+    import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309"
+  ).trim();
 
   useEffect(() => {
     const params = {
@@ -157,6 +161,32 @@ export default function WheelListPage() {
 
   const filteredWheels = wheels;
   const totalPages = pagination?.totalPages || 1;
+  const wheelCardsWithAds = filteredWheels.flatMap((wheel, index) => {
+    const card = (
+      <WheelCard
+        key={`wheel-${wheel?.id ?? "item"}-${index}`}
+        wheel={wheel}
+        onCardClick={() => navigate(`/wheel/${wheel.id}`)}
+      />
+    );
+
+    const shouldInsertAd =
+      inlineListSlot && (index + 1) % 8 === 0 && index < filteredWheels.length - 1;
+
+    if (!shouldInsertAd) {
+      return [card];
+    }
+
+    return [
+      card,
+      <div
+        key={`ad-wheel-${index}`}
+        className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 overflow-hidden rounded-xl"
+      >
+        <AdSenseSlot slot={inlineListSlot} />
+      </div>,
+    ];
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -265,13 +295,7 @@ export default function WheelListPage() {
         {!loading && filteredWheels.length > 0 && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredWheels.map((wheel) => (
-                <WheelCard
-                  key={wheel.id}
-                  wheel={wheel}
-                  onCardClick={() => navigate(`/wheel/${wheel.id}`)}
-                />
-              ))}
+              {wheelCardsWithAds}
             </div>
 
             {/* Pagination */}

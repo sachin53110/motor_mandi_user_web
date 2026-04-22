@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Gauge, Package, AlertCircle, TrendingUp
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
+import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
   const value = parseFloat(price);
@@ -21,6 +22,9 @@ export default function WheelDetailPage() {
   const [wheel, setWheel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const inlineDetailSlot = (
+    import.meta.env.VITE_ADSENSE_INLINE_DETAIL_SLOT || "6158096309"
+  ).trim();
 
   useEffect(() => {
     const fetchWheel = async () => {
@@ -91,6 +95,12 @@ export default function WheelDetailPage() {
             </button>
           </div>
         </section>
+
+        {inlineDetailSlot && (
+          <section className="mb-5 overflow-hidden rounded-xl bg-white p-3 border border-gray-200">
+            <AdSenseSlot slot={inlineDetailSlot} />
+          </section>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Image Gallery */}

@@ -9,6 +9,7 @@ import {
   Share2,
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
+import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const toNumber = (value) => {
   const parsed = Number(value);
@@ -173,6 +174,9 @@ export default function CarDetailPage() {
     askingPrice && referencePrice && referencePrice > askingPrice
       ? referencePrice - askingPrice
       : null;
+  const inlineDetailSlot = (
+    import.meta.env.VITE_ADSENSE_INLINE_DETAIL_SLOT || "6158096309"
+  ).trim();
 
   const overviewItems = [
     { label: "Price", value: formatCompactPrice(askingPrice) },
@@ -372,6 +376,12 @@ export default function CarDetailPage() {
             </button>
           </div>
         </section>
+
+        {inlineDetailSlot && (
+          <section className="mt-5 overflow-hidden rounded-2xl bg-white p-3 border border-gray-200">
+            <AdSenseSlot slot={inlineDetailSlot} />
+          </section>
+        )}
 
         <section className="mt-5">
           <div className="border-b border-gray-200">

@@ -5,6 +5,7 @@ import {
   Heart, X, Filter, BadgeCheck
 } from "lucide-react";
 import useCars from "../hooks/useCars";
+import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -259,6 +260,9 @@ export default function CarListPage() {
   const [condition, setCondition] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 20;
+  const inlineListSlot = (
+    import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309"
+  ).trim();
 
   useEffect(() => {
     const params = {
@@ -296,6 +300,30 @@ export default function CarListPage() {
       ...(searchTerm && { search: searchTerm }),
     });
   };
+
+  const carCardsWithAds = cars.flatMap((car, index) => {
+    const card = (
+      <CarCard
+        key={`car-${car?.id ?? "item"}-${index}`}
+        car={car}
+        onCardClick={() => navigate(`/car/${car.id}`)}
+      />
+    );
+
+    const shouldInsertAd =
+      inlineListSlot && (index + 1) % 8 === 0 && index < cars.length - 1;
+
+    if (!shouldInsertAd) {
+      return [card];
+    }
+
+    return [
+      card,
+      <div key={`ad-car-${index}`} className="md:col-span-2 xl:col-span-3 overflow-hidden rounded-xl">
+        <AdSenseSlot slot={inlineListSlot} />
+      </div>,
+    ];
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -391,9 +419,7 @@ export default function CarListPage() {
             {!loading && !error && cars.length > 0 && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {cars.map((car) => (
-                    <CarCard key={car.id} car={car} onCardClick={() => navigate(`/car/${car.id}`)} />
-                  ))}
+                  {carCardsWithAds}
                 </div>
 
                 {totalPages > 1 && (

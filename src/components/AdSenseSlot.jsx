@@ -42,7 +42,7 @@ export default function AdSenseSlot({
   slot,
   format = "auto",
   className = "",
-  minHeight = 90,
+  minHeight = 0,
   fullWidthResponsive = true,
   style,
 }) {

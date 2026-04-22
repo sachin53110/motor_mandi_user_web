@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import useTyres from "../hooks/useTyres";
+import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -176,6 +177,9 @@ export default function TyreListPage() {
   const [condition, setCondition] = useState("all");
   const [page, setPage] = useState(1);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const inlineListSlot = (
+    import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309"
+  ).trim();
 
   useEffect(() => {
     if (!hasLoaded) {
@@ -201,6 +205,34 @@ export default function TyreListPage() {
     fetchTyres({ page: newPage, limit: 20 });
     window.scrollTo(0, 0);
   };
+
+  const tyreCardsWithAds = filtered.flatMap((tyre, index) => {
+    const card = (
+      <TyreCard
+        key={`tyre-${tyre?.id ?? "item"}-${index}`}
+        tyre={tyre}
+        onCardClick={() => navigate(`/tyre/${tyre.id}`)}
+        isDark={isDark}
+      />
+    );
+
+    const shouldInsertAd =
+      inlineListSlot && (index + 1) % 8 === 0 && index < filtered.length - 1;
+
+    if (!shouldInsertAd) {
+      return [card];
+    }
+
+    return [
+      card,
+      <div
+        key={`ad-tyre-${index}`}
+        className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 overflow-hidden rounded-xl"
+      >
+        <AdSenseSlot slot={inlineListSlot} />
+      </div>,
+    ];
+  });
 
   return (
     <div className={isDark ? "min-h-screen bg-gray-950" : "min-h-screen bg-gray-50"}>
@@ -270,14 +302,7 @@ export default function TyreListPage() {
         {!loading && !error && filtered.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
-              {filtered.map((tyre) => (
-                <TyreCard
-                  key={tyre.id}
-                  tyre={tyre}
-                  onCardClick={() => navigate(`/tyre/${tyre.id}`)}
-                  isDark={isDark}
-                />
-              ))}
+              {tyreCardsWithAds}
             </div>
 
             {/* Pagination */}

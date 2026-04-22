@@ -5,6 +5,7 @@ import {
   Star, Phone, MapPin, Heart, Filter, X
 } from "lucide-react";
 import useAccessories from "../hooks/useAccessories";
+import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -126,6 +127,9 @@ export default function AccessoryListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 20;
+  const inlineListSlot = (
+    import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309"
+  ).trim();
 
   useEffect(() => {
     const params = {
@@ -138,6 +142,32 @@ export default function AccessoryListPage() {
 
   const filteredAccessories = accessories;
   const totalPages = pagination?.totalPages || 1;
+  const accessoryCardsWithAds = filteredAccessories.flatMap((accessory, index) => {
+    const card = (
+      <AccessoryCard
+        key={`accessory-${accessory?.id ?? "item"}-${index}`}
+        accessory={accessory}
+        onCardClick={() => navigate(`/accessory/${accessory.id}`)}
+      />
+    );
+
+    const shouldInsertAd =
+      inlineListSlot && (index + 1) % 8 === 0 && index < filteredAccessories.length - 1;
+
+    if (!shouldInsertAd) {
+      return [card];
+    }
+
+    return [
+      card,
+      <div
+        key={`ad-accessory-${index}`}
+        className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 overflow-hidden rounded-xl"
+      >
+        <AdSenseSlot slot={inlineListSlot} />
+      </div>,
+    ];
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -232,13 +262,7 @@ export default function AccessoryListPage() {
         {!loading && filteredAccessories.length > 0 && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredAccessories.map((accessory) => (
-                <AccessoryCard
-                  key={accessory.id}
-                  accessory={accessory}
-                  onCardClick={() => navigate(`/accessory/${accessory.id}`)}
-                />
-              ))}
+              {accessoryCardsWithAds}
             </div>
 
             {/* Pagination */}

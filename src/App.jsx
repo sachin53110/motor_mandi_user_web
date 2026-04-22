@@ -15,34 +15,15 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import LoginForm from "./pages/auth/loginPage.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import HomeHeader from "./components/HomeHeader.jsx";
-import AdSenseSlot from "./components/AdSenseSlot.jsx";
 
 function AppRoutes() {
   const location = useLocation();
   const isHome = location.pathname === "/";
-  const showAds = location.pathname !== "/login";
-
-  const topBannerSlot = (
-    import.meta.env.VITE_ADSENSE_TOP_BANNER_SLOT || "6158096309"
-  ).trim();
-  const bottomBannerSlot = (
-    import.meta.env.VITE_ADSENSE_BOTTOM_BANNER_SLOT || "6158096309"
-  ).trim();
 
   return (
     <>
       <HomeHeader />
       <div className={isHome ? "" : "pt-16"}>
-        {showAds && (topBannerSlot || "").trim() && (
-          <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${isHome ? "pt-20" : "pt-4"}`}>
-            <AdSenseSlot
-              slot={topBannerSlot}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm"
-              minHeight={90}
-            />
-          </div>
-        )}
-
         <Routes>
           <Route path="/" element={<HomePage />} />
 
@@ -65,16 +46,6 @@ function AppRoutes() {
 
           <Route path="/login" element={<LoginForm />} />
         </Routes>
-
-        {showAds && (bottomBannerSlot || "").trim() && (
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6">
-            <AdSenseSlot
-              slot={bottomBannerSlot}
-              className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm"
-              minHeight={90}
-            />
-          </div>
-        )}
       </div>
     </>
   );

@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Gauge, Package, AlertCircle, TrendingUp
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
+import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
   const value = parseFloat(price);
@@ -21,6 +22,9 @@ export default function TyreDetailPage() {
   const [tyre, setTyre] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const inlineDetailSlot = (
+    import.meta.env.VITE_ADSENSE_INLINE_DETAIL_SLOT || "6158096309"
+  ).trim();
 
   useEffect(() => {
     const fetchTyre = async () => {
@@ -78,6 +82,12 @@ export default function TyreDetailPage() {
           </h2>
           <p className="text-blue-600 text-sm mt-1">{tyre.type || "Premium Tyres"}</p>
         </section>
+
+        {inlineDetailSlot && (
+          <section className="mb-5 overflow-hidden rounded-xl bg-white p-3 border border-blue-100">
+            <AdSenseSlot slot={inlineDetailSlot} />
+          </section>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Image Gallery */}
