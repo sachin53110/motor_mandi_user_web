@@ -36,7 +36,17 @@ const categories = [
   },
   {
     icon: "wheels",
-    label: "Wheels & Rims",
+    label: "Wheels",
+    sub: "Alloy, Steel",
+    count: "1,800+",
+    color: "from-slate-900/38 via-indigo-900/12 to-slate-950/50",
+    image: RimSvg,
+    photo: "https://images.unsplash.com/photo-1542377281-73d08e3a10aa?auto=format&fit=crop&w=900&q=80",
+    key: "wheels"
+  },
+  {
+    icon: "rims",
+    label: "Rims",
     sub: "Alloy, Steel",
     count: "1,800+",
     color: "from-slate-900/38 via-indigo-900/12 to-slate-950/50",
@@ -321,8 +331,8 @@ function Hero() {
   );
 }
 
-// ── Categories (opens listings modals from category cards) ───────────────────
-function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick, onAccessoriesClick }) {
+// ── Categories ──────────────────────────────────────────────────────────────
+function Categories({ onTyresClick, onWheelsClick, onRimsClick, onCarsClick, onBikesClick, onAccessoriesClick }) {
   return (
     <section id="categories" className="px-4 py-16" style={{ backgroundColor: PAGE_SURFACE }}>
       <div className="max-w-7xl mx-auto">
@@ -333,21 +343,20 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick, on
           </div>
           <a href="#" className="hidden sm:flex items-center gap-2 text-sky-700 text-sm font-bold hover:text-sky-600 transition-colors">All Categories <ArrowRight size={18} /></a>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {categories.map((cat, i) => {
-            const showLiveBadge = cat.key === "tyres" || cat.key === "cars" || cat.key === "bikes" || cat.key === "accessories";
-
             return (
               <div
                 key={cat.label}
                 onClick={() => {
                   if (cat.key === "tyres") onTyresClick();
-                  if (cat.key === "rims")  onWheelsClick();
+                  if (cat.key === "wheels") onWheelsClick();
+                  if (cat.key === "rims")  onRimsClick();
                   if (cat.key === "cars")  onCarsClick();
                   if (cat.key === "bikes") onBikesClick();
                   if (cat.key === "accessories") onAccessoriesClick();
                 }}
-                className={`group relative h-48 overflow-hidden rounded-[1.35rem] border border-white/70 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/40 ${["tyres", "rims", "cars", "bikes", "accessories"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-sky-300/80" : "cursor-default"}`}
+                className={`group relative h-48 overflow-hidden rounded-[1.35rem] border border-white/70 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/40 ${["tyres", "wheels", "rims", "cars", "bikes", "accessories"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-sky-300/80" : "cursor-default"}`}
                 style={{ animationDelay: `${i * 80}ms` }}
               >
                 <img
@@ -368,14 +377,6 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick, on
                     </div>
                   </div>
                 </div>
-
-                {/* "Live" badge for selected category listings */}
-                {showLiveBadge && (
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-sky-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                    LIVE
-                  </div>
-                )}
               </div>
             );
           })}
@@ -383,7 +384,7 @@ function Categories({ onTyresClick, onWheelsClick, onCarsClick, onBikesClick, on
 
         {/* Hint text under categories */}
         <p className="text-center text-slate-500 text-xs mt-4 font-medium">
-          Click a category to view live listings
+          Click a category to view listings
         </p>
       </div>
     </section>
@@ -463,10 +464,11 @@ function FeaturedListings({ onViewMore }) {
         setLoading(true);
         setError(null);
 
-        // Fetch data from all 5 APIs (limit to 6 items each)
-        const [tyresRes, wheelsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
+        // Fetch data from all APIs (limit to 6 items each)
+        const [tyresRes, wheelsRes, rimsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
           ApiProvider.tyres.getList({ limit: 6, page: 1 }),
           ApiProvider.wheels.getList({ limit: 6, page: 1 }),
+          ApiProvider.rims.getList({ limit: 6, page: 1 }),
           ApiProvider.cars.getList({ limit: 6, page: 1 }),
           ApiProvider.bikes.getList({ limit: 6, page: 1 }),
           ApiProvider.accessories.getList({ limit: 6, page: 1 }),
@@ -489,13 +491,26 @@ function FeaturedListings({ onViewMore }) {
           })),
           wheels: (wheelsRes.data || []).map(item => ({
             id: item.id,
-            type: "Rim",
-            name: item.title || item.name || "Wheel",
+            type: "Wheel",
+            name: item.title || item.name || item.code || (item.size ? `Wheel • ${item.size}` : "Wheel"),
             condition: item.condition || "New",
             price: `₹${(item.price || 0).toLocaleString()}`,
-            oldPrice: item.oldPrice ? `₹${item.oldPrice.toLocaleString()}` : null,
-            brand: item.brand || "Unknown",
-            location: item.location || "Unknown",
+            oldPrice: item.customerPrice ? `₹${Number(item.customerPrice || 0).toLocaleString()}` : null,
+            brand: item.brandData?.name || item.brand || "Unknown",
+            location: item.user?.city || item.location || "Unknown",
+            badge: item.isHot ? "Hot Deal" : item.isFeatured ? "Featured" : null,
+            badgeColor: item.isHot ? "bg-emerald-600" : "bg-green-600",
+            imageUrl: item.medias?.[0]?.media || null
+          })),
+          rims: (rimsRes.data || []).map(item => ({
+            id: item.id,
+            type: "Rim",
+            name: item.name || item.code || (item.size ? `Rim • ${item.size}` : "Rim"),
+            condition: item.condition || "New",
+            price: `₹${Number(item.ownerPrice || 0).toLocaleString()}`,
+            oldPrice: item.customerPrice ? `₹${Number(item.customerPrice || 0).toLocaleString()}` : null,
+            brand: item.brandData?.name || "Unknown",
+            location: item.user?.city || "Unknown",
             badge: item.isHot ? "Hot Deal" : item.isFeatured ? "Featured" : null,
             badgeColor: item.isHot ? "bg-emerald-600" : "bg-green-600",
             imageUrl: item.medias?.[0]?.media || null
@@ -558,6 +573,7 @@ function FeaturedListings({ onViewMore }) {
     const allData = [
       ...(apiData.tyres || []),
       ...(apiData.wheels || []),
+      ...(apiData.rims || []),
       ...(apiData.cars || []),
       ...(apiData.bikes || []),
       ...(apiData.accessories || [])
@@ -565,7 +581,7 @@ function FeaturedListings({ onViewMore }) {
 
     if (activeTab === "All") return allData.slice(0, 6);
     if (activeTab === "Tyres") return (apiData.tyres || []).slice(0, 6);
-    if (activeTab === "Rims") return (apiData.wheels || []).slice(0, 6);
+    if (activeTab === "Rims") return (apiData.rims || []).slice(0, 6);
     if (activeTab === "Cars") return (apiData.cars || []).slice(0, 6);
     if (activeTab === "Bikes") return (apiData.bikes || []).slice(0, 6);
     if (activeTab === "Accessories") return (apiData.accessories || []).slice(0, 6);
@@ -578,7 +594,7 @@ function FeaturedListings({ onViewMore }) {
     const categoryMap = {
       "All": null,
       "Tyres": "tyres",
-      "Rims": "wheels",
+      "Rims": "rims",
       "Cars": "cars",
       "Bikes": "bikes",
       "Accessories": "accessories"
@@ -1123,63 +1139,6 @@ function CTABanner() {
     </section>
   );
 }
-const socialIcons = [
-  // Instagram
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>,
-  // Twitter / X
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>,
-  // Facebook
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>,
-];
-// ── Footer ───────────────────────────────────────────────────────────────────
-function Footer() {
-  return (
-    <footer id="footer" className="bg-gradient-to-b from-slate-900 to-slate-950 border-t border-sky-900/40 pt-16 pb-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-sky-500 rounded-lg flex items-center justify-center text-xl font-black text-slate-950">M</div>
-              <span className="text-xl font-black text-slate-100" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.05em" }}>MOTOR<span className="text-sky-300">MANDI</span></span>
-            </div>
-            <p className="text-slate-300 text-sm leading-relaxed mb-5">India's fastest growing marketplace for automotive parts, tyres, rims, cars & bikes.</p>
-          <div className="flex gap-3">
-  {socialIcons.map((icon, i) => (
-    <a key={i} href="#" className="w-9 h-9 bg-slate-800/80 hover:bg-sky-500 rounded-lg flex items-center justify-center text-slate-200 hover:text-slate-950 transition-all">
-      {icon}
-    </a>
-  ))}
-</div>
-          </div>
-          <div>
-            <h4 className="text-slate-100 font-black text-sm tracking-widest uppercase mb-4">Categories</h4>
-            {["Tyres","Wheels & Rims","Cars","Bikes","Accessories","Spare Parts"].map(item => (
-              <a key={item} href="#" className="block text-slate-300 hover:text-sky-300 text-sm mb-2 transition-colors">{item}</a>
-            ))}
-          </div>
-          <div>
-            <h4 className="text-slate-100 font-black text-sm tracking-widest uppercase mb-4">Company</h4>
-            {["About Us","Blog","Careers","Press Kit","Privacy Policy","Terms of Use"].map(item => (
-              <a key={item} href="#" className="block text-slate-300 hover:text-sky-300 text-sm mb-2 transition-colors">{item}</a>
-            ))}
-          </div>
-          <div>
-            <h4 className="text-slate-100 font-black text-sm tracking-widest uppercase mb-4">Contact</h4>
-            <div className="space-y-3">
-              <a href="#" className="flex items-center gap-2 text-slate-300 hover:text-sky-300 text-sm transition-colors"><Phone size={14} /> +91 8708045979</a>
-              <a href="#" className="flex items-center gap-2 text-slate-300 hover:text-sky-300 text-sm transition-colors"><Mail size={14} /> hello@motormandi.in</a>
-              <a href="#" className="flex items-center gap-2 text-slate-300 hover:text-sky-300 text-sm transition-colors"><MapPin size={14} /> Haryan, India</a>
-            </div>
-          </div>
-        </div>
-        <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-slate-400 text-xs">© 2024 MotorMandi. All rights reserved.</p>
-          <p className="text-slate-400 text-xs">Built with ❤️ for auto enthusiasts across India</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
@@ -1200,6 +1159,7 @@ export default function HomePage() {
       <Categories
         onTyresClick={() => navigate('/tyres')}
         onWheelsClick={() => navigate('/wheels')}
+        onRimsClick={() => navigate('/rims')}
         onCarsClick={() => navigate('/cars')}
         onBikesClick={() => navigate('/bikes')}
         onAccessoriesClick={() => navigate('/accessories')}
@@ -1208,6 +1168,7 @@ export default function HomePage() {
         onViewMore={(category) => {
           if (category === "tyres") navigate('/tyres');
           else if (category === "wheels") navigate('/wheels');
+          else if (category === "rims") navigate('/rims');
           else if (category === "cars") navigate('/cars');
           else if (category === "bikes") navigate('/bikes');
           else if (category === "accessories") navigate('/accessories');
@@ -1217,7 +1178,6 @@ export default function HomePage() {
       <NearestShops onOpenNearbyShops={() => navigate('/shops')} />
       <Testimonials />
       <CTABanner />
-      <Footer />
     </div>
   );
 }

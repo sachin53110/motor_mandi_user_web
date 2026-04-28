@@ -4,6 +4,8 @@ import TyreDetailPage from "./pages/tyreDetailPage.jsx";
 import TyreListPage from "./pages/tyreListPage.jsx";
 import WheelListPage from "./pages/wheelListPage.jsx";
 import WheelDetailPage from "./pages/wheelDetailPage.jsx";
+import RimListPage from "./pages/rimListPage.jsx";
+import RimDetailPage from "./pages/rimDetailPage.jsx";
 import CarListPage from "./pages/carListPage.jsx";
 import CarDetailPage from "./pages/carDetailPage.jsx";
 import BikeListPage from "./pages/bikeListPage.jsx";
@@ -15,6 +17,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import LoginForm from "./pages/auth/loginPage.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import HomeHeader from "./components/HomeHeader.jsx";
+import SiteFooter from "./components/SiteFooter.jsx";
 
 function AppRoutes() {
   const location = useLocation();
@@ -33,6 +36,9 @@ function AppRoutes() {
           <Route path="/wheels" element={<WheelListPage />} />
           <Route path="/wheel/:id" element={<WheelDetailPage />} />
 
+          <Route path="/rims" element={<RimListPage />} />
+          <Route path="/rim/:id" element={<RimDetailPage />} />
+
           <Route path="/cars" element={<CarListPage />} />
           <Route path="/car/:id" element={<CarDetailPage />} />
 
@@ -47,6 +53,8 @@ function AppRoutes() {
           <Route path="/login" element={<LoginForm />} />
         </Routes>
       </div>
+
+      <SiteFooter />
     </>
   );
 }

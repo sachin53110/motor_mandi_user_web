@@ -6,6 +6,30 @@ import {
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
+import HERO_IMAGE from "../assets/backHome.png";
+
+const PAGE_SURFACE = "#f3f6fb";
+
+function CTABanner() {
+  return (
+    <section className="py-20 px-4" style={{ backgroundColor: PAGE_SURFACE }}>
+      <div className="max-w-7xl mx-auto relative overflow-hidden rounded-[2rem] border border-white/70 shadow-2xl">
+        <img src={HERO_IMAGE} alt="CTA" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-sky-700/90 via-sky-700/80 to-slate-900/80" />
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+
+        <div className="max-w-4xl mx-auto text-center relative px-6 py-16 sm:py-20">
+          <h2 className="text-5xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>READY TO SELL YOUR PARTS?</h2>
+          <p className="text-sky-100 text-lg mb-8">Post your listing for FREE. Reach 12,000+ active buyers across India in minutes.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button className="bg-white text-sky-700 font-black px-8 py-4 rounded-xl text-lg hover:bg-sky-50 transition-all hover:scale-105 active:scale-95">POST FREE AD NOW</button>
+            <button className="border-2 border-white text-white font-black px-8 py-4 rounded-xl text-lg hover:bg-white/10 transition-all">Browse Listings</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 const formatPrice = (price) => {
   const value = parseFloat(price);
@@ -275,6 +299,8 @@ export default function TyreDetailPage() {
           </div>
         </div>
       </div>
+
+      <CTABanner />
     </div>
   );
 }

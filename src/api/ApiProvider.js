@@ -49,20 +49,52 @@ export class ApiError extends Error {
 // ── Tyre API Module ───────────────────────────────────────────────────────────
 const tyreApi = {
   /**
-   * GET /tyre/list
-   * @param {object} params - { page, limit, condition, type, minPrice, maxPrice }
+   * GET /tyre/all
+   * @param {object} params - { page, limit, condition, search, company, type, customerPriceFrom, customerPriceTo }
    */
-  getList: (params = {}) => {
+  getList: async (params = {}) => {
     const query = new URLSearchParams();
     if (params.page)      query.set("page",      params.page);
     if (params.limit)     query.set("limit",     params.limit);
+
     if (params.condition) query.set("condition", params.condition);
-    if (params.type)      query.set("type",      params.type);
-    if (params.minPrice)  query.set("minPrice",  params.minPrice);
-    if (params.maxPrice)  query.set("maxPrice",  params.maxPrice);
+    if (params.search)    query.set("search", params.search);
+    if (params.company)   query.set("company", params.company);
+    if (params.type)      query.set("type", params.type);
+    if (params.customerPriceFrom) query.set("customerPriceFrom", params.customerPriceFrom);
+    if (params.customerPriceTo)   query.set("customerPriceTo", params.customerPriceTo);
+
+    // Backward compatibility (older callers)
+    if (params.minPrice && !params.customerPriceFrom) query.set("customerPriceFrom", params.minPrice);
+    if (params.maxPrice && !params.customerPriceTo)   query.set("customerPriceTo", params.maxPrice);
 
     const qs = query.toString();
-    return request(`tyre/list${qs ? `?${qs}` : ""}`);
+
+    try {
+      return await request(`tyre/all${qs ? `?${qs}` : ""}`);
+    } catch (err) {
+      // Some deployments may still expose the legacy endpoint.
+      if (err instanceof ApiError && (err.statusCode === 404 || err.statusCode === 405)) {
+        const legacyQuery = new URLSearchParams();
+        if (params.page)      legacyQuery.set("page",      params.page);
+        if (params.limit)     legacyQuery.set("limit",     params.limit);
+        if (params.condition) legacyQuery.set("condition", params.condition);
+        if (params.type)      legacyQuery.set("type",      params.type);
+
+        const legacyMin = params.customerPriceFrom || params.minPrice;
+        const legacyMax = params.customerPriceTo || params.maxPrice;
+        if (legacyMin) legacyQuery.set("minPrice", legacyMin);
+        if (legacyMax) legacyQuery.set("maxPrice", legacyMax);
+
+        // If the legacy backend supports these, it can still use them.
+        if (params.search)  legacyQuery.set("search", params.search);
+        if (params.company) legacyQuery.set("company", params.company);
+
+        const legacyQs = legacyQuery.toString();
+        return request(`tyre/list${legacyQs ? `?${legacyQs}` : ""}`);
+      }
+      throw err;
+    }
   },
 
   /** GET /tyre/view?id=:id */
@@ -81,21 +113,41 @@ const tyreApi = {
   remove: (id, token) => request(`tyre/${id}`, { method: "DELETE", token }),
 };
 
+// ── Tyre Companies API Module ────────────────────────────────────────────────
+const tyreCompaniesApi = {
+  /** GET /tyre-company */
+  getList: () => request("tyre-company"),
+};
+
 // ── Wheel API Module ──────────────────────────────────────────────────────────
 const wheelApi = {
   /**
    * GET /wheel
-   * @param {object} params - { page, limit, condition, search, shopId }
+   * @param {object} params - { page, limit, search, company, brand, customerPriceFrom, customerPriceTo, condition, shopId }
    */
   getList: (params = {}) => {
     const query = new URLSearchParams();
     if (params.page)      query.set("page",      params.page);
     if (params.limit)     query.set("limit",     params.limit);
-    if (params.condition) query.set("condition", params.condition);
     if (params.search)    query.set("search",    params.search);
+    if (params.company)   query.set("company",   params.company);
+    if (params.brand)     query.set("brand",     params.brand);
+    if (params.customerPriceFrom !== undefined && params.customerPriceFrom !== null && params.customerPriceFrom !== "") {
+      query.set("customerPriceFrom", params.customerPriceFrom);
+    }
+    if (params.customerPriceTo !== undefined && params.customerPriceTo !== null && params.customerPriceTo !== "") {
+      query.set("customerPriceTo", params.customerPriceTo);
+    }
+    if (params.condition) query.set("condition", params.condition);
     if (params.shopId)    query.set("shopId",    params.shopId);
-    if (params.minPrice)  query.set("minPrice",  params.minPrice);
-    if (params.maxPrice)  query.set("maxPrice",  params.maxPrice);
+
+    // Back-compat: older UI used minPrice/maxPrice
+    if (!query.has("customerPriceFrom") && params.minPrice !== undefined && params.minPrice !== null && params.minPrice !== "") {
+      query.set("customerPriceFrom", params.minPrice);
+    }
+    if (!query.has("customerPriceTo") && params.maxPrice !== undefined && params.maxPrice !== null && params.maxPrice !== "") {
+      query.set("customerPriceTo", params.maxPrice);
+    }
 
     const qs = query.toString();
     return request(`wheel${qs ? `?${qs}` : ""}`);
@@ -115,6 +167,41 @@ const wheelApi = {
 
   /** DELETE /wheel/:id  (auth required) */
   remove: (id, token) => request(`wheel/${id}`, { method: "DELETE", token }),
+};
+
+// ── Rim API Module ───────────────────────────────────────────────────────────
+const rimApi = {
+  /**
+   * GET /rim
+   * @param {object} params - { page, limit, company, brand, condition, color, customerPriceFrom, customerPriceTo, search }
+   */
+  getList: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.page)  query.set("page", params.page);
+    if (params.limit) query.set("limit", params.limit);
+
+    if (params.search) query.set("search", params.search);
+
+    if (params.company)   query.set("company", params.company);
+    if (params.brand)     query.set("brand", params.brand);
+    if (params.condition) query.set("condition", params.condition);
+    if (params.color)     query.set("color", params.color);
+    if (params.customerPriceFrom !== undefined && params.customerPriceFrom !== null && params.customerPriceFrom !== "") {
+      query.set("customerPriceFrom", params.customerPriceFrom);
+    }
+    if (params.customerPriceTo !== undefined && params.customerPriceTo !== null && params.customerPriceTo !== "") {
+      query.set("customerPriceTo", params.customerPriceTo);
+    }
+
+    const qs = query.toString();
+    return request(`rim${qs ? `?${qs}` : ""}`);
+  },
+
+  /** GET /rim/view?id=:id */
+  getDetail: (id) => request(`rim/view?id=${id}`),
+
+  /** GET /rim/:id */
+  getById: (id) => request(`rim/${id}`),
 };
 
 // ── Car API Module ───────────────────────────────────────────────────────────
@@ -292,7 +379,9 @@ const shopApi = {
 // ── Default Export ────────────────────────────────────────────────────────────
 const ApiProvider = {
   tyres:       tyreApi,
+  tyreCompanies: tyreCompaniesApi,
   wheels:      wheelApi,
+  rims:        rimApi,
   cars:        carApi,
   bikes:       bikeApi,
   accessories: accessoriesApi,

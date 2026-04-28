@@ -1,22 +1,23 @@
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Search, RefreshCw, AlertCircle, ChevronLeft, ChevronRight,
-  Star, Phone, MapPin, Heart, Filter, X
+  Search,
+  RefreshCw,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Heart,
+  Star,
+  X,
 } from "lucide-react";
-import useWheels from "../hooks/userWheel";
+import useRims from "../hooks/useRims";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
-  if (isNaN(n)) return "N/A";
+  if (Number.isNaN(n)) return "N/A";
   return `₹${n.toLocaleString("en-IN")}`;
-};
-
-const conditionColors = {
-  new: "bg-blue-100 text-blue-700 border-blue-200",
-  old: "bg-amber-50 text-amber-600 border-amber-200",
-  used: "bg-amber-50 text-amber-600 border-amber-200",
 };
 
 const PRICE_RANGE = {
@@ -30,8 +31,10 @@ const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 function PriceRangePicker({ minValue, maxValue, onChangeMin, onChangeMax }) {
   const minVal = clamp(Number(minValue), PRICE_RANGE.min, PRICE_RANGE.max);
   const maxVal = clamp(Number(maxValue), PRICE_RANGE.min, PRICE_RANGE.max);
-  const leftPct = ((Math.min(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
-  const rightPct = ((Math.max(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+  const leftPct =
+    ((Math.min(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+  const rightPct =
+    ((Math.max(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
 
   return (
     <div className="rounded-xl px-3 py-3 border bg-white border-gray-300">
@@ -97,23 +100,28 @@ function SkeletonCard() {
   );
 }
 
-function WheelCard({ wheel, onCardClick }) {
+const conditionColors = {
+  new: "bg-blue-100 text-blue-700 border-blue-200",
+  old: "bg-amber-50 text-amber-600 border-amber-200",
+  used: "bg-amber-50 text-amber-600 border-amber-200",
+};
+
+function RimCard({ rim, onCardClick }) {
   const [imgError, setImgError] = useState(false);
   const [liked, setLiked] = useState(false);
-  const firstImage = wheel.medias?.[0]?.media;
-  const conditionKey = wheel.condition?.toLowerCase();
+
+  const firstImage = rim.medias?.[0]?.media;
+  const conditionKey = rim.condition?.toLowerCase();
   const conditionClass = conditionColors[conditionKey] || conditionColors.old;
 
-  const title = wheel.name || wheel.title || wheel.code || (wheel.size ? `Wheel • ${wheel.size}` : "Wheel Listing");
-  const brandName = wheel.brandData?.name || wheel.brand;
-  const companyName = wheel.brandData?.company?.name;
+  const title = rim.name || rim.code || (rim.size ? `Rim • ${rim.size}` : "Rim Listing");
 
-  const savings = wheel.price && wheel.customerPrice
-    ? Math.max(0, parseFloat(wheel.customerPrice) - parseFloat(wheel.price))
+  const savings = rim.ownerPrice && rim.customerPrice
+    ? Math.max(0, parseFloat(rim.customerPrice) - parseFloat(rim.ownerPrice))
     : 0;
 
-  const discountPercent = wheel.price && wheel.customerPrice
-    ? Math.round(((parseFloat(wheel.customerPrice) - parseFloat(wheel.price)) / parseFloat(wheel.customerPrice)) * 100)
+  const discountPercent = rim.ownerPrice && rim.customerPrice
+    ? Math.round(((parseFloat(rim.customerPrice) - parseFloat(rim.ownerPrice)) / parseFloat(rim.customerPrice)) * 100)
     : 0;
 
   return (
@@ -121,36 +129,28 @@ function WheelCard({ wheel, onCardClick }) {
       onClick={onCardClick}
       className="bg-white border border-green-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer transform hover:-translate-y-1"
     >
-      {/* Image Container */}
       <div className="relative h-48 bg-gradient-to-br from-green-50 to-green-100 overflow-hidden">
         {!imgError && firstImage ? (
           <img
             src={firstImage}
-            alt={wheel.title}
+            alt={title}
             className="w-full h-full object-cover"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-green-300 text-3xl">
-            ⚙️
-          </div>
+          <div className="w-full h-full flex items-center justify-center text-green-300 text-3xl">⚙️</div>
         )}
 
-        {/* Discount Badge */}
         {discountPercent > 0 && (
           <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
             -{discountPercent}%
           </div>
         )}
 
-        {/* Condition Badge */}
-        <div
-          className={`absolute bottom-3 left-3 px-2 py-1 rounded-lg text-xs font-semibold border ${conditionClass}`}
-        >
-          {wheel.condition || "Used"}
+        <div className={`absolute bottom-3 left-3 px-2 py-1 rounded-lg text-xs font-semibold border ${conditionClass}`}>
+          {rim.condition || "Used"}
         </div>
 
-        {/* Like Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -162,26 +162,20 @@ function WheelCard({ wheel, onCardClick }) {
         </button>
       </div>
 
-      {/* Content */}
       <div className="p-4 space-y-2">
-        {/* Title */}
         <h3 className="font-bold text-gray-900 text-sm line-clamp-2 hover:text-green-600 transition">
           {title}
         </h3>
 
-        {/* Brand & Size */}
-        {brandName || companyName || wheel.size ? (
-          <p className="text-xs text-gray-500">
-            {[brandName, companyName, wheel.size].filter(Boolean).join(" • ")}
-          </p>
+        {rim.size || rim.color ? (
+          <p className="text-xs text-gray-500">{[rim.size, rim.color].filter(Boolean).join(" • ")}</p>
         ) : null}
 
-        {/* Price Section */}
         <div className="space-y-1 pt-2 border-t border-gray-100">
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-green-600">{formatPrice(wheel.price)}</span>
-            {wheel.customerPrice && parseFloat(wheel.customerPrice) > parseFloat(wheel.price) && (
-              <span className="text-xs text-gray-400 line-through">{formatPrice(wheel.customerPrice)}</span>
+            <span className="text-lg font-bold text-green-600">{formatPrice(rim.ownerPrice)}</span>
+            {rim.customerPrice && parseFloat(rim.customerPrice) > parseFloat(rim.ownerPrice || 0) && (
+              <span className="text-xs text-gray-400 line-through">{formatPrice(rim.customerPrice)}</span>
             )}
           </div>
           {savings > 0 && (
@@ -189,16 +183,15 @@ function WheelCard({ wheel, onCardClick }) {
           )}
         </div>
 
-        {/* Location & Rating */}
         <div className="flex items-center justify-between text-xs text-gray-600 pt-2">
           <div className="flex items-center gap-1">
             <MapPin size={12} className="text-green-600" />
-            {wheel.user?.city || "Location"}
+            {rim.user?.city || "Location"}
           </div>
-          {wheel.rating && (
+          {rim.rating && (
             <div className="flex items-center gap-1">
               <Star size={12} fill="#fbbf24" color="#fbbf24" />
-              {wheel.rating}
+              {rim.rating}
             </div>
           )}
         </div>
@@ -207,29 +200,50 @@ function WheelCard({ wheel, onCardClick }) {
   );
 }
 
-export default function WheelListPage() {
+export default function RimListPage() {
   const navigate = useNavigate();
-  const { wheels, loading, error, pagination, fetchWheels } = useWheels();
+  const { rims, loading, error, pagination, fetchRims } = useRims();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [condition, setCondition] = useState("all");
+  const [color, setColor] = useState("");
   const [company, setCompany] = useState("");
   const [brand, setBrand] = useState("");
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const [currentPage, setCurrentPage] = useState(1);
+
   const limit = 20;
-  const inlineListSlot = (
-    import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309"
-  ).trim();
+  const inlineListSlot = (import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309").trim();
+
+  const derivedBrandOptions = useMemo(() => {
+    const map = new Map();
+    for (const item of rims || []) {
+      const id = item.brandData?.id ?? item.brand;
+      const name = item.brandData?.name;
+      if (id) map.set(String(id), name || `Brand #${id}`);
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [rims]);
+
+  const derivedCompanyOptions = useMemo(() => {
+    const map = new Map();
+    for (const item of rims || []) {
+      const id = item.company;
+      if (id) map.set(String(id), `Company #${id}`);
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [rims]);
 
   useEffect(() => {
     const params = {
       page: currentPage,
       limit,
-      ...(condition !== "all" && { condition }),
-      ...(searchTerm && { search: searchTerm }),
       ...(company && { company }),
       ...(brand && { brand }),
+      ...(condition !== "all" && { condition }),
+      ...(color && { color }),
+      ...(searchTerm && { search: searchTerm }),
     };
 
     if (Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min) {
@@ -238,51 +252,28 @@ export default function WheelListPage() {
     if (Number.isFinite(Number(priceTo)) && Number(priceTo) < PRICE_RANGE.max) {
       params.customerPriceTo = String(priceTo);
     }
-    fetchWheels(params);
-  }, [currentPage, condition, searchTerm, company, brand, priceFrom, priceTo, fetchWheels]);
 
-  const derivedBrandOptions = useMemo(() => {
-    const map = new Map();
-    for (const item of wheels || []) {
-      const id = item.brandData?.id ?? item.brand;
-      const name = item.brandData?.name;
-      if (id) map.set(String(id), name || `Brand #${id}`);
-    }
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [wheels]);
+    fetchRims(params);
+  }, [currentPage, company, brand, condition, color, searchTerm, priceFrom, priceTo, fetchRims]);
 
-  const derivedCompanyOptions = useMemo(() => {
-    const map = new Map();
-    for (const item of wheels || []) {
-      const id = item.brandData?.company?.id ?? item.company;
-      const name = item.brandData?.company?.name;
-      if (id) map.set(String(id), name || `Company #${id}`);
-    }
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [wheels]);
-
-  const filteredWheels = wheels;
   const totalPages = pagination?.totalPages || 1;
-  const wheelCardsWithAds = filteredWheels.flatMap((wheel, index) => {
+
+  const rimCardsWithAds = (rims || []).flatMap((rim, index) => {
     const card = (
-      <WheelCard
-        key={`wheel-${wheel?.id ?? "item"}-${index}`}
-        wheel={wheel}
-        onCardClick={() => navigate(`/wheel/${wheel.id}`)}
+      <RimCard
+        key={`rim-${rim?.id ?? "item"}-${index}`}
+        rim={rim}
+        onCardClick={() => navigate(`/rim/${rim.id}`)}
       />
     );
 
-    const shouldInsertAd =
-      inlineListSlot && (index + 1) % 8 === 0 && index < filteredWheels.length - 1;
-
-    if (!shouldInsertAd) {
-      return [card];
-    }
+    const shouldInsertAd = inlineListSlot && (index + 1) % 8 === 0 && index < (rims || []).length - 1;
+    if (!shouldInsertAd) return [card];
 
     return [
       card,
       <div
-        key={`ad-wheel-${index}`}
+        key={`ad-rim-${index}`}
         className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 overflow-hidden rounded-xl"
       >
         <AdSenseSlot slot={inlineListSlot} />
@@ -290,19 +281,45 @@ export default function WheelListPage() {
     ];
   });
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setCondition("all");
+    setColor("");
+    setCompany("");
+    setBrand("");
+    setPriceFrom(PRICE_RANGE.min);
+    setPriceTo(PRICE_RANGE.max);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <section className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
-          <h1 className="text-2xl font-black text-gray-900">Premium Wheels</h1>
-          <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} products</p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-2xl font-black text-gray-900">Premium Rims</h1>
+              <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} products</p>
+            </div>
 
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <button
+              onClick={() => {
+                setCurrentPage(1);
+                fetchRims({ page: 1, limit });
+              }}
+              className="w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
+              title="Refresh"
+            >
+              <RefreshCw size={18} />
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div className="flex items-center bg-gray-100 rounded-xl px-4 py-2">
               <Search size={18} className="text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by brand, size, shop..."
+                placeholder="Search by size, shop..."
                 className="flex-1 bg-transparent ml-2 outline-none text-sm"
                 value={searchTerm}
                 onChange={(e) => {
@@ -333,40 +350,56 @@ export default function WheelListPage() {
             >
               <option value="all">All Conditions</option>
               <option value="new">New</option>
-              <option value="used">Used</option>
+              <option value="old">Old</option>
             </select>
 
-            <select
-              value={company}
+            <input
+              value={color}
               onChange={(e) => {
-                setCompany(e.target.value);
+                setColor(e.target.value);
                 setCurrentPage(1);
               }}
               className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-            >
-              <option value="">All Companies</option>
-              {derivedCompanyOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              placeholder="Color"
+            />
 
-            <select
-              value={brand}
-              onChange={(e) => {
-                setBrand(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-            >
-              <option value="">All Brands</option>
-              {derivedBrandOptions.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:col-span-2">
+              <div>
+                <input
+                  list="rim-company-options"
+                  value={company}
+                  onChange={(e) => {
+                    setCompany(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
+                  placeholder="Company (ID)"
+                />
+                <datalist id="rim-company-options">
+                  {derivedCompanyOptions.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </datalist>
+              </div>
+
+              <div>
+                <input
+                  list="rim-brand-options"
+                  value={brand}
+                  onChange={(e) => {
+                    setBrand(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
+                  placeholder="Brand (ID)"
+                />
+                <datalist id="rim-brand-options">
+                  {derivedBrandOptions.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </datalist>
+              </div>
+            </div>
 
             <div className="lg:col-span-3">
               <PriceRangePicker
@@ -382,20 +415,9 @@ export default function WheelListPage() {
                 }}
               />
             </div>
-
-            <button
-              onClick={() => {
-                setCurrentPage(1);
-                fetchWheels({ page: 1, limit });
-              }}
-              className="w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
-              title="Refresh"
-            >
-              <RefreshCw size={18} />
-            </button>
           </div>
         </section>
-        {/* Loading State */}
+
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
@@ -404,15 +426,14 @@ export default function WheelListPage() {
           </div>
         )}
 
-        {/* Error State */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-start gap-4">
             <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h3 className="font-bold text-red-900">Error Loading Wheels</h3>
+              <h3 className="font-bold text-red-900">Error Loading Rims</h3>
               <p className="text-sm text-red-700 mt-1">{error}</p>
               <button
-                onClick={() => fetchWheels({ page: currentPage, limit })}
+                onClick={() => fetchRims({ page: currentPage, limit })}
                 className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
               >
                 Try Again
@@ -421,18 +442,13 @@ export default function WheelListPage() {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && filteredWheels.length === 0 && !error && (
+        {!loading && (rims || []).length === 0 && !error && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">⚙️</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No wheels found</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No rims found</h2>
             <p className="text-gray-600 mb-6">Try adjusting your filters or search terms</p>
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setCondition("all");
-                setCurrentPage(1);
-              }}
+              onClick={clearFilters}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
             >
               Clear Filters
@@ -440,14 +456,12 @@ export default function WheelListPage() {
           </div>
         )}
 
-        {/* Wheels Grid */}
-        {!loading && filteredWheels.length > 0 && (
+        {!loading && (rims || []).length > 0 && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {wheelCardsWithAds}
+              {rimCardsWithAds}
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 py-8">
                 <button
