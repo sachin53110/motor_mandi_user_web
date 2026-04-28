@@ -119,6 +119,18 @@ const tyreCompaniesApi = {
   getList: () => request("tyre-company"),
 };
 
+// ── Wheel Companies API Module ───────────────────────────────────────────────
+const wheelCompaniesApi = {
+  /** GET /wheel-company */
+  getList: () => request("wheel-company"),
+};
+
+// ── Rim Companies API Module ────────────────────────────────────────────────
+const rimCompaniesApi = {
+  /** GET /rim-company */
+  getList: () => request("rim-company"),
+};
+
 // ── Wheel API Module ──────────────────────────────────────────────────────────
 const wheelApi = {
   /**
@@ -380,6 +392,8 @@ const shopApi = {
 const ApiProvider = {
   tyres:       tyreApi,
   tyreCompanies: tyreCompaniesApi,
+  wheelCompanies: wheelCompaniesApi,
+  rimCompanies: rimCompaniesApi,
   wheels:      wheelApi,
   rims:        rimApi,
   cars:        carApi,

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Search,
-  RefreshCw,
   AlertCircle,
   ChevronLeft,
   ChevronRight,
@@ -12,7 +10,9 @@ import {
   X,
 } from "lucide-react";
 import useRims from "../hooks/useRims";
+import useRimCompanies from "../hooks/useRimCompanies";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
+import { VEHICLE_COLOR_OPTIONS } from "../utils/vehicleOptions";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -49,7 +49,7 @@ function PriceRangePicker({ minValue, maxValue, onChangeMin, onChangeMax }) {
         <div className="relative h-8">
           <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 rounded-full bg-gray-200" />
           <div
-            className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full bg-green-600"
+            className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full bg-blue-600"
             style={{ left: `${leftPct}%`, width: `${Math.max(0, rightPct - leftPct)}%` }}
           />
 
@@ -113,6 +113,7 @@ function RimCard({ rim, onCardClick }) {
   const firstImage = rim.medias?.[0]?.media;
   const conditionKey = rim.condition?.toLowerCase();
   const conditionClass = conditionColors[conditionKey] || conditionColors.old;
+  const conditionLabel = conditionKey === "old" ? "Used" : (rim.condition || "Used");
 
   const title = rim.name || rim.code || (rim.size ? `Rim • ${rim.size}` : "Rim Listing");
 
@@ -148,7 +149,7 @@ function RimCard({ rim, onCardClick }) {
         )}
 
         <div className={`absolute bottom-3 left-3 px-2 py-1 rounded-lg text-xs font-semibold border ${conditionClass}`}>
-          {rim.condition || "Used"}
+          {conditionLabel}
         </div>
 
         <button
@@ -203,12 +204,11 @@ function RimCard({ rim, onCardClick }) {
 export default function RimListPage() {
   const navigate = useNavigate();
   const { rims, loading, error, pagination, fetchRims } = useRims();
+  const { companies, loading: companiesLoading, error: companiesError } = useRimCompanies();
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [condition, setCondition] = useState("all");
   const [color, setColor] = useState("");
   const [company, setCompany] = useState("");
-  const [brand, setBrand] = useState("");
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const [currentPage, setCurrentPage] = useState(1);
@@ -216,34 +216,20 @@ export default function RimListPage() {
   const limit = 20;
   const inlineListSlot = (import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309").trim();
 
-  const derivedBrandOptions = useMemo(() => {
-    const map = new Map();
-    for (const item of rims || []) {
-      const id = item.brandData?.id ?? item.brand;
-      const name = item.brandData?.name;
-      if (id) map.set(String(id), name || `Brand #${id}`);
-    }
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [rims]);
-
-  const derivedCompanyOptions = useMemo(() => {
-    const map = new Map();
-    for (const item of rims || []) {
-      const id = item.company;
-      if (id) map.set(String(id), `Company #${id}`);
-    }
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [rims]);
+  const companyOptions = useMemo(() => {
+    return (companies || [])
+      .map((c) => ({ id: String(c.id), name: c.name }))
+      .filter((c) => c.id && c.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [companies]);
 
   useEffect(() => {
     const params = {
       page: currentPage,
       limit,
       ...(company && { company }),
-      ...(brand && { brand }),
-      ...(condition !== "all" && { condition }),
+      ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
       ...(color && { color }),
-      ...(searchTerm && { search: searchTerm }),
     };
 
     if (Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min) {
@@ -254,7 +240,7 @@ export default function RimListPage() {
     }
 
     fetchRims(params);
-  }, [currentPage, company, brand, condition, color, searchTerm, priceFrom, priceTo, fetchRims]);
+  }, [currentPage, company, condition, color, priceFrom, priceTo, fetchRims]);
 
   const totalPages = pagination?.totalPages || 1;
 
@@ -274,7 +260,7 @@ export default function RimListPage() {
       card,
       <div
         key={`ad-rim-${index}`}
-        className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 overflow-hidden rounded-xl"
+        className="sm:col-span-2 lg:col-span-3 overflow-hidden rounded-xl"
       >
         <AdSenseSlot slot={inlineListSlot} />
       </div>,
@@ -282,11 +268,9 @@ export default function RimListPage() {
   });
 
   const clearFilters = () => {
-    setSearchTerm("");
     setCondition("all");
     setColor("");
     setCompany("");
-    setBrand("");
     setPriceFrom(PRICE_RANGE.min);
     setPriceTo(PRICE_RANGE.max);
     setCurrentPage(1);
@@ -296,112 +280,101 @@ export default function RimListPage() {
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <section className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-2xl font-black text-gray-900">Premium Rims</h1>
-              <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} products</p>
-            </div>
+          <h1 className="text-2xl font-black text-gray-900">Premium Rims</h1>
+          <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} products</p>
+        </section>
 
-            <button
-              onClick={() => {
-                setCurrentPage(1);
-                fetchRims({ page: 1, limit });
-              }}
-              className="w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
-              title="Refresh"
-            >
-              <RefreshCw size={18} />
-            </button>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Filters */}
+          <aside className="lg:col-span-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-black text-gray-900">Filters</h2>
+                {(company || color || condition !== "all" || priceFrom !== PRICE_RANGE.min || priceTo !== PRICE_RANGE.max) && (
+                  <button
+                    onClick={clearFilters}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    title="Clear filters"
+                  >
+                    <X size={14} />
+                    Clear
+                  </button>
+                )}
+              </div>
 
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div className="flex items-center bg-gray-100 rounded-xl px-4 py-2">
-              <Search size={18} className="text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by size, shop..."
-                className="flex-1 bg-transparent ml-2 outline-none text-sm"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setCurrentPage(1);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700">Condition</label>
+                <div className="rounded-xl border border-gray-300 bg-white p-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { key: "all", label: "All" },
+                      { key: "new", label: "New" },
+                      { key: "used", label: "Used" },
+                    ].map((opt) => {
+                      const active = condition === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={() => {
+                            setCondition(opt.key);
+                            setCurrentPage(1);
+                          }}
+                          className={`h-10 rounded-full text-sm font-bold border transition ${
+                            active
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
 
-            <select
-              value={condition}
-              onChange={(e) => {
-                setCondition(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-            >
-              <option value="all">All Conditions</option>
-              <option value="new">New</option>
-              <option value="old">Old</option>
-            </select>
-
-            <input
-              value={color}
-              onChange={(e) => {
-                setColor(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-              placeholder="Color"
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:col-span-2">
-              <div>
-                <input
-                  list="rim-company-options"
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Company</label>
+                <select
                   value={company}
                   onChange={(e) => {
                     setCompany(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-                  placeholder="Company (ID)"
-                />
-                <datalist id="rim-company-options">
-                  {derivedCompanyOptions.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                  disabled={companiesLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100"
+                >
+                  <option value="">All Companies</option>
+                  {companyOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
-                </datalist>
+                </select>
+                {companiesError && (
+                  <div className="text-xs text-red-600">{companiesError}</div>
+                )}
               </div>
 
-              <div>
-                <input
-                  list="rim-brand-options"
-                  value={brand}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Color</label>
+                <select
+                  value={color}
                   onChange={(e) => {
-                    setBrand(e.target.value);
+                    setColor(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-                  placeholder="Brand (ID)"
-                />
-                <datalist id="rim-brand-options">
-                  {derivedBrandOptions.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
+                >
+                  <option value="">All Colors</option>
+                  {VEHICLE_COLOR_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
-                </datalist>
+                </select>
               </div>
-            </div>
 
-            <div className="lg:col-span-3">
               <PriceRangePicker
                 minValue={priceFrom}
                 maxValue={priceTo}
@@ -415,11 +388,13 @@ export default function RimListPage() {
                 }}
               />
             </div>
-          </div>
-        </section>
+          </aside>
+
+          {/* Results */}
+          <section className="lg:col-span-9">
 
         {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -446,7 +421,7 @@ export default function RimListPage() {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">⚙️</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">No rims found</h2>
-            <p className="text-gray-600 mb-6">Try adjusting your filters or search terms</p>
+            <p className="text-gray-600 mb-6">Try adjusting your filters</p>
             <button
               onClick={clearFilters}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
@@ -458,7 +433,7 @@ export default function RimListPage() {
 
         {!loading && (rims || []).length > 0 && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {rimCardsWithAds}
             </div>
 
@@ -500,6 +475,8 @@ export default function RimListPage() {
             )}
           </div>
         )}
+          </section>
+        </div>
       </main>
     </div>
   );

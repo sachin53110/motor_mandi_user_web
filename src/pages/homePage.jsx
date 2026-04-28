@@ -1153,7 +1153,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: PAGE_SURFACE }}>
-      <Navbar />
       <Hero />
       {/* Pass the opener down to Categories */}
       <Categories

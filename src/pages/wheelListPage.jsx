@@ -1,10 +1,16 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Search, RefreshCw, AlertCircle, ChevronLeft, ChevronRight,
-  Star, Phone, MapPin, Heart, Filter, X
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MapPin,
+  Star,
+  X,
 } from "lucide-react";
 import useWheels from "../hooks/userWheel";
+import useWheelCompanies from "../hooks/useWheelCompanies";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
@@ -21,8 +27,8 @@ const conditionColors = {
 
 const PRICE_RANGE = {
   min: 0,
-  max: 1000000,
-  step: 500,
+  max: 50000,
+  step: 100,
 };
 
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
@@ -30,8 +36,10 @@ const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 function PriceRangePicker({ minValue, maxValue, onChangeMin, onChangeMax }) {
   const minVal = clamp(Number(minValue), PRICE_RANGE.min, PRICE_RANGE.max);
   const maxVal = clamp(Number(maxValue), PRICE_RANGE.min, PRICE_RANGE.max);
-  const leftPct = ((Math.min(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
-  const rightPct = ((Math.max(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+  const leftPct =
+    ((Math.min(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+  const rightPct =
+    ((Math.max(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
 
   return (
     <div className="rounded-xl px-3 py-3 border bg-white border-gray-300">
@@ -46,7 +54,7 @@ function PriceRangePicker({ minValue, maxValue, onChangeMin, onChangeMax }) {
         <div className="relative h-8">
           <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 rounded-full bg-gray-200" />
           <div
-            className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full bg-green-600"
+            className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full bg-blue-600"
             style={{ left: `${leftPct}%`, width: `${Math.max(0, rightPct - leftPct)}%` }}
           />
 
@@ -103,6 +111,7 @@ function WheelCard({ wheel, onCardClick }) {
   const firstImage = wheel.medias?.[0]?.media;
   const conditionKey = wheel.condition?.toLowerCase();
   const conditionClass = conditionColors[conditionKey] || conditionColors.old;
+  const conditionLabel = conditionKey === "old" ? "Used" : (wheel.condition || "Used");
 
   const title = wheel.name || wheel.title || wheel.code || (wheel.size ? `Wheel • ${wheel.size}` : "Wheel Listing");
   const brandName = wheel.brandData?.name || wheel.brand;
@@ -147,7 +156,7 @@ function WheelCard({ wheel, onCardClick }) {
         <div
           className={`absolute bottom-3 left-3 px-2 py-1 rounded-lg text-xs font-semibold border ${conditionClass}`}
         >
-          {wheel.condition || "Used"}
+          {conditionLabel}
         </div>
 
         {/* Like Button */}
@@ -210,12 +219,11 @@ function WheelCard({ wheel, onCardClick }) {
 export default function WheelListPage() {
   const navigate = useNavigate();
   const { wheels, loading, error, pagination, fetchWheels } = useWheels();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [condition, setCondition] = useState("all");
   const [company, setCompany] = useState("");
-  const [brand, setBrand] = useState("");
+  const [condition, setCondition] = useState("all");
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
+  const { companies, loading: companiesLoading, error: companiesError } = useWheelCompanies();
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 20;
   const inlineListSlot = (
@@ -226,10 +234,8 @@ export default function WheelListPage() {
     const params = {
       page: currentPage,
       limit,
-      ...(condition !== "all" && { condition }),
-      ...(searchTerm && { search: searchTerm }),
       ...(company && { company }),
-      ...(brand && { brand }),
+      ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
     };
 
     if (Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min) {
@@ -239,27 +245,14 @@ export default function WheelListPage() {
       params.customerPriceTo = String(priceTo);
     }
     fetchWheels(params);
-  }, [currentPage, condition, searchTerm, company, brand, priceFrom, priceTo, fetchWheels]);
+  }, [currentPage, company, condition, priceFrom, priceTo, fetchWheels]);
 
-  const derivedBrandOptions = useMemo(() => {
-    const map = new Map();
-    for (const item of wheels || []) {
-      const id = item.brandData?.id ?? item.brand;
-      const name = item.brandData?.name;
-      if (id) map.set(String(id), name || `Brand #${id}`);
-    }
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [wheels]);
-
-  const derivedCompanyOptions = useMemo(() => {
-    const map = new Map();
-    for (const item of wheels || []) {
-      const id = item.brandData?.company?.id ?? item.company;
-      const name = item.brandData?.company?.name;
-      if (id) map.set(String(id), name || `Company #${id}`);
-    }
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [wheels]);
+  const companyOptions = useMemo(() => {
+    return (companies || [])
+      .map((c) => ({ id: String(c.id), name: c.name }))
+      .filter((c) => c.id && c.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [companies]);
 
   const filteredWheels = wheels;
   const totalPages = pagination?.totalPages || 1;
@@ -283,7 +276,7 @@ export default function WheelListPage() {
       card,
       <div
         key={`ad-wheel-${index}`}
-        className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 overflow-hidden rounded-xl"
+        className="sm:col-span-2 lg:col-span-3 overflow-hidden rounded-xl"
       >
         <AdSenseSlot slot={inlineListSlot} />
       </div>,
@@ -296,79 +289,86 @@ export default function WheelListPage() {
         <section className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
           <h1 className="text-2xl font-black text-gray-900">Premium Wheels</h1>
           <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} products</p>
+        </section>
 
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div className="flex items-center bg-gray-100 rounded-xl px-4 py-2">
-              <Search size={18} className="text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by brand, size, shop..."
-                className="flex-1 bg-transparent ml-2 outline-none text-sm"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => {
-                    setSearchTerm("");
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Filters */}
+          <aside className="lg:col-span-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-black text-gray-900">Filters</h2>
+                {(company || condition !== "all" || priceFrom !== PRICE_RANGE.min || priceTo !== PRICE_RANGE.max) && (
+                  <button
+                    onClick={() => {
+                      setCompany("");
+                      setCondition("all");
+                      setPriceFrom(PRICE_RANGE.min);
+                      setPriceTo(PRICE_RANGE.max);
+                      setCurrentPage(1);
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    title="Clear filters"
+                  >
+                    <X size={14} />
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700">Condition</label>
+                <div className="rounded-xl border border-gray-300 bg-white p-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { key: "all", label: "All" },
+                      { key: "new", label: "New" },
+                      { key: "used", label: "Used" },
+                    ].map((opt) => {
+                      const active = condition === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={() => {
+                            setCondition(opt.key);
+                            setCurrentPage(1);
+                          }}
+                          className={`h-10 rounded-full text-sm font-bold border transition ${
+                            active
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Company</label>
+                <select
+                  value={company}
+                  onChange={(e) => {
+                    setCompany(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  disabled={companiesLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100"
                 >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
+                  <option value="">All Companies</option>
+                  {companyOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                {companiesError && (
+                  <div className="text-xs text-red-600">{companiesError}</div>
+                )}
+              </div>
 
-            <select
-              value={condition}
-              onChange={(e) => {
-                setCondition(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-            >
-              <option value="all">All Conditions</option>
-              <option value="new">New</option>
-              <option value="used">Used</option>
-            </select>
-
-            <select
-              value={company}
-              onChange={(e) => {
-                setCompany(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-            >
-              <option value="">All Companies</option>
-              {derivedCompanyOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={brand}
-              onChange={(e) => {
-                setBrand(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-            >
-              <option value="">All Brands</option>
-              {derivedBrandOptions.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-
-            <div className="lg:col-span-3">
               <PriceRangePicker
                 minValue={priceFrom}
                 maxValue={priceTo}
@@ -382,22 +382,13 @@ export default function WheelListPage() {
                 }}
               />
             </div>
+          </aside>
 
-            <button
-              onClick={() => {
-                setCurrentPage(1);
-                fetchWheels({ page: 1, limit });
-              }}
-              className="w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
-              title="Refresh"
-            >
-              <RefreshCw size={18} />
-            </button>
-          </div>
-        </section>
+          {/* Results */}
+          <section className="lg:col-span-9">
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -426,11 +417,13 @@ export default function WheelListPage() {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">⚙️</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">No wheels found</h2>
-            <p className="text-gray-600 mb-6">Try adjusting your filters or search terms</p>
+            <p className="text-gray-600 mb-6">Try adjusting your filters</p>
             <button
               onClick={() => {
-                setSearchTerm("");
+                setCompany("");
                 setCondition("all");
+                setPriceFrom(PRICE_RANGE.min);
+                setPriceTo(PRICE_RANGE.max);
                 setCurrentPage(1);
               }}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
@@ -443,7 +436,7 @@ export default function WheelListPage() {
         {/* Wheels Grid */}
         {!loading && filteredWheels.length > 0 && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {wheelCardsWithAds}
             </div>
 
@@ -486,6 +479,8 @@ export default function WheelListPage() {
             )}
           </div>
         )}
+          </section>
+        </div>
       </main>
     </div>
   );
