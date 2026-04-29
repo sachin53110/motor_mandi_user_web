@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Search, RefreshCw, AlertCircle, ChevronLeft, ChevronRight,
-  Heart, X, Filter, BadgeCheck
+  Search, AlertCircle, ChevronLeft, ChevronRight,
+  Heart, Filter, BadgeCheck
 } from "lucide-react";
 import useCars from "../hooks/useCars";
 import useCarCompanies from "../hooks/useCarCompanies";
@@ -500,22 +500,6 @@ export default function CarListPage() {
     setCurrentPage(1);
   };
 
-  const handleRefresh = () => {
-    fetchCars({
-      page: currentPage,
-      limit,
-      ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
-      ...(searchTerm && { search: searchTerm }),
-      ...(company && { company }),
-      ...(brand && { brand }),
-      ...(fuelType && { fuelType: fuelType.trim() }),
-      ...(transmission && { transmission: transmission.trim() }),
-      ...(color && { color: color.trim() }),
-      ...(Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min && { priceFrom: String(priceFrom) }),
-      ...(Number.isFinite(Number(priceTo)) && Number(priceTo) < PRICE_RANGE.max && { priceTo: String(priceTo) }),
-    });
-  };
-
   const carCardsWithAds = cars.flatMap((car, index) => {
     const card = (
       <CarCard
@@ -546,32 +530,6 @@ export default function CarListPage() {
         <section className="mb-5">
           <h1 className="text-2xl font-black text-gray-900">Premium Cars</h1>
           <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} results</p>
-
-          <div className="mt-3 flex gap-3 items-center">
-            <div className="flex-1 flex items-center bg-white border border-gray-400 rounded-xl px-4 py-2.5">
-              <Search size={20} className="text-gray-500" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search by brand, model, city..."
-                className="flex-1 ml-2 bg-transparent text-sm outline-none"
-              />
-              {searchTerm && (
-                <button type="button" onClick={() => handleSearchChange("")} className="text-gray-500 hover:text-gray-700">
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleRefresh}
-              className="w-11 h-11 rounded-xl border border-gray-400 bg-white hover:bg-gray-100 flex items-center justify-center"
-              title="Refresh"
-            >
-              <RefreshCw size={18} />
-            </button>
-          </div>
 
           <div className="xl:hidden mt-3 flex flex-wrap gap-2">
             {[
