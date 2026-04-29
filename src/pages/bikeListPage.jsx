@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Search, RefreshCw, AlertCircle, ChevronLeft, ChevronRight,
-  Heart, X, Filter, BadgeCheck
+  Search, AlertCircle, ChevronLeft, ChevronRight,
+  Heart, Filter, BadgeCheck
 } from "lucide-react";
 import useBikes from "../hooks/useBikes";
+import useBikeCompanies from "../hooks/useBikeCompanies";
+import useBikeModelsByCompany from "../hooks/useBikeModelsByCompany";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
@@ -27,6 +29,71 @@ const formatEmi = (price) => {
   return `Rs.${emi.toLocaleString("en-IN")}`;
 };
 
+const PRICE_RANGE = {
+  min: 0,
+  max: 1000000,
+  step: 5000,
+};
+
+const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+function PriceRangePicker({ minValue, maxValue, onChangeMin, onChangeMax }) {
+  const minVal = clamp(Number(minValue), PRICE_RANGE.min, PRICE_RANGE.max);
+  const maxVal = clamp(Number(maxValue), PRICE_RANGE.min, PRICE_RANGE.max);
+  const leftPct = ((Math.min(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+  const rightPct = ((Math.max(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+
+  return (
+    <div className="rounded-xl px-3 py-3 border bg-white border-gray-300">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="text-sm font-bold text-gray-900">Price range</div>
+        <div className="text-xs font-semibold text-gray-600">
+          ₹{minVal.toLocaleString("en-IN")} - ₹{maxVal.toLocaleString("en-IN")}
+        </div>
+      </div>
+
+      <div className="mt-1">
+        <div className="relative h-8">
+          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 rounded-full bg-gray-200" />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full bg-red-500"
+            style={{ left: `${leftPct}%`, width: `${Math.max(0, rightPct - leftPct)}%` }}
+          />
+
+          <input
+            type="range"
+            min={PRICE_RANGE.min}
+            max={PRICE_RANGE.max}
+            step={PRICE_RANGE.step}
+            value={minVal}
+            onChange={(e) => onChangeMin(Number(e.target.value))}
+            className="absolute inset-0 w-full bg-transparent"
+            style={{ WebkitAppearance: "none", appearance: "none" }}
+          />
+
+          <input
+            type="range"
+            min={PRICE_RANGE.min}
+            max={PRICE_RANGE.max}
+            step={PRICE_RANGE.step}
+            value={maxVal}
+            onChange={(e) => onChangeMax(Number(e.target.value))}
+            className="absolute inset-0 w-full bg-transparent"
+            style={{ WebkitAppearance: "none", appearance: "none" }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] mt-1 text-gray-500">
+          <span>₹{PRICE_RANGE.min.toLocaleString("en-IN")}</span>
+          <span>₹{PRICE_RANGE.max.toLocaleString("en-IN")}</span>
+        </div>
+      </div>
+
+      <div className="mt-2 text-[11px] text-gray-500">Drag sliders to set price range</div>
+    </div>
+  );
+}
+
 function SkeletonCard() {
   return (
     <div className="bg-white border border-gray-300 rounded-xl overflow-hidden animate-pulse shadow-sm">
@@ -41,23 +108,29 @@ function SkeletonCard() {
   );
 }
 
-function FilterSidebar({ searchTerm, onSearchChange, condition, onConditionChange, onClearFilters }) {
-  const quickFilters = [
-    { label: "MotorMandi Certified", count: 18 },
-    { label: "Quality Report Available", count: 12 },
-    { label: "Single Owner Bikes", count: 21 },
-    { label: "Popular Commuters", count: 44 },
-  ];
-
-  const budgetRanges = [
-    "Below ₹ 50K",
-    "₹ 50K-1 Lakh",
-    "₹ 1-1.5 Lakh",
-    "₹ 1.5-2 Lakh",
-    "₹ 2-3 Lakh",
-    "₹ 3 Lakh +",
-  ];
-
+function FilterSidebar({
+  searchTerm,
+  onSearchChange,
+  condition,
+  onConditionChange,
+  company,
+  onCompanyChange,
+  companies,
+  companiesLoading,
+  companiesError,
+  brand,
+  onBrandChange,
+  models,
+  modelsLoading,
+  modelsError,
+  owner,
+  onOwnerChange,
+  priceFrom,
+  onPriceFromChange,
+  priceTo,
+  onPriceToChange,
+  onClearFilters,
+}) {
   return (
     <aside className="hidden xl:block bg-white border border-gray-300 rounded-xl p-3.5 h-fit sticky top-6">
       <div className="flex items-center justify-between mb-4">
@@ -75,32 +148,6 @@ function FilterSidebar({ searchTerm, onSearchChange, condition, onConditionChang
       </div>
 
       <div className="space-y-4">
-        <div className="bg-gray-50 rounded-xl p-3 space-y-2.5">
-          {quickFilters.map((item) => (
-            <label key={item.label} className="flex items-center gap-2 text-gray-700 text-xs">
-              <input type="checkbox" className="w-4 h-4 rounded border-gray-300" />
-              <span>{item.label}</span>
-              <span className="text-gray-500">({item.count})</span>
-            </label>
-          ))}
-        </div>
-
-        <div className="border-t border-gray-200 pt-4">
-          <h3 className="text-gray-900 font-semibold text-base mb-3">Budget</h3>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {budgetRanges.map((range) => (
-              <button
-                type="button"
-                key={range}
-                className="px-3 py-1.5 rounded-full border border-gray-400 text-gray-700 text-xs hover:bg-gray-100"
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-          <button type="button" className="text-blue-600 text-sm font-medium">Customize Your Budget</button>
-        </div>
-
         <div className="border-t border-gray-200 pt-4">
           <h3 className="text-gray-900 font-semibold text-base mb-3">Condition</h3>
           <div className="flex gap-2 flex-wrap">
@@ -137,6 +184,71 @@ function FilterSidebar({ searchTerm, onSearchChange, condition, onConditionChang
               className="w-full outline-none text-sm text-gray-700"
             />
           </div>
+        </div>
+
+        <div className="border-t border-gray-200 pt-4 space-y-3">
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Company</h3>
+            <select
+              value={company}
+              onChange={(e) => onCompanyChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none disabled:bg-gray-100"
+              disabled={companiesLoading}
+            >
+              <option value="">All Companies</option>
+              {(companies || []).map((c) => (
+                <option key={String(c.id)} value={String(c.id)}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {companiesError ? (
+              <div className="text-xs text-red-600 mt-1">{companiesError}</div>
+            ) : null}
+          </div>
+
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Model</h3>
+            <select
+              value={brand}
+              onChange={(e) => onBrandChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none disabled:bg-gray-100"
+              disabled={!company || modelsLoading}
+            >
+              <option value="">All Models</option>
+              {(models || []).map((m) => (
+                <option key={String(m.id)} value={String(m.id)}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            {modelsError ? (
+              <div className="text-xs text-red-600 mt-1">{modelsError}</div>
+            ) : null}
+          </div>
+
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Owner</h3>
+            <select
+              value={owner}
+              onChange={(e) => onOwnerChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none"
+            >
+              <option value="-1">All Owners</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          <PriceRangePicker
+            minValue={priceFrom}
+            maxValue={priceTo}
+            onChangeMin={onPriceFromChange}
+            onChangeMax={onPriceToChange}
+          />
         </div>
       </div>
     </aside>
@@ -256,8 +368,15 @@ function BikeCard({ bike, onCardClick }) {
 export default function BikeListPage() {
   const navigate = useNavigate();
   const { bikes, loading, error, pagination, fetchBikes } = useBikes();
+  const { companies, loading: companiesLoading, error: companiesError } = useBikeCompanies();
+  const { models, loading: modelsLoading, error: modelsError, fetchModels, reset: resetModels } = useBikeModelsByCompany();
   const [searchTerm, setSearchTerm] = useState("");
   const [condition, setCondition] = useState("all");
+  const [company, setCompany] = useState("");
+  const [brand, setBrand] = useState("");
+  const [owner, setOwner] = useState("-1");
+  const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
+  const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 20;
   const inlineListSlot = (
@@ -265,14 +384,36 @@ export default function BikeListPage() {
   ).trim();
 
   useEffect(() => {
+    if (!company) {
+      resetModels();
+      return;
+    }
+    fetchModels(company);
+  }, [company, fetchModels, resetModels]);
+
+  useEffect(() => {
     const params = {
       page: currentPage,
       limit,
-      ...(condition !== "all" && { condition }),
+      ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
       ...(searchTerm && { search: searchTerm }),
+      ...(company && { company }),
+      ...(brand && { brand }),
     };
+
+    if (owner && owner !== "-1") {
+      params.owner = String(owner);
+    }
+
+    if (Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min) {
+      params.priceFrom = String(priceFrom);
+    }
+    if (Number.isFinite(Number(priceTo)) && Number(priceTo) < PRICE_RANGE.max) {
+      params.priceTo = String(priceTo);
+    }
+
     fetchBikes(params);
-  }, [currentPage, condition, searchTerm, fetchBikes]);
+  }, [currentPage, condition, searchTerm, company, brand, owner, priceFrom, priceTo, fetchBikes]);
 
   const totalPages = pagination?.totalPages || 1;
 
@@ -286,19 +427,26 @@ export default function BikeListPage() {
     setCurrentPage(1);
   };
 
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setCondition("all");
+  const handleCompanyChange = (value) => {
+    setCompany(value);
+    setBrand("");
     setCurrentPage(1);
   };
 
-  const handleRefresh = () => {
-    fetchBikes({
-      page: currentPage,
-      limit,
-      ...(condition !== "all" && { condition }),
-      ...(searchTerm && { search: searchTerm }),
-    });
+  const handleBrandChange = (value) => {
+    setBrand(value);
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setCondition("all");
+    setCompany("");
+    setBrand("");
+    setOwner("-1");
+    setPriceFrom(PRICE_RANGE.min);
+    setPriceTo(PRICE_RANGE.max);
+    setCurrentPage(1);
   };
 
   const bikeCardsWithAds = bikes.flatMap((bike, index) => {
@@ -332,32 +480,6 @@ export default function BikeListPage() {
           <h1 className="text-2xl font-black text-gray-900">Premium Bikes</h1>
           <p className="text-sm text-gray-600 mt-0.5">{pagination?.totalRecords || 0} results</p>
 
-          <div className="mt-3 flex gap-3 items-center">
-            <div className="flex-1 flex items-center bg-white border border-gray-400 rounded-xl px-4 py-2.5">
-              <Search size={20} className="text-gray-500" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search by brand, model, city..."
-                className="flex-1 ml-2 bg-transparent text-sm outline-none"
-              />
-              {searchTerm && (
-                <button type="button" onClick={() => handleSearchChange("")} className="text-gray-500 hover:text-gray-700">
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleRefresh}
-              className="w-11 h-11 rounded-xl border border-gray-400 bg-white hover:bg-gray-100 flex items-center justify-center"
-              title="Refresh"
-            >
-              <RefreshCw size={18} />
-            </button>
-          </div>
-
           <div className="xl:hidden mt-3 flex flex-wrap gap-2">
             {[
               { value: "all", label: "All" },
@@ -378,6 +500,67 @@ export default function BikeListPage() {
               </button>
             ))}
           </div>
+
+          <div className="xl:hidden mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <select
+              value={company}
+              onChange={(e) => handleCompanyChange(e.target.value)}
+              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm"
+              disabled={companiesLoading}
+            >
+              <option value="">All Companies</option>
+              {(companies || []).map((c) => (
+                <option key={String(c.id)} value={String(c.id)}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={brand}
+              onChange={(e) => handleBrandChange(e.target.value)}
+              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm disabled:bg-gray-100"
+              disabled={!company || modelsLoading}
+            >
+              <option value="">All Models</option>
+              {(models || []).map((m) => (
+                <option key={String(m.id)} value={String(m.id)}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={owner}
+              onChange={(e) => {
+                setOwner(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm"
+            >
+              <option value="-1">All Owners</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          <div className="xl:hidden mt-3">
+            <PriceRangePicker
+              minValue={priceFrom}
+              maxValue={priceTo}
+              onChangeMin={(nextMin) => {
+                setPriceFrom(Math.min(nextMin, priceTo));
+                setCurrentPage(1);
+              }}
+              onChangeMax={(nextMax) => {
+                setPriceTo(Math.max(nextMax, priceFrom));
+                setCurrentPage(1);
+              }}
+            />
+          </div>
         </section>
 
         <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5">
@@ -386,6 +569,31 @@ export default function BikeListPage() {
             onSearchChange={handleSearchChange}
             condition={condition}
             onConditionChange={handleConditionChange}
+            company={company}
+            onCompanyChange={handleCompanyChange}
+            companies={companies}
+            companiesLoading={companiesLoading}
+            companiesError={companiesError}
+            brand={brand}
+            onBrandChange={handleBrandChange}
+            models={models}
+            modelsLoading={modelsLoading}
+            modelsError={modelsError}
+            owner={owner}
+            onOwnerChange={(value) => {
+              setOwner(value);
+              setCurrentPage(1);
+            }}
+            priceFrom={priceFrom}
+            onPriceFromChange={(nextMin) => {
+              setPriceFrom(Math.min(nextMin, priceTo));
+              setCurrentPage(1);
+            }}
+            priceTo={priceTo}
+            onPriceToChange={(nextMax) => {
+              setPriceTo(Math.max(nextMax, priceFrom));
+              setCurrentPage(1);
+            }}
             onClearFilters={handleClearFilters}
           />
 

@@ -142,6 +142,17 @@ const carModelsApi = {
   getByCompany: (companyId) => request(`car/models-by-company?companyId=${companyId}`),
 };
 
+// ── Bike Companies + Models API ─────────────────────────────────────────────
+const bikeCompaniesApi = {
+  /** GET /bike */
+  getList: () => request("bike"),
+};
+
+const bikeModelsApi = {
+  /** GET /bike/models-by-company?companyId=:companyId */
+  getByCompany: (companyId) => request(`bike/models-by-company?companyId=${companyId}`),
+};
+
 // ── Wheel API Module ──────────────────────────────────────────────────────────
 const wheelApi = {
   /**
@@ -278,15 +289,25 @@ const carApi = {
 const bikeApi = {
   /**
    * GET /vehicle?type=bike
-   * @param {object} params - { page, limit, condition, search }
+   * @param {object} params - { page, limit, shopId, condition, search, company, brand, owner, priceFrom, priceTo }
    */
   getList: (params = {}) => {
     const query = new URLSearchParams();
     query.set("type", "bike");
     if (params.page)      query.set("page",      params.page);
     if (params.limit)     query.set("limit",     params.limit);
+    if (params.shopId)    query.set("shopId",    params.shopId);
     if (params.condition) query.set("condition", params.condition);
     if (params.search)    query.set("search",    params.search);
+    if (params.company)   query.set("company",   params.company);
+    if (params.brand)     query.set("brand",     params.brand);
+    if (params.owner)     query.set("owner",     params.owner);
+    if (params.priceFrom !== undefined && params.priceFrom !== null && params.priceFrom !== "") {
+      query.set("priceFrom", params.priceFrom);
+    }
+    if (params.priceTo !== undefined && params.priceTo !== null && params.priceTo !== "") {
+      query.set("priceTo", params.priceTo);
+    }
 
     const qs = query.toString();
     return request(`vehicle${qs ? `?${qs}` : ""}`);
@@ -420,6 +441,8 @@ const ApiProvider = {
   rimCompanies: rimCompaniesApi,
   carCompanies: carCompaniesApi,
   carModels: carModelsApi,
+  bikeCompanies: bikeCompaniesApi,
+  bikeModels: bikeModelsApi,
   wheels:      wheelApi,
   rims:        rimApi,
   cars:        carApi,
