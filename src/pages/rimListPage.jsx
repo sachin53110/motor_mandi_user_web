@@ -12,7 +12,6 @@ import {
 import useRims from "../hooks/useRims";
 import useRimCompanies from "../hooks/useRimCompanies";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
-import { VEHICLE_COLOR_OPTIONS } from "../utils/vehicleOptions";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -207,7 +206,6 @@ export default function RimListPage() {
   const { companies, loading: companiesLoading, error: companiesError } = useRimCompanies();
 
   const [condition, setCondition] = useState("all");
-  const [color, setColor] = useState("");
   const [company, setCompany] = useState("");
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
@@ -229,7 +227,6 @@ export default function RimListPage() {
       limit,
       ...(company && { company }),
       ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
-      ...(color && { color }),
     };
 
     if (Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min) {
@@ -240,7 +237,7 @@ export default function RimListPage() {
     }
 
     fetchRims(params);
-  }, [currentPage, company, condition, color, priceFrom, priceTo, fetchRims]);
+  }, [currentPage, company, condition, priceFrom, priceTo, fetchRims]);
 
   const totalPages = pagination?.totalPages || 1;
 
@@ -269,7 +266,6 @@ export default function RimListPage() {
 
   const clearFilters = () => {
     setCondition("all");
-    setColor("");
     setCompany("");
     setPriceFrom(PRICE_RANGE.min);
     setPriceTo(PRICE_RANGE.max);
@@ -290,7 +286,7 @@ export default function RimListPage() {
             <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-black text-gray-900">Filters</h2>
-                {(company || color || condition !== "all" || priceFrom !== PRICE_RANGE.min || priceTo !== PRICE_RANGE.max) && (
+                {(company || condition !== "all" || priceFrom !== PRICE_RANGE.min || priceTo !== PRICE_RANGE.max) && (
                   <button
                     onClick={clearFilters}
                     className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
@@ -354,25 +350,6 @@ export default function RimListPage() {
                 {companiesError && (
                   <div className="text-xs text-red-600">{companiesError}</div>
                 )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Color</label>
-                <select
-                  value={color}
-                  onChange={(e) => {
-                    setColor(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-green-500"
-                >
-                  <option value="">All Colors</option>
-                  {VEHICLE_COLOR_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <PriceRangePicker

@@ -131,6 +131,17 @@ const rimCompaniesApi = {
   getList: () => request("rim-company"),
 };
 
+// ── Car Companies + Models API ──────────────────────────────────────────────
+const carCompaniesApi = {
+  /** GET /car */
+  getList: () => request("car"),
+};
+
+const carModelsApi = {
+  /** GET /car/models-by-company?companyId=:companyId */
+  getByCompany: (companyId) => request(`car/models-by-company?companyId=${companyId}`),
+};
+
 // ── Wheel API Module ──────────────────────────────────────────────────────────
 const wheelApi = {
   /**
@@ -220,15 +231,28 @@ const rimApi = {
 const carApi = {
   /**
    * GET /vehicle?type=car
-   * @param {object} params - { page, limit, condition, search }
+   * @param {object} params - { page, limit, shopId, condition, search, company, brand, fuelType, transmission, color, owner, priceFrom, priceTo }
    */
   getList: (params = {}) => {
     const query = new URLSearchParams();
     query.set("type", "car");
     if (params.page)      query.set("page",      params.page);
     if (params.limit)     query.set("limit",     params.limit);
+    if (params.shopId)    query.set("shopId",    params.shopId);
     if (params.condition) query.set("condition", params.condition);
     if (params.search)    query.set("search",    params.search);
+    if (params.company)   query.set("company",   params.company);
+    if (params.brand)     query.set("brand",     params.brand);
+    if (params.fuelType)  query.set("fuelType",  params.fuelType);
+    if (params.transmission) query.set("transmission", params.transmission);
+    if (params.color)     query.set("color",     params.color);
+    if (params.owner)     query.set("owner",     params.owner);
+    if (params.priceFrom !== undefined && params.priceFrom !== null && params.priceFrom !== "") {
+      query.set("priceFrom", params.priceFrom);
+    }
+    if (params.priceTo !== undefined && params.priceTo !== null && params.priceTo !== "") {
+      query.set("priceTo", params.priceTo);
+    }
 
     const qs = query.toString();
     return request(`vehicle${qs ? `?${qs}` : ""}`);
@@ -394,6 +418,8 @@ const ApiProvider = {
   tyreCompanies: tyreCompaniesApi,
   wheelCompanies: wheelCompaniesApi,
   rimCompanies: rimCompaniesApi,
+  carCompanies: carCompaniesApi,
+  carModels: carModelsApi,
   wheels:      wheelApi,
   rims:        rimApi,
   cars:        carApi,

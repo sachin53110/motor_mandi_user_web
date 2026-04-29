@@ -5,7 +5,10 @@ import {
   Heart, X, Filter, BadgeCheck
 } from "lucide-react";
 import useCars from "../hooks/useCars";
+import useCarCompanies from "../hooks/useCarCompanies";
+import useCarModelsByCompany from "../hooks/useCarModelsByCompany";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
+import { VEHICLE_COLOR_OPTIONS } from "../utils/vehicleOptions";
 
 const formatPrice = (price) => {
   const n = parseFloat(price);
@@ -27,6 +30,71 @@ const formatEmi = (price) => {
   return `Rs.${emi.toLocaleString("en-IN")}`;
 };
 
+const PRICE_RANGE = {
+  min: 0,
+  max: 10000000,
+  step: 10000,
+};
+
+const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+function PriceRangePicker({ minValue, maxValue, onChangeMin, onChangeMax }) {
+  const minVal = clamp(Number(minValue), PRICE_RANGE.min, PRICE_RANGE.max);
+  const maxVal = clamp(Number(maxValue), PRICE_RANGE.min, PRICE_RANGE.max);
+  const leftPct = ((Math.min(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+  const rightPct = ((Math.max(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+
+  return (
+    <div className="rounded-xl px-3 py-3 border bg-white border-gray-300">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="text-sm font-bold text-gray-900">Price range</div>
+        <div className="text-xs font-semibold text-gray-600">
+          ₹{minVal.toLocaleString("en-IN")} - ₹{maxVal.toLocaleString("en-IN")}
+        </div>
+      </div>
+
+      <div className="mt-1">
+        <div className="relative h-8">
+          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 rounded-full bg-gray-200" />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full bg-red-500"
+            style={{ left: `${leftPct}%`, width: `${Math.max(0, rightPct - leftPct)}%` }}
+          />
+
+          <input
+            type="range"
+            min={PRICE_RANGE.min}
+            max={PRICE_RANGE.max}
+            step={PRICE_RANGE.step}
+            value={minVal}
+            onChange={(e) => onChangeMin(Number(e.target.value))}
+            className="absolute inset-0 w-full bg-transparent"
+            style={{ WebkitAppearance: "none", appearance: "none" }}
+          />
+
+          <input
+            type="range"
+            min={PRICE_RANGE.min}
+            max={PRICE_RANGE.max}
+            step={PRICE_RANGE.step}
+            value={maxVal}
+            onChange={(e) => onChangeMax(Number(e.target.value))}
+            className="absolute inset-0 w-full bg-transparent"
+            style={{ WebkitAppearance: "none", appearance: "none" }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] mt-1 text-gray-500">
+          <span>₹{PRICE_RANGE.min.toLocaleString("en-IN")}</span>
+          <span>₹{PRICE_RANGE.max.toLocaleString("en-IN")}</span>
+        </div>
+      </div>
+
+      <div className="mt-2 text-[11px] text-gray-500">Drag sliders to set price range</div>
+    </div>
+  );
+}
+
 function SkeletonCard() {
   return (
     <div className="bg-white border border-gray-300 rounded-xl overflow-hidden animate-pulse shadow-sm">
@@ -41,23 +109,33 @@ function SkeletonCard() {
   );
 }
 
-function FilterSidebar({ searchTerm, onSearchChange, condition, onConditionChange, onClearFilters }) {
-  const quickFilters = [
-    { label: "CarWale abSure", count: 26 },
-    { label: "Certified Cars", count: 11 },
-    { label: "Quality Report Available", count: 17 },
-    { label: "Luxury Cars", count: 152 },
-  ];
-
-  const budgetRanges = [
-    "Below ₹ 3 Lakh",
-    "₹ 3-5 Lakh",
-    "₹ 5-8 Lakh",
-    "₹ 8-12 Lakh",
-    "₹ 12-20 Lakh",
-    "₹ 20 Lakh +",
-  ];
-
+function FilterSidebar({
+  searchTerm,
+  onSearchChange,
+  condition,
+  onConditionChange,
+  company,
+  onCompanyChange,
+  companies,
+  companiesLoading,
+  companiesError,
+  brand,
+  onBrandChange,
+  models,
+  modelsLoading,
+  modelsError,
+  fuelType,
+  onFuelTypeChange,
+  transmission,
+  onTransmissionChange,
+  color,
+  onColorChange,
+  priceFrom,
+  onPriceFromChange,
+  priceTo,
+  onPriceToChange,
+  onClearFilters,
+}) {
   return (
     <aside className="hidden xl:block bg-white border border-gray-300 rounded-xl p-3.5 h-fit sticky top-6">
       <div className="flex items-center justify-between mb-4">
@@ -75,32 +153,6 @@ function FilterSidebar({ searchTerm, onSearchChange, condition, onConditionChang
       </div>
 
       <div className="space-y-4">
-        <div className="bg-gray-50 rounded-xl p-3 space-y-2.5">
-          {quickFilters.map((item) => (
-            <label key={item.label} className="flex items-center gap-2 text-gray-700 text-xs">
-              <input type="checkbox" className="w-4 h-4 rounded border-gray-300" />
-              <span>{item.label}</span>
-              <span className="text-gray-500">({item.count})</span>
-            </label>
-          ))}
-        </div>
-
-        <div className="border-t border-gray-200 pt-4">
-          <h3 className="text-gray-900 font-semibold text-base mb-3">Budget (Lakh)</h3>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {budgetRanges.map((range) => (
-              <button
-                type="button"
-                key={range}
-                className="px-3 py-1.5 rounded-full border border-gray-400 text-gray-700 text-xs hover:bg-gray-100"
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-          <button type="button" className="text-blue-600 text-sm font-medium">Customize Your Budget</button>
-        </div>
-
         <div className="border-t border-gray-200 pt-4">
           <h3 className="text-gray-900 font-semibold text-base mb-3">Condition</h3>
           <div className="flex gap-2 flex-wrap">
@@ -137,6 +189,102 @@ function FilterSidebar({ searchTerm, onSearchChange, condition, onConditionChang
               className="w-full outline-none text-sm text-gray-700"
             />
           </div>
+        </div>
+
+        <div className="border-t border-gray-200 pt-4 space-y-3">
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Company</h3>
+            <select
+              value={company}
+              onChange={(e) => onCompanyChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none disabled:bg-gray-100"
+              disabled={companiesLoading}
+            >
+              <option value="">All Companies</option>
+              {(companies || []).map((c) => (
+                <option key={String(c.id)} value={String(c.id)}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {companiesError ? (
+              <div className="text-xs text-red-600 mt-1">{companiesError}</div>
+            ) : null}
+          </div>
+
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Model</h3>
+            <select
+              value={brand}
+              onChange={(e) => onBrandChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none disabled:bg-gray-100"
+              disabled={!company || modelsLoading}
+            >
+              <option value="">All Models</option>
+              {(models || []).map((m) => (
+                <option key={String(m.id)} value={String(m.id)}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            {modelsError ? (
+              <div className="text-xs text-red-600 mt-1">{modelsError}</div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="border-t border-gray-200 pt-4 space-y-3">
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Fuel Type</h3>
+            <select
+              value={fuelType}
+              onChange={(e) => onFuelTypeChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none"
+            >
+              <option value="">All Fuel Types</option>
+              <option value="petrol">Petrol</option>
+              <option value="diesel">Diesel</option>
+              <option value="cng">CNG</option>
+              <option value="electric">Electric</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </div>
+
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Transmission</h3>
+            <select
+              value={transmission}
+              onChange={(e) => onTransmissionChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none"
+            >
+              <option value="">All Transmissions</option>
+              <option value="manual">Manual</option>
+              <option value="automatic">Automatic</option>
+            </select>
+          </div>
+
+          <div>
+            <h3 className="text-gray-900 font-semibold text-base mb-2">Color</h3>
+            <select
+              value={color}
+              onChange={(e) => onColorChange(e.target.value)}
+              className="w-full border border-gray-400 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white outline-none"
+            >
+              <option value="">All Colors</option>
+              {VEHICLE_COLOR_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <PriceRangePicker
+            minValue={priceFrom}
+            maxValue={priceTo}
+            onChangeMin={onPriceFromChange}
+            onChangeMax={onPriceToChange}
+          />
         </div>
       </div>
     </aside>
@@ -256,8 +404,17 @@ function CarCard({ car, onCardClick }) {
 export default function CarListPage() {
   const navigate = useNavigate();
   const { cars, loading, error, pagination, fetchCars } = useCars();
+  const { companies, loading: companiesLoading, error: companiesError } = useCarCompanies();
+  const { models, loading: modelsLoading, error: modelsError, fetchModels, reset: resetModels } = useCarModelsByCompany();
   const [searchTerm, setSearchTerm] = useState("");
   const [condition, setCondition] = useState("all");
+  const [company, setCompany] = useState("");
+  const [brand, setBrand] = useState("");
+  const [fuelType, setFuelType] = useState("");
+  const [transmission, setTransmission] = useState("");
+  const [color, setColor] = useState("");
+  const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
+  const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 20;
   const inlineListSlot = (
@@ -265,14 +422,47 @@ export default function CarListPage() {
   ).trim();
 
   useEffect(() => {
+    if (!company) {
+      resetModels();
+      return;
+    }
+    fetchModels(company);
+  }, [company, fetchModels, resetModels]);
+
+  useEffect(() => {
     const params = {
       page: currentPage,
       limit,
-      ...(condition !== "all" && { condition }),
+      ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
       ...(searchTerm && { search: searchTerm }),
+      ...(company && { company }),
+      ...(brand && { brand }),
+      ...(fuelType && { fuelType: fuelType.trim() }),
+      ...(transmission && { transmission: transmission.trim() }),
+      ...(color && { color: color.trim() }),
     };
+
+    if (Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min) {
+      params.priceFrom = String(priceFrom);
+    }
+    if (Number.isFinite(Number(priceTo)) && Number(priceTo) < PRICE_RANGE.max) {
+      params.priceTo = String(priceTo);
+    }
+
     fetchCars(params);
-  }, [currentPage, condition, searchTerm, fetchCars]);
+  }, [
+    currentPage,
+    condition,
+    searchTerm,
+    company,
+    brand,
+    fuelType,
+    transmission,
+    color,
+    priceFrom,
+    priceTo,
+    fetchCars,
+  ]);
 
   const totalPages = pagination?.totalPages || 1;
 
@@ -286,9 +476,27 @@ export default function CarListPage() {
     setCurrentPage(1);
   };
 
+  const handleCompanyChange = (value) => {
+    setCompany(value);
+    setBrand("");
+    setCurrentPage(1);
+  };
+
+  const handleBrandChange = (value) => {
+    setBrand(value);
+    setCurrentPage(1);
+  };
+
   const handleClearFilters = () => {
     setSearchTerm("");
     setCondition("all");
+    setCompany("");
+    setBrand("");
+    setFuelType("");
+    setTransmission("");
+    setColor("");
+    setPriceFrom(PRICE_RANGE.min);
+    setPriceTo(PRICE_RANGE.max);
     setCurrentPage(1);
   };
 
@@ -296,8 +504,15 @@ export default function CarListPage() {
     fetchCars({
       page: currentPage,
       limit,
-      ...(condition !== "all" && { condition }),
+      ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
       ...(searchTerm && { search: searchTerm }),
+      ...(company && { company }),
+      ...(brand && { brand }),
+      ...(fuelType && { fuelType: fuelType.trim() }),
+      ...(transmission && { transmission: transmission.trim() }),
+      ...(color && { color: color.trim() }),
+      ...(Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min && { priceFrom: String(priceFrom) }),
+      ...(Number.isFinite(Number(priceTo)) && Number(priceTo) < PRICE_RANGE.max && { priceTo: String(priceTo) }),
     });
   };
 
@@ -378,6 +593,36 @@ export default function CarListPage() {
               </button>
             ))}
           </div>
+
+          <div className="xl:hidden mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <select
+              value={company}
+              onChange={(e) => handleCompanyChange(e.target.value)}
+              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm"
+              disabled={companiesLoading}
+            >
+              <option value="">All Companies</option>
+              {(companies || []).map((c) => (
+                <option key={String(c.id)} value={String(c.id)}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={brand}
+              onChange={(e) => handleBrandChange(e.target.value)}
+              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm disabled:bg-gray-100"
+              disabled={!company || modelsLoading}
+            >
+              <option value="">All Models</option>
+              {(models || []).map((m) => (
+                <option key={String(m.id)} value={String(m.id)}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </section>
 
         <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5">
@@ -386,6 +631,41 @@ export default function CarListPage() {
             onSearchChange={handleSearchChange}
             condition={condition}
             onConditionChange={handleConditionChange}
+            company={company}
+            onCompanyChange={handleCompanyChange}
+            companies={companies}
+            companiesLoading={companiesLoading}
+            companiesError={companiesError}
+            brand={brand}
+            onBrandChange={handleBrandChange}
+            models={models}
+            modelsLoading={modelsLoading}
+            modelsError={modelsError}
+            fuelType={fuelType}
+            onFuelTypeChange={(v) => {
+              setFuelType(v);
+              setCurrentPage(1);
+            }}
+            transmission={transmission}
+            onTransmissionChange={(v) => {
+              setTransmission(v);
+              setCurrentPage(1);
+            }}
+            color={color}
+            onColorChange={(v) => {
+              setColor(v);
+              setCurrentPage(1);
+            }}
+            priceFrom={priceFrom}
+            onPriceFromChange={(nextMin) => {
+              setPriceFrom(Math.min(nextMin, priceTo));
+              setCurrentPage(1);
+            }}
+            priceTo={priceTo}
+            onPriceToChange={(nextMax) => {
+              setPriceTo(Math.max(nextMax, priceFrom));
+              setCurrentPage(1);
+            }}
             onClearFilters={handleClearFilters}
           />
 
