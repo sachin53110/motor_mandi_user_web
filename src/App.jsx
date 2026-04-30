@@ -1,4 +1,5 @@
 import "./App.css";
+import { useEffect } from "react";
 import HomePage from "./pages/homePage.jsx";
 import TyreDetailPage from "./pages/tyreDetailPage.jsx";
 import TyreListPage from "./pages/tyreListPage.jsx";
@@ -22,6 +23,10 @@ import SiteFooter from "./components/SiteFooter.jsx";
 function AppRoutes() {
   const location = useLocation();
   const isHome = location.pathname === "/";
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <>
