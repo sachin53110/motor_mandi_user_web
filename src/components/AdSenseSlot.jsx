@@ -14,6 +14,11 @@ const loadAdSenseScript = (client) => {
   if (!isConfiguredClient(client)) return Promise.resolve(false);
   if (window.adsbygoogle) return Promise.resolve(true);
 
+  const existingNetworkScript = document.querySelector(
+    'script[src^="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+  );
+  if (existingNetworkScript) return Promise.resolve(true);
+
   if (adsenseScriptPromise) {
     return adsenseScriptPromise;
   }
