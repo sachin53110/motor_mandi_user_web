@@ -333,13 +333,34 @@ const bikeApi = {
 const accessoriesApi = {
   /**
    * GET /accessory
-   * @param {object} params - { page, limit, search }
+   * @param {object} params - { page, limit, search, categoryId, brandId, customerPriceFrom, customerPriceTo }
    */
   getList: (params = {}) => {
     const query = new URLSearchParams();
     if (params.page)   query.set("page",   params.page);
     if (params.limit)  query.set("limit",  params.limit);
     if (params.search) query.set("search", params.search);
+
+    if (params.categoryId !== undefined && params.categoryId !== null && params.categoryId !== "") {
+      query.set("categoryId", params.categoryId);
+    }
+    if (params.brandId !== undefined && params.brandId !== null && params.brandId !== "") {
+      query.set("brandId", params.brandId);
+    }
+    if (
+      params.customerPriceFrom !== undefined &&
+      params.customerPriceFrom !== null &&
+      params.customerPriceFrom !== ""
+    ) {
+      query.set("customerPriceFrom", params.customerPriceFrom);
+    }
+    if (
+      params.customerPriceTo !== undefined &&
+      params.customerPriceTo !== null &&
+      params.customerPriceTo !== ""
+    ) {
+      query.set("customerPriceTo", params.customerPriceTo);
+    }
 
     const qs = query.toString();
     return request(`accessory${qs ? `?${qs}` : ""}`);
@@ -359,6 +380,24 @@ const accessoriesApi = {
 
   /** DELETE /accessory/:id  (auth required) */
   remove: (id, token) => request(`accessory/${id}`, { method: "DELETE", token }),
+};
+
+// ── Accessory Categories API Module ─────────────────────────────────────────
+const accessoryCategoriesApi = {
+  /** GET /accessory-category */
+  getList: () => request("accessory-category"),
+};
+
+// ── Accessory Brands API Module ─────────────────────────────────────────────
+const accessoryBrandsApi = {
+  /** GET /accessory-category/brands?categoryId=:categoryId */
+  getByCategory: (categoryId) => {
+    const id = String(categoryId || "").trim();
+    const query = new URLSearchParams();
+    if (id) query.set("categoryId", id);
+    const qs = query.toString();
+    return request(`accessory-category/brands${qs ? `?${qs}` : ""}`);
+  },
 };
 
 // ── Order API Module ──────────────────────────────────────────────────────────
@@ -448,6 +487,8 @@ const ApiProvider = {
   cars:        carApi,
   bikes:       bikeApi,
   accessories: accessoriesApi,
+  accessoryCategories: accessoryCategoriesApi,
+  accessoryBrands: accessoryBrandsApi,
   orders:      orderApi,
   auth:        authApi,
   search:      searchApi,

@@ -13,6 +13,11 @@ const formatPrice = (price) => {
   return `₹${value.toLocaleString("en-IN")}`;
 };
 
+const toFiniteNumber = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
 export default function AccessoryDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -73,6 +78,24 @@ export default function AccessoryDetailPage() {
 
   const images = accessory.medias || [];
   const currentImage = images[imageIndex]?.media;
+
+  const displayPrice =
+    toFiniteNumber(accessory.customerPrice) ??
+    toFiniteNumber(accessory.price) ??
+    toFiniteNumber(accessory.ownerPrice);
+
+  const compareAt = (() => {
+    const candidates = [
+      toFiniteNumber(accessory.ownerPrice),
+      toFiniteNumber(accessory.price),
+      toFiniteNumber(accessory.customerPrice),
+    ].filter((n) => n !== null);
+    if (!candidates.length || displayPrice === null) return null;
+    const maxVal = Math.max(...candidates);
+    return maxVal > displayPrice ? maxVal : null;
+  })();
+
+  const savings = compareAt !== null && displayPrice !== null ? Math.max(0, compareAt - displayPrice) : 0;
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -181,17 +204,17 @@ export default function AccessoryDetailPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Price</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-blue-400">{formatPrice(accessory.price)}</span>
-                    {accessory.customerPrice && (
-                      <span className="text-lg text-gray-400 line-through">{formatPrice(accessory.customerPrice)}</span>
-                    )}
+                    <span className="text-3xl font-bold text-blue-400">{formatPrice(displayPrice)}</span>
+                    {compareAt !== null ? (
+                      <span className="text-lg text-gray-400 line-through">{formatPrice(compareAt)}</span>
+                    ) : null}
                   </div>
                 </div>
 
-                {accessory.price && accessory.customerPrice && parseFloat(accessory.customerPrice) > parseFloat(accessory.price) && (
+                {savings > 0 && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-red-700">
-                      Save ₹{(parseFloat(accessory.customerPrice) - parseFloat(accessory.price)).toLocaleString("en-IN")}
+                      Save ₹{savings.toLocaleString("en-IN")}
                     </p>
                   </div>
                 )}

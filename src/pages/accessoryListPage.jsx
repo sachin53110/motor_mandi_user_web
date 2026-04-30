@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search, RefreshCw, AlertCircle, ChevronLeft, ChevronRight,
   Star, Phone, MapPin, Heart, Filter, X
 } from "lucide-react";
 import useAccessories from "../hooks/useAccessories";
+import useAccessoryCategories from "../hooks/useAccessoryCategories";
+import useAccessoryBrandsByCategory from "../hooks/useAccessoryBrandsByCategory";
 import AdSenseSlot from "../components/AdSenseSlot.jsx";
 
 const formatPrice = (price) => {
@@ -12,6 +14,78 @@ const formatPrice = (price) => {
   if (isNaN(n)) return "N/A";
   return `₹${n.toLocaleString("en-IN")}`;
 };
+
+const toFiniteNumber = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+const PRICE_RANGE = {
+  min: 0,
+  max: 1000000,
+  step: 500,
+};
+
+const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+function PriceRangePicker({ minValue, maxValue, onChangeMin, onChangeMax }) {
+  const minVal = clamp(Number(minValue), PRICE_RANGE.min, PRICE_RANGE.max);
+  const maxVal = clamp(Number(maxValue), PRICE_RANGE.min, PRICE_RANGE.max);
+  const leftPct =
+    ((Math.min(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+  const rightPct =
+    ((Math.max(minVal, maxVal) - PRICE_RANGE.min) / (PRICE_RANGE.max - PRICE_RANGE.min)) * 100;
+
+  return (
+    <div className="rounded-xl px-3 py-3 border bg-white border-gray-300">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="text-sm font-bold text-gray-900">Customer price range</div>
+        <div className="text-xs font-semibold text-gray-600">
+          ₹{minVal.toLocaleString("en-IN")} - ₹{maxVal.toLocaleString("en-IN")}
+        </div>
+      </div>
+
+      <div className="mt-1">
+        <div className="relative h-8">
+          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 rounded-full bg-gray-200" />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full bg-blue-600"
+            style={{ left: `${leftPct}%`, width: `${Math.max(0, rightPct - leftPct)}%` }}
+          />
+
+          <input
+            type="range"
+            min={PRICE_RANGE.min}
+            max={PRICE_RANGE.max}
+            step={PRICE_RANGE.step}
+            value={minVal}
+            onChange={(e) => onChangeMin(Number(e.target.value))}
+            className="absolute inset-0 w-full bg-transparent"
+            style={{ WebkitAppearance: "none", appearance: "none" }}
+          />
+
+          <input
+            type="range"
+            min={PRICE_RANGE.min}
+            max={PRICE_RANGE.max}
+            step={PRICE_RANGE.step}
+            value={maxVal}
+            onChange={(e) => onChangeMax(Number(e.target.value))}
+            className="absolute inset-0 w-full bg-transparent"
+            style={{ WebkitAppearance: "none", appearance: "none" }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] mt-1 text-gray-500">
+          <span>₹{PRICE_RANGE.min.toLocaleString("en-IN")}</span>
+          <span>₹{PRICE_RANGE.max.toLocaleString("en-IN")}</span>
+        </div>
+      </div>
+
+      <div className="mt-2 text-[11px] text-gray-500">Drag sliders to set price range</div>
+    </div>
+  );
+}
 
 function SkeletonCard() {
   return (
@@ -31,12 +105,25 @@ function AccessoryCard({ accessory, onCardClick }) {
   const [liked, setLiked] = useState(false);
   const firstImage = accessory.medias?.[0]?.media;
 
-  const savings = accessory.price && accessory.customerPrice
-    ? Math.max(0, parseFloat(accessory.customerPrice) - parseFloat(accessory.price))
-    : 0;
+  const displayPrice =
+    toFiniteNumber(accessory.customerPrice) ??
+    toFiniteNumber(accessory.price) ??
+    toFiniteNumber(accessory.ownerPrice);
 
-  const discountPercent = accessory.price && accessory.customerPrice
-    ? Math.round(((parseFloat(accessory.customerPrice) - parseFloat(accessory.price)) / parseFloat(accessory.customerPrice)) * 100)
+  const compareAt = (() => {
+    const candidates = [
+      toFiniteNumber(accessory.ownerPrice),
+      toFiniteNumber(accessory.price),
+      toFiniteNumber(accessory.customerPrice),
+    ].filter((n) => n !== null);
+    if (!candidates.length || displayPrice === null) return null;
+    const maxVal = Math.max(...candidates);
+    return maxVal > displayPrice ? maxVal : null;
+  })();
+
+  const savings = compareAt !== null && displayPrice !== null ? Math.max(0, compareAt - displayPrice) : 0;
+  const discountPercent = compareAt !== null && displayPrice !== null && compareAt > 0
+    ? Math.round((savings / compareAt) * 100)
     : 0;
 
   return (
@@ -93,10 +180,10 @@ function AccessoryCard({ accessory, onCardClick }) {
         {/* Price Section */}
         <div className="space-y-1 pt-2 border-t border-gray-100">
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-blue-600">{formatPrice(accessory.price)}</span>
-            {accessory.customerPrice && parseFloat(accessory.customerPrice) > parseFloat(accessory.price) && (
-              <span className="text-xs text-gray-400 line-through">{formatPrice(accessory.customerPrice)}</span>
-            )}
+            <span className="text-lg font-bold text-blue-600">{formatPrice(displayPrice)}</span>
+            {compareAt !== null ? (
+              <span className="text-xs text-gray-400 line-through">{formatPrice(compareAt)}</span>
+            ) : null}
           </div>
           {savings > 0 && (
             <p className="text-xs text-blue-600 font-semibold">Save ₹{savings.toLocaleString("en-IN")}</p>
@@ -124,12 +211,47 @@ function AccessoryCard({ accessory, onCardClick }) {
 export default function AccessoryListPage() {
   const navigate = useNavigate();
   const { accessories, loading, error, pagination, fetchAccessories } = useAccessories();
+  const { categories, loading: categoriesLoading, error: categoriesError } = useAccessoryCategories();
+  const {
+    brands,
+    loading: brandsLoading,
+    error: brandsError,
+    fetchBrands,
+    reset: resetBrands,
+  } = useAccessoryBrandsByCategory();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [categoryId, setCategoryId] = useState("");
+  const [brandId, setBrandId] = useState("");
+  const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
+  const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const limit = 20;
   const inlineListSlot = (
     import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309"
   ).trim();
+
+  useEffect(() => {
+    if (!categoryId) {
+      resetBrands();
+      return;
+    }
+    fetchBrands(categoryId);
+  }, [categoryId, fetchBrands, resetBrands]);
+
+  const categoryOptions = useMemo(() => {
+    return (categories || [])
+      .map((c) => ({ id: String(c.id), name: c.name }))
+      .filter((c) => c.id && c.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories]);
+
+  const brandOptions = useMemo(() => {
+    return (brands || [])
+      .map((b) => ({ id: String(b.id), name: b.name }))
+      .filter((b) => b.id && b.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [brands]);
 
   useEffect(() => {
     const params = {
@@ -137,8 +259,18 @@ export default function AccessoryListPage() {
       limit,
       ...(searchTerm && { search: searchTerm }),
     };
+
+    if (categoryId) params.categoryId = categoryId;
+    if (brandId) params.brandId = brandId;
+    if (Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min) {
+      params.customerPriceFrom = String(priceFrom);
+    }
+    if (Number.isFinite(Number(priceTo)) && Number(priceTo) < PRICE_RANGE.max) {
+      params.customerPriceTo = String(priceTo);
+    }
+
     fetchAccessories(params);
-  }, [currentPage, searchTerm, fetchAccessories]);
+  }, [currentPage, searchTerm, categoryId, brandId, priceFrom, priceTo, fetchAccessories]);
 
   const filteredAccessories = accessories;
   const totalPages = pagination?.totalPages || 1;
@@ -162,7 +294,7 @@ export default function AccessoryListPage() {
       card,
       <div
         key={`ad-accessory-${index}`}
-        className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 overflow-hidden rounded-xl"
+        className="sm:col-span-2 lg:col-span-3 overflow-hidden rounded-xl"
       >
         <AdSenseSlot slot={inlineListSlot} />
       </div>,
@@ -205,7 +337,19 @@ export default function AccessoryListPage() {
             <button
               onClick={() => {
                 setCurrentPage(1);
-                fetchAccessories({ page: 1, limit });
+                fetchAccessories({
+                  page: 1,
+                  limit,
+                  ...(searchTerm && { search: searchTerm }),
+                  ...(categoryId && { categoryId }),
+                  ...(brandId && { brandId }),
+                  ...(Number.isFinite(Number(priceFrom)) && Number(priceFrom) > PRICE_RANGE.min
+                    ? { customerPriceFrom: String(priceFrom) }
+                    : {}),
+                  ...(Number.isFinite(Number(priceTo)) && Number(priceTo) < PRICE_RANGE.max
+                    ? { customerPriceTo: String(priceTo) }
+                    : {}),
+                });
               }}
               className="w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 flex items-center justify-center transition"
               title="Refresh"
@@ -214,9 +358,99 @@ export default function AccessoryListPage() {
             </button>
           </div>
         </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Filters */}
+          <aside className="lg:col-span-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2">
+                  <Filter size={16} className="text-gray-700" />
+                  <h2 className="text-sm font-black text-gray-900">Filters</h2>
+                </div>
+
+                {(categoryId || brandId || priceFrom !== PRICE_RANGE.min || priceTo !== PRICE_RANGE.max) && (
+                  <button
+                    onClick={() => {
+                      setCategoryId("");
+                      setBrandId("");
+                      setPriceFrom(PRICE_RANGE.min);
+                      setPriceTo(PRICE_RANGE.max);
+                      setCurrentPage(1);
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    title="Clear filters"
+                  >
+                    <X size={14} />
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Category</label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setCategoryId(next);
+                    setBrandId("");
+                    setCurrentPage(1);
+                  }}
+                  disabled={categoriesLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+                >
+                  <option value="">All Categories</option>
+                  {categoryOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                {categoriesError && <div className="text-xs text-red-600">{categoriesError}</div>}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Brand</label>
+                <select
+                  value={brandId}
+                  onChange={(e) => {
+                    setBrandId(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  disabled={!categoryId || brandsLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+                >
+                  <option value="">All Brands</option>
+                  {brandOptions.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                {brandsError && <div className="text-xs text-red-600">{brandsError}</div>}
+              </div>
+
+              <PriceRangePicker
+                minValue={priceFrom}
+                maxValue={priceTo}
+                onChangeMin={(nextMin) => {
+                  setPriceFrom(Math.min(nextMin, priceTo));
+                  setCurrentPage(1);
+                }}
+                onChangeMax={(nextMax) => {
+                  setPriceTo(Math.max(nextMax, priceFrom));
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+          </aside>
+
+          {/* Results */}
+          <section className="lg:col-span-9">
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -245,15 +479,19 @@ export default function AccessoryListPage() {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🔧</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">No accessories found</h2>
-            <p className="text-gray-600 mb-6">Try adjusting your search terms</p>
+            <p className="text-gray-600 mb-6">Try adjusting your filters</p>
             <button
               onClick={() => {
                 setSearchTerm("");
                 setCurrentPage(1);
+                setCategoryId("");
+                setBrandId("");
+                setPriceFrom(PRICE_RANGE.min);
+                setPriceTo(PRICE_RANGE.max);
               }}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
-              Clear Search
+              Clear Filters
             </button>
           </div>
         )}
@@ -261,7 +499,7 @@ export default function AccessoryListPage() {
         {/* Accessories Grid */}
         {!loading && filteredAccessories.length > 0 && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {accessoryCardsWithAds}
             </div>
 
@@ -304,6 +542,8 @@ export default function AccessoryListPage() {
             )}
           </div>
         )}
+          </section>
+        </div>
       </main>
     </div>
   );
