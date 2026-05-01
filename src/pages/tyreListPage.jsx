@@ -257,7 +257,7 @@ export default function TyreListPage() {
   const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
   const [page, setPage] = useState(1);
   const inlineListSlot = (
-    import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309"
+    import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "5182233001"
   ).trim();
 
   const buildApiParams = useCallback((filters) => {

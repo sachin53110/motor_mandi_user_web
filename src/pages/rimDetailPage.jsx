@@ -29,7 +29,7 @@ export default function RimDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const inlineDetailSlot = (import.meta.env.VITE_ADSENSE_INLINE_DETAIL_SLOT || "6158096309").trim();
+  const inlineDetailSlot = (import.meta.env.VITE_ADSENSE_INLINE_DETAIL_SLOT || "5182233001").trim();
 
   useEffect(() => {
     const fetchRim = async () => {

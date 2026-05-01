@@ -212,7 +212,7 @@ export default function RimListPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const limit = 20;
-  const inlineListSlot = (import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "6158096309").trim();
+  const inlineListSlot = (import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "5182233001").trim();
 
   const companyOptions = useMemo(() => {
     return (companies || [])

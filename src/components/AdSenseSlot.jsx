@@ -45,11 +45,14 @@ const loadAdSenseScript = (client) => {
 
 export default function AdSenseSlot({
   slot,
-  format = "auto",
+  format,
+  layoutKey,
+  layout,
   className = "",
   minHeight = 0,
   fullWidthResponsive = true,
   style,
+  insStyle,
 }) {
   const adRef = useRef(null);
   const [isVisible, setIsVisible] = useState(
@@ -62,6 +65,13 @@ export default function AdSenseSlot({
   const client = (import.meta.env.VITE_ADSENSE_CLIENT || DEFAULT_ADSENSE_CLIENT).trim();
   const normalizedSlot = String(slot || "").trim();
   const testMode = import.meta.env.VITE_ADSENSE_TEST_MODE === "true";
+
+  const envFormat = String(import.meta.env.VITE_ADSENSE_DEFAULT_FORMAT || "").trim();
+  const envLayoutKey = String(import.meta.env.VITE_ADSENSE_DEFAULT_LAYOUT_KEY || "").trim();
+  const envLayout = String(import.meta.env.VITE_ADSENSE_DEFAULT_LAYOUT || "").trim();
+  const effectiveFormat = String(format || "").trim() || envFormat || "auto";
+  const effectiveLayoutKey = String(layoutKey || "").trim() || envLayoutKey;
+  const effectiveLayout = String(layout || "").trim() || envLayout;
 
   const canRender = enabled && isConfiguredClient(client) && normalizedSlot.length > 0;
 
@@ -150,10 +160,17 @@ export default function AdSenseSlot({
       <ins
         ref={adRef}
         className="adsbygoogle"
-        style={{ display: "block", minHeight }}
+        style={{
+          display: "block",
+          minHeight,
+          textAlign: effectiveLayout === "in-article" ? "center" : undefined,
+          ...insStyle,
+        }}
         data-ad-client={client}
         data-ad-slot={normalizedSlot}
-        data-ad-format={format}
+        data-ad-format={effectiveFormat}
+        data-ad-layout-key={effectiveLayoutKey || undefined}
+        data-ad-layout={effectiveLayout || undefined}
         data-full-width-responsive={fullWidthResponsive ? "true" : "false"}
         data-adtest={testMode ? "on" : undefined}
         aria-label="Advertisement"
