@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
+import NearbyShopsMap from "../components/NearbyShopsMap";
 
 const PAGE_SURFACE = "#f3f6fb";
 const PAGE_LIMIT = 20;
@@ -390,6 +391,10 @@ export default function ShopListPage() {
               </div>
             ) : (
               <>
+                <div className="mb-6 overflow-hidden rounded-2xl border border-white/80 bg-white p-3 shadow-xl shadow-slate-200/50">
+                  <NearbyShopsMap shops={filteredShops} userLocation={userLocation} />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {filteredShops.map((shop) => {
                     const validCoords = hasValidCoords(shop.lat, shop.lng);

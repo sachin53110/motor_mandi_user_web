@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import LOGO_SRC from "../assets/motorMandiLogo.png";
 import HERO_IMAGE from "../assets/backHome.png";
 import SearchResultsModal from "../components/SearchResultsModal";
+import NearbyShopsMap from "../components/NearbyShopsMap";
 import useNearbyShops from "../hooks/useNearbyShops";
 import ApiProvider from "../api/ApiProvider";
 
@@ -83,6 +84,26 @@ const categories = [
     image: AccessorySvg,
     photo: "https://images.unsplash.com/photo-1498887960847-2a5e46312788?auto=format&fit=crop&w=900&q=80",
     key: "accessories"
+  },
+  {
+    icon: "car",
+    label: "Car Parts",
+    sub: "Spare Parts",
+    count: "New",
+    color: "from-slate-900/38 via-cyan-900/12 to-slate-950/50",
+    image: CarSvg,
+    photo: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=900&q=80",
+    key: "carParts"
+  },
+  {
+    icon: "bike",
+    label: "Bike Parts",
+    sub: "Spare Parts",
+    count: "New",
+    color: "from-slate-900/38 via-amber-900/12 to-slate-950/50",
+    image: BikeSvg,
+    photo: `${import.meta.env.BASE_URL}bike-parts.svg`,
+    key: "bikeParts"
   },
 ];
 
@@ -332,7 +353,18 @@ function Hero() {
 }
 
 // ── Categories ──────────────────────────────────────────────────────────────
-function Categories({ onTyresClick, onWheelsClick, onRimsClick, onCarsClick, onBikesClick, onAccessoriesClick }) {
+function Categories({
+  onTyresClick,
+  onWheelsClick,
+  onRimsClick,
+  onCarsClick,
+  onBikesClick,
+  onAccessoriesClick,
+  onCarPartsClick,
+  onBikePartsClick,
+}) {
+  const [brokenImages, setBrokenImages] = useState({});
+
   return (
     <section id="categories" className="px-4 py-16" style={{ backgroundColor: PAGE_SURFACE }}>
       <div className="max-w-7xl mx-auto">
@@ -345,6 +377,10 @@ function Categories({ onTyresClick, onWheelsClick, onRimsClick, onCarsClick, onB
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {categories.map((cat, i) => {
+            const resolvedPhoto = brokenImages[cat.key]
+              ? (cat.fallbackPhoto || cat.image || cat.photo)
+              : cat.photo;
+
             return (
               <div
                 key={cat.label}
@@ -355,14 +391,23 @@ function Categories({ onTyresClick, onWheelsClick, onRimsClick, onCarsClick, onB
                   if (cat.key === "cars")  onCarsClick();
                   if (cat.key === "bikes") onBikesClick();
                   if (cat.key === "accessories") onAccessoriesClick();
+                  if (cat.key === "carParts") onCarPartsClick();
+                  if (cat.key === "bikeParts") onBikePartsClick();
                 }}
-                className={`group relative h-48 overflow-hidden rounded-[1.35rem] border border-white/70 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/40 ${["tyres", "wheels", "rims", "cars", "bikes", "accessories"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-sky-300/80" : "cursor-default"}`}
+                className={`group relative h-48 overflow-hidden rounded-[1.35rem] border border-white/70 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/40 ${["tyres", "wheels", "rims", "cars", "bikes", "accessories", "carParts", "bikeParts"].includes(cat.key) ? "cursor-pointer ring-0 hover:ring-2 hover:ring-sky-300/80" : "cursor-default"}`}
                 style={{ animationDelay: `${i * 80}ms` }}
               >
                 <img
-                  src={cat.photo}
+                  src={resolvedPhoto}
                   alt={`${cat.label} background`}
                   className="pointer-events-none absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    setBrokenImages((prev) => {
+                      if (prev[cat.key]) return prev;
+                      return { ...prev, [cat.key]: true };
+                    });
+                  }}
                 />
                 <div className={`absolute inset-0 bg-gradient-to-t ${cat.color}`} />
 
@@ -660,9 +705,6 @@ function NearestShops({ onOpenNearbyShops }) {
   const [activeType, setActiveType] = useState("All");
   const [selectedShop, setSelectedShop] = useState(null);
   const [showMap, setShowMap] = useState(true);
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markersRef = useRef([]);
   const initializedRef = useRef(false);
 
   const toNumber = (value) => {
@@ -734,94 +776,6 @@ function NearestShops({ onOpenNearbyShops }) {
       console.error("Failed to get location:", err);
     }
   };
-
-  useEffect(() => {
-    if (!showMap || !mapRef.current) return;
-    if (mapInstanceRef.current) return;
-
-    if (!document.getElementById("leaflet-css")) {
-      const link = document.createElement("link");
-      link.id = "leaflet-css";
-      link.rel = "stylesheet";
-      link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
-      document.head.appendChild(link);
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
-    script.onload = () => {
-      const L = window.L;
-      const validUserCoords = getValidCoords(userLocation);
-      const center = validUserCoords
-        ? [validUserCoords.lat, validUserCoords.lng]
-        : [28.6480, 77.2350];
-      const map = L.map(mapRef.current, { zoomControl: false }).setView(center, 13);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-      mapInstanceRef.current = map;
-      updateMarkers();
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; }
-    };
-  }, [showMap, userLocation]);
-
-  const updateMarkers = () => {
-    const L = window.L;
-    if (!L || !mapInstanceRef.current) return;
-    const map = mapInstanceRef.current;
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
-
-    // Add user location marker
-    const validUserCoords = getValidCoords(userLocation);
-    if (validUserCoords) {
-      const userIcon = L.divIcon({
-        className: "",
-        html: `<div style="background:#3b82f6;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-size:16px">📍</div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-      });
-      L.marker([validUserCoords.lat, validUserCoords.lng], { icon: userIcon }).addTo(map)
-        .bindPopup(`<div style="font-family:sans-serif;text-align:center"><strong style="color:#3b82f6;font-size:14px">Your Location</strong></div>`);
-    }
-
-    // Add shop markers
-    shops.forEach(shop => {
-      const coords = getValidCoords(shop);
-      if (!coords) return;
-
-      const distanceKm = Number.isFinite(Number(shop.distance))
-        ? (Number(shop.distance) / 1000).toFixed(1)
-        : "N/A";
-
-      const shopIcon = L.divIcon({
-        className: "",
-        html: `<div style="background:#059669;color:white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-size:18px"><span style="transform:rotate(45deg)">🏪</span></div>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-      });
-      const marker = L.marker([coords.lat, coords.lng], { icon: shopIcon }).addTo(map)
-        .bindPopup(`<div style="font-family:sans-serif;min-width:200px"><strong style="color:#065f46;font-size:14px">${shop.name}</strong><br/><span style="color:#6b7280;font-size:12px">${shop.email || 'Shop'}</span><br/><div style="margin-top:6px;display:flex;align-items:center;gap:4px"><span style="color:#f59e0b">★</span><span style="font-size:12px;font-weight:bold">${shop.rating?.toFixed(1) || 'N/A'}</span></div><div style="margin-top:4px;font-size:12px;color:#374151">📍 ${shop.address || shop.phone}</div><div style="margin-top:4px;font-size:12px;color:${shop.shopStatus === 'open' ? '#059669' : '#ef4444'};font-weight:bold">${shop.shopStatus === 'open' ? '✓ Open' : '✗ Closed'}</div><div style="margin-top:6px;font-size:11px;font-weight:bold;color:#059669">📏 ${distanceKm} km away</div></div>`);
-      marker.on("click", () => setSelectedShop(shop));
-      markersRef.current.push(marker);
-    });
-  };
-
-  // Update markers when shops or filters change
-  useEffect(() => { 
-    if (mapInstanceRef.current && window.L) updateMarkers(); 
-  }, [filtered, shops, userLocation]);
-
-  // Fly to selected shop
-  useEffect(() => { 
-    const coords = getValidCoords(selectedShop);
-    if (mapInstanceRef.current && coords) {
-      mapInstanceRef.current.flyTo([coords.lat, coords.lng], 15, { duration: 0.8 });
-    }
-  }, [selectedShop]);
 
   const typeIcon = (type) => {
     if (type.includes("Bike")) return <Bike size={14} />;
@@ -949,7 +903,14 @@ function NearestShops({ onOpenNearbyShops }) {
             <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-lg z-0" style={{ height: "380px", isolation: "isolate" }}>
               {showMap ? (
                 <>
-                  <div ref={mapRef} style={{ width: "100%", height: "100%", position: "relative", zIndex: 0, isolation: "isolate" }} />
+                  <NearbyShopsMap
+                    shops={filtered}
+                    userLocation={userLocation}
+                    focusedShop={selectedShop}
+                    onShopClick={setSelectedShop}
+                    height="100%"
+                    borderRadius="0px"
+                  />
                   <div className="absolute top-3 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md border border-slate-200">
                     <div className="flex items-center gap-1.5 text-slate-700 text-xs font-bold">
                       <span className="text-blue-500 text-sm">📍</span>
@@ -1162,6 +1123,8 @@ export default function HomePage() {
         onCarsClick={() => navigate('/cars')}
         onBikesClick={() => navigate('/bikes')}
         onAccessoriesClick={() => navigate('/accessories')}
+        onCarPartsClick={() => navigate('/parts?type=car')}
+        onBikePartsClick={() => navigate('/parts?type=bike')}
       />
       <FeaturedListings 
         onViewMore={(category) => {

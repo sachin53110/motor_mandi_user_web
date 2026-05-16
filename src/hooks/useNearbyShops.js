@@ -62,48 +62,89 @@ const useNearbyShops = () => {
 
   const getUserLocation = useCallback(() => {
     return new Promise((resolve, reject) => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ lat: latitude, lng: longitude });
-            setLocationEnabled(true);
-            resolve({ lat: latitude, lng: longitude });
-          },
-          (error) => {
-            setLocationEnabled(false);
-            setUserLocation(null);
-            reject(error);
+      const maybeBlocked = async () => {
+        try {
+          if (navigator.permissions?.query) {
+            const status = await navigator.permissions.query({ name: "geolocation" });
+            if (status?.state === "denied") return true;
           }
-        );
-      } else {
+        } catch {
+          // Ignore permissions API failures (e.g., Safari)
+        }
+        return false;
+      };
+
+      const run = async () => {
+        if (!(await maybeBlocked()) && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              setUserLocation({ lat: latitude, lng: longitude });
+              setLocationEnabled(true);
+              resolve({ lat: latitude, lng: longitude });
+            },
+            (error) => {
+              setLocationEnabled(false);
+              setUserLocation(null);
+              reject(error);
+            }
+          );
+          return;
+        }
+
         setLocationEnabled(false);
-        const err = new Error("Geolocation is not supported by this browser");
-        reject(err);
-      }
+        setUserLocation(null);
+        reject(new Error("Geolocation permission is blocked or unavailable"));
+      };
+
+      run();
     });
   }, []);
 
   const requestLocationPermission = useCallback(() => {
     return new Promise((resolve) => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ lat: latitude, lng: longitude });
-            setLocationEnabled(true);
-            resolve(true);
-          },
-          (error) => {
-            setLocationEnabled(false);
-            setUserLocation(null);
-            resolve(false);
+      const maybeBlocked = async () => {
+        try {
+          if (navigator.permissions?.query) {
+            const status = await navigator.permissions.query({ name: "geolocation" });
+            if (status?.state === "denied") return true;
           }
-        );
-      } else {
+        } catch {
+          // Ignore permissions API failures
+        }
+        return false;
+      };
+
+      const run = async () => {
+        if (await maybeBlocked()) {
+          setLocationEnabled(false);
+          setUserLocation(null);
+          resolve(false);
+          return;
+        }
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              setUserLocation({ lat: latitude, lng: longitude });
+              setLocationEnabled(true);
+              resolve(true);
+            },
+            () => {
+              setLocationEnabled(false);
+              setUserLocation(null);
+              resolve(false);
+            }
+          );
+          return;
+        }
+
         setLocationEnabled(false);
         resolve(false);
-      }
+      };
+
+      run();
     });
   }, []);
 

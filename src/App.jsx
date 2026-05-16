@@ -14,6 +14,7 @@ import BikeDetailPage from "./pages/bikeDetailPage.jsx";
 import AccessoryListPage from "./pages/accessoryListPage.jsx";
 import AccessoryDetailPage from "./pages/accessoryDetailPage.jsx";
 import ShopListPage from "./pages/shopListPage.jsx";
+import PartListPage from "./pages/partListPage.jsx";
 import { Route, Routes, useLocation } from "react-router-dom";
 import LoginForm from "./pages/auth/loginPage.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
@@ -52,6 +53,8 @@ function AppRoutes() {
 
           <Route path="/accessories" element={<AccessoryListPage />} />
           <Route path="/accessory/:id" element={<AccessoryDetailPage />} />
+
+          <Route path="/parts" element={<PartListPage />} />
 
           <Route path="/shops" element={<ShopListPage />} />
 

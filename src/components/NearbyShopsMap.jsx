@@ -1,5 +1,5 @@
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Phone, MapPin, Star, Clock } from "lucide-react";
 
 const toNumber = (value) => {
@@ -17,10 +17,32 @@ const getValidCoords = (point) => {
   return { lat, lng };
 };
 
-const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }) => {
+const getShopTitle = (shop) => {
+  const title = shop?.displayName || shop?.shopName || shop?.name;
+  return typeof title === "string" && title.trim() ? title.trim() : "Shop";
+};
+
+const getShopAddress = (shop) => {
+  const address = shop?.address || shop?.locationText;
+  return typeof address === "string" && address.trim() ? address.trim() : "Address not available";
+};
+
+const NearbyShopsMap = ({
+  shops = [],
+  userLocation = null,
+  onShopSelect = null,
+  onShopClick = null,
+  focusedShop = null,
+  height = 500,
+  borderRadius = "12px",
+}) => {
   const [selectedShop, setSelectedShop] = useState(null);
   const GOOGLE_MAP_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const userCoords = getValidCoords(userLocation);
+
+  useEffect(() => {
+    if (focusedShop) setSelectedShop(focusedShop);
+  }, [focusedShop]);
 
   const shopMarkers = shops.reduce((acc, shop, index) => {
     const coords = getValidCoords(shop);
@@ -33,14 +55,19 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
   }, []);
 
   const selectedShopCoords = getValidCoords(selectedShop);
+  const selectedIdentity = selectedShop?.id ?? selectedShop?.shopName ?? selectedShop?.name ?? null;
+
+  const focusedCoords = getValidCoords(focusedShop);
+
+  const resolvedHeight = typeof height === "number" ? `${height}px` : height;
 
   const mapContainerStyle = {
     width: "100%",
-    height: "500px",
-    borderRadius: "12px",
+    height: resolvedHeight,
+    borderRadius,
   };
 
-  const defaultCenter = userCoords || { lat: 30.6928, lng: 76.7079 };
+  const defaultCenter = focusedCoords || userCoords || shopMarkers[0]?.coords || { lat: 30.6928, lng: 76.7079 };
 
   const mapOptions = {
     zoom: 14,
@@ -57,6 +84,15 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
       },
     ],
   };
+
+  if (!GOOGLE_MAP_KEY) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">
+        Google Map is not configured. Set <span className="font-mono">VITE_GOOGLE_MAPS_API_KEY</span> in your
+        <span className="font-mono"> .env.local</span> (and in Vercel Environment Variables for production).
+      </div>
+    );
+  }
 
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAP_KEY}>
@@ -82,96 +118,98 @@ const NearbyShopsMap = ({ shops = [], userLocation = null, onShopSelect = null }
           />
         )}
 
-        {/* Shop Markers */}
-        {shopMarkers.map(({ shop, coords, key }) => (
-          <Marker
-            key={key}
-            position={coords}
-            title={shop.name}
-            onClick={() => setSelectedShop(shop)}
-            icon={{
-              path: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54h2.98l2.04 2.71h4.49L14.96 12.29z",
-              fillColor: "#059669",
-              fillOpacity: 1,
-              strokeColor: "#10b981",
-              strokeWeight: 2,
-              scale: 1.5,
-            }}
-          />
-        ))}
+        {/* Shop Markers + anchored InfoWindow */}
+        {shopMarkers.map(({ shop, coords, key }) => {
+          const shopIdentity = shop?.id ?? shop?.shopName ?? shop?.name ?? null;
+          const isSelected = Boolean(
+            selectedShop &&
+              selectedShopCoords &&
+              (selectedShop === shop ||
+                (selectedIdentity !== null &&
+                  shopIdentity === selectedIdentity &&
+                  coords.lat === selectedShopCoords.lat &&
+                  coords.lng === selectedShopCoords.lng))
+          );
 
-        {/* Info Window for Selected Shop */}
-        {selectedShop && selectedShopCoords && (
-          <InfoWindow
-            position={selectedShopCoords}
-            onCloseClick={() => setSelectedShop(null)}
-          >
-            <div
-              className="bg-white p-3 rounded-lg shadow-lg"
-              style={{ minWidth: "250px" }}
+          return (
+            <Marker
+              key={key}
+              position={coords}
+              title={getShopTitle(shop)}
+              onClick={() => {
+                setSelectedShop(shop);
+                onShopClick?.(shop);
+              }}
+              icon={{
+                path: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54h2.98l2.04 2.71h4.49L14.96 12.29z",
+                fillColor: "#059669",
+                fillOpacity: 1,
+                strokeColor: "#10b981",
+                strokeWeight: 2,
+                scale: 1.5,
+              }}
             >
-              <h3 className="font-bold text-gray-800">{selectedShop.name}</h3>
-              <div className="flex items-center gap-2 my-1">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="text-sm text-gray-700">
-                  {selectedShop.rating?.toFixed(1) || "N/A"} 
-                  {selectedShop.reviews && ` (${selectedShop.reviews} reviews)`}
-                </span>
-              </div>
-              
-              <div className="flex items-start gap-2 my-2">
-                <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-gray-600">{selectedShop.address}</span>
-              </div>
+              {isSelected && (
+                <InfoWindow onCloseClick={() => setSelectedShop(null)}>
+                  <div className="bg-white p-3 rounded-lg shadow-lg" style={{ minWidth: "250px" }}>
+                    <h3 className="font-bold text-gray-800">{getShopTitle(shop)}</h3>
+                    <div className="flex items-center gap-2 my-1">
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <span className="text-sm text-gray-700">
+                        {shop.rating?.toFixed(1) || "N/A"}
+                        {shop.reviews && ` (${shop.reviews} reviews)`}
+                      </span>
+                    </div>
 
-              <div className="flex items-center gap-2 my-2">
-                <Phone className="w-4 h-4 text-blue-500" />
-                <a
-                  href={`tel:${selectedShop.phone}`}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  {selectedShop.phone}
-                </a>
-              </div>
+                    <div className="flex items-start gap-2 my-2">
+                      <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-gray-600">{getShopAddress(shop)}</span>
+                    </div>
 
-              {selectedShop.hours && (
-                <div className="flex items-center gap-2 my-2">
-                  <Clock className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-gray-600">{selectedShop.hours}</span>
-                </div>
+                    <div className="flex items-center gap-2 my-2">
+                      <Phone className="w-4 h-4 text-blue-500" />
+                      <a href={`tel:${shop.phone}`} className="text-sm text-blue-600 hover:underline">
+                        {shop.phone}
+                      </a>
+                    </div>
+
+                    {shop.hours && (
+                      <div className="flex items-center gap-2 my-2">
+                        <Clock className="w-4 h-4 text-purple-500" />
+                        <span className="text-sm text-gray-600">{shop.hours}</span>
+                      </div>
+                    )}
+
+                    {shop.distance && (
+                      <div className="mt-2 text-sm text-gray-500">Distance: {(shop.distance / 1000).toFixed(1)} km</div>
+                    )}
+
+                    {shop.shopStatus && (
+                      <div className="mt-2">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            shop.shopStatus === "open" ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {shop.shopStatus === "open" ? "🟢 Open" : "🔴 Closed"}
+                        </span>
+                      </div>
+                    )}
+
+                    {onShopSelect && (
+                      <button
+                        onClick={() => onShopSelect(shop)}
+                        className="mt-3 w-full bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700"
+                      >
+                        View Details
+                      </button>
+                    )}
+                  </div>
+                </InfoWindow>
               )}
-
-              {selectedShop.distance && (
-                <div className="mt-2 text-sm text-gray-500">
-                  Distance: {(selectedShop.distance / 1000).toFixed(1)} km
-                </div>
-              )}
-
-              {selectedShop.shopStatus && (
-                <div className="mt-2">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      selectedShop.shopStatus === "open"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {selectedShop.shopStatus === "open" ? "🟢 Open" : "🔴 Closed"}
-                  </span>
-                </div>
-              )}
-
-              {onShopSelect && (
-                <button
-                  onClick={() => onShopSelect(selectedShop)}
-                  className="mt-3 w-full bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700"
-                >
-                  View Details
-                </button>
-              )}
-            </div>
-          </InfoWindow>
-        )}
+            </Marker>
+          );
+        })}
       </GoogleMap>
     </LoadScript>
   );

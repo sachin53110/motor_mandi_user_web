@@ -433,6 +433,33 @@ const searchApi = {
   },
 };
 
+// ── Parts API Module ─────────────────────────────────────────────────────────
+const partsApi = {
+  /**
+   * GET /part
+   * @param {object} params - { page, limit, shopId, search, customerPriceFrom, customerPriceTo, type }
+   */
+  getList: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.page)  query.set("page", params.page);
+    if (params.limit) query.set("limit", params.limit);
+
+    if (params.shopId) query.set("shopId", params.shopId);
+    if (params.search) query.set("search", params.search);
+    if (params.type)   query.set("type", params.type);
+
+    if (params.customerPriceFrom !== undefined && params.customerPriceFrom !== null && params.customerPriceFrom !== "") {
+      query.set("customerPriceFrom", params.customerPriceFrom);
+    }
+    if (params.customerPriceTo !== undefined && params.customerPriceTo !== null && params.customerPriceTo !== "") {
+      query.set("customerPriceTo", params.customerPriceTo);
+    }
+
+    const qs = query.toString();
+    return request(`part${qs ? `?${qs}` : ""}`);
+  },
+};
+
 // ── Shop API Module ──────────────────────────────────────────────────────────
 const shopApi = {
   /**
@@ -492,6 +519,7 @@ const ApiProvider = {
   orders:      orderApi,
   auth:        authApi,
   search:      searchApi,
+  parts:       partsApi,
   shops:       shopApi,
 };
 
