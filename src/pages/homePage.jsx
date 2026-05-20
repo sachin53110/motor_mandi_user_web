@@ -960,7 +960,9 @@ function NearestShops({ onOpenNearbyShops }) {
                   <div className="text-right">
                     <div className="flex items-center gap-1 justify-end">
                       <Star size={14} fill="#f59e0b" stroke="#f59e0b" />
-                      <span className="font-black text-amber-400">{selectedShop.rating?.toFixed(1) || 'N/A'}</span>
+                      {
+                        selectedShop.rating && <span className="text-slate-400 text-xs">({selectedShop.rating.toFixed(1)})</span>
+                      }
                     </div>
                   </div>
                 </div>

@@ -237,7 +237,7 @@ export default function WheelDetailPage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Name</p>
-                    <p className="font-semibold text-gray-900">{wheel.user.name || "N/A"}</p>
+                    {wheel.user.name && <p className="font-semibold text-gray-900">{wheel.user.name}</p>}
                   </div>
 
                   {wheel.user.phone && (

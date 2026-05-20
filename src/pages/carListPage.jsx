@@ -299,7 +299,9 @@ function CarCard({ car, onCardClick }) {
   const currentImage = images[imageIndex]?.media;
   const title = car.name || car.title || [car.brandName, car.model].filter(Boolean).join(" ") || "Car Listing";
   const km = Number.parseInt(car.km, 10);
-  const kmText = Number.isFinite(km) ? `${km.toLocaleString("en-IN")} km` : "N/A km";
+  const kmText = Number.isFinite(km)
+  ? `${km.toLocaleString("en-IN")} km`
+  : "";
   const fuelText = car.fuelType || "Petrol";
   const locationText = [car.user?.city, car.user?.state].filter(Boolean).join(", ") || car.user?.shopName || "Location unavailable";
   const conditionText = car.condition || "Good";
