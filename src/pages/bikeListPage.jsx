@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search, AlertCircle, ChevronLeft, ChevronRight,
   Heart, Filter, BadgeCheck
@@ -367,6 +367,7 @@ function BikeCard({ bike, onCardClick }) {
 
 export default function BikeListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { bikes, loading, error, pagination, fetchBikes } = useBikes();
   const { companies, loading: companiesLoading, error: companiesError } = useBikeCompanies();
   const { models, loading: modelsLoading, error: modelsError, fetchModels, reset: resetModels } = useBikeModelsByCompany();
@@ -378,10 +379,16 @@ export default function BikeListPage() {
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const [currentPage, setCurrentPage] = useState(1);
+  const searchFromUrl = (searchParams.get("search") || "").trim();
   const limit = 20;
   const inlineListSlot = (
     import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "5182233001"
   ).trim();
+
+  useEffect(() => {
+    setSearchTerm((prev) => (prev === searchFromUrl ? prev : searchFromUrl));
+    setCurrentPage((prev) => (prev === 1 ? prev : 1));
+  }, [searchFromUrl]);
 
   useEffect(() => {
     if (!company) {

@@ -51,11 +51,10 @@ export default function SiteFooter() {
 
           <div>
             <h4 className="text-slate-100 font-black text-sm tracking-widest uppercase mb-4">Company</h4>
-            {["About Us", "Blog", "Careers", "Press Kit", "Privacy Policy", "Terms of Use"].map((item) => (
-              <a key={item} href="#" className="block text-slate-300 hover:text-sky-300 text-sm mb-2 transition-colors">
-                {item}
-              </a>
-            ))}
+            <Link to="/about" className="block text-slate-300 hover:text-sky-300 text-sm mb-2 transition-colors">About Us</Link>
+            <Link to="/blog" className="block text-slate-300 hover:text-sky-300 text-sm mb-2 transition-colors">Blog</Link>
+            <Link to="/privacy-policy" className="block text-slate-300 hover:text-sky-300 text-sm mb-2 transition-colors">Privacy Policy</Link>
+            <Link to="/terms-of-use" className="block text-slate-300 hover:text-sky-300 text-sm mb-2 transition-colors">Terms of Use</Link>
           </div>
 
           <div>

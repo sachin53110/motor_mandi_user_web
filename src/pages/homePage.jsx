@@ -9,7 +9,6 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import LOGO_SRC from "../assets/motorMandiLogo.png";
 import HERO_IMAGE from "../assets/backHome.png";
-import SearchResultsModal from "../components/SearchResultsModal";
 import NearbyShopsMap from "../components/NearbyShopsMap";
 import useNearbyShops from "../hooks/useNearbyShops";
 import ApiProvider from "../api/ApiProvider";
@@ -230,17 +229,27 @@ function Navbar() {
 
 // ── Hero ─────────────────────────────────────────────────────────────────────
 function Hero() {
-  const [activeFilter, setActiveFilter] = useState("All");
+  const navigate = useNavigate();
+  const [activeFilter, setActiveFilter] = useState("Tyres");
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const filters = ["All", "Tyres", "Rims", "Cars", "Bikes", "Accessories"];
-
-  const handleSearchClick = () => {
-    setSearchModalOpen(true);
+  const filters = ["Tyres", "Rims", "Cars", "Bikes", "Accessories"];
+  const categoryRouteMap = {
+    Tyres: "/tyres",
+    Rims: "/rims",
+    Cars: "/cars",
+    Bikes: "/bikes",
+    Accessories: "/accessories",
   };
 
-  const handleSearchKeyPress = (e) => {
+  const handleSearchClick = () => {
+    const route = categoryRouteMap[activeFilter] || "/tyres";
+    const trimmed = searchQuery.trim();
+    navigate(trimmed ? `${route}?search=${encodeURIComponent(trimmed)}` : route);
+  };
+
+  const handleSearchKeyDown = (e) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       handleSearchClick();
     }
   };
@@ -310,7 +319,7 @@ function Hero() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleSearchKeyPress}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Search tyres, rims, cars, bikes..."
                 className="bg-transparent text-slate-900 placeholder-slate-400 text-sm w-full outline-none"
               />
@@ -343,11 +352,6 @@ function Hero() {
         </div>
       </div>
 
-      <SearchResultsModal
-        isOpen={searchModalOpen}
-        onClose={() => setSearchModalOpen(false)}
-        initialQuery={searchQuery}
-      />
     </section>
   );
 }
@@ -495,12 +499,12 @@ function ListingCard({ item }) {
 
 // ── Featured Listings ─────────────────────────────────────────────────────────
 function FeaturedListings({ onViewMore }) {
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("Tyres");
   const [apiData, setApiData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const tabs = ["All", "Tyres", "Rims", "Cars", "Bikes", "Accessories"];
+  const tabs = ["Tyres", "Rims", "Cars", "Bikes", "Accessories"];
 
   // Fetch data from all APIs on component mount
   useEffect(() => {
@@ -624,7 +628,6 @@ function FeaturedListings({ onViewMore }) {
       ...(apiData.accessories || [])
     ];
 
-    if (activeTab === "All") return allData.slice(0, 6);
     if (activeTab === "Tyres") return (apiData.tyres || []).slice(0, 6);
     if (activeTab === "Rims") return (apiData.rims || []).slice(0, 6);
     if (activeTab === "Cars") return (apiData.cars || []).slice(0, 6);
@@ -637,7 +640,6 @@ function FeaturedListings({ onViewMore }) {
 
   const handleViewMore = () => {
     const categoryMap = {
-      "All": null,
       "Tyres": "tyres",
       "Rims": "rims",
       "Cars": "cars",
@@ -704,7 +706,6 @@ function NearestShops({ onOpenNearbyShops }) {
   const { shops, loading, error, userLocation, requestLocationPermission, fetchShops } = useNearbyShops();
   const [activeType, setActiveType] = useState("All");
   const [selectedShop, setSelectedShop] = useState(null);
-  const [showMap, setShowMap] = useState(true);
   const initializedRef = useRef(false);
 
   const toNumber = (value) => {
@@ -806,10 +807,6 @@ function NearestShops({ onOpenNearbyShops }) {
                shops.length > 0 ? (<><LocateFixed size={16} /><span>Location Found</span></>) :
                (<><Navigation size={16} /><span>Use My Location</span></>)}
             </button>
-            <button onClick={() => setShowMap(!showMap)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all">
-              <MapPin size={16} />{showMap ? "List View" : "Map View"}
-            </button>
             <button onClick={onOpenNearbyShops}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-sky-600 hover:bg-sky-500 text-white hover:scale-105 transition-all">
               <Navigation size={16} />Nearby Shops
@@ -901,38 +898,32 @@ function NearestShops({ onOpenNearbyShops }) {
 
           <div className="lg:col-span-3 flex flex-col gap-4">
             <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-lg z-0" style={{ height: "380px", isolation: "isolate" }}>
-              {showMap ? (
-                <>
-                  <NearbyShopsMap
-                    shops={filtered}
-                    userLocation={userLocation}
-                    focusedShop={selectedShop}
-                    onShopClick={setSelectedShop}
-                    height="100%"
-                    borderRadius="0px"
-                  />
-                  <div className="absolute top-3 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md border border-slate-200">
-                    <div className="flex items-center gap-1.5 text-slate-700 text-xs font-bold">
-                      <span className="text-blue-500 text-sm">📍</span>
-                      <span>{shops.length > 0 ? `${shops.length} Shops Near You` : 'MotorMandi Shops'}</span>
-                    </div>
+              <>
+                <NearbyShopsMap
+                  shops={filtered}
+                  userLocation={userLocation}
+                  focusedShop={selectedShop}
+                  onShopClick={setSelectedShop}
+                  height="100%"
+                  borderRadius="0px"
+                />
+                <div className="absolute top-3 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md border border-slate-200">
+                  <div className="flex items-center gap-1.5 text-slate-700 text-xs font-bold">
+                    <span className="text-blue-500 text-sm">📍</span>
+                    <span>{shops.length > 0 ? `${shops.length} Shops Near You` : 'MotorMandi Shops'}</span>
                   </div>
-                  <div className="absolute bottom-10 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-md border border-slate-200 space-y-1">
-                    <div className="flex items-center gap-2 text-slate-700 text-xs font-medium">
-                      <span className="text-blue-500 text-sm">📍</span>
-                      <span>Your Location</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-700 text-xs font-medium">
-                      <span className="text-sky-600 text-sm">🏪</span>
-                      <span>Shops</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="w-full h-full bg-slate-50 flex items-center justify-center">
-                  <div className="text-center"><MapPin size={40} className="text-sky-300 mx-auto mb-3" /><p className="text-sky-700 font-bold text-sm">Switch to Map View</p></div>
                 </div>
-              )}
+                <div className="absolute bottom-10 left-3 z-20 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-md border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-2 text-slate-700 text-xs font-medium">
+                    <span className="text-blue-500 text-sm">📍</span>
+                    <span>Your Location</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 text-xs font-medium">
+                    <span className="text-sky-600 text-sm">🏪</span>
+                    <span>Shops</span>
+                  </div>
+                </div>
+              </>
             </div>
 
             {selectedShop && (
