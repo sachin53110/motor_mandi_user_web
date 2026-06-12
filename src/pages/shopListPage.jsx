@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
 import NearbyShopsMap from "../components/NearbyShopsMap";
+import ShopDetailModal from "../components/ShopDetailModal";
 
 const PAGE_SURFACE = "#f3f6fb";
 const PAGE_LIMIT = 20;
@@ -47,7 +48,27 @@ const getDistanceKm = (lat1, lng1, lat2, lng2) => {
 const normalizeShop = (shop = {}) => {
   const lat = toNumber(shop.lat);
   const lng = toNumber(shop.lng);
-  const imageMedia = shop?.image?.media;
+  const imageCandidates = [
+    ...(Array.isArray(shop?.images) ? shop.images : []),
+    shop?.image,
+  ].filter(Boolean);
+
+  const imageUrls = imageCandidates
+    .map((img) => {
+      if (typeof img === "string") return img.trim();
+      if (typeof img?.media === "string") return img.media.trim();
+      if (typeof img?.url === "string") return img.url.trim();
+      return "";
+    })
+    .filter(Boolean);
+
+  const firstImage = imageUrls[0] || null;
+  const imageMedia =
+    firstImage ||
+    shop?.image?.media ||
+    shop?.image?.url ||
+    shop?.media ||
+    null;
 
   const imageUrl = typeof imageMedia === "string" && imageMedia.trim()
     ? imageMedia.trim()
@@ -60,6 +81,7 @@ const normalizeShop = (shop = {}) => {
     ...shop,
     lat,
     lng,
+    imageUrls,
     imageUrl,
     displayName: shop.shopName || shop.name || "Unnamed Shop",
     ownerName: shop.name || "Unknown",
@@ -91,6 +113,8 @@ export default function ShopListPage() {
   const [userLocation, setUserLocation] = useState(null);
   const [nearOnly, setNearOnly] = useState(false);
   const [radiusKm, setRadiusKm] = useState(25);
+  const [selectedShop, setSelectedShop] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchShopsPage = async (page = 1) => {
     setLoading(true);
@@ -403,7 +427,14 @@ export default function ShopListPage() {
                       : null;
 
                     return (
-                      <article key={shop.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:shadow-slate-200/60 transition-all">
+                      <article
+                        key={shop.id}
+                        onClick={() => {
+                          setSelectedShop(shop);
+                          setIsDetailOpen(true);
+                        }}
+                        className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:shadow-slate-200/60 transition-all cursor-pointer"
+                      >
                         <div className="relative h-44 bg-slate-100">
                           {shop.imageUrl ? (
                             <img src={shop.imageUrl} alt={shop.displayName} className="h-full w-full object-cover" />
@@ -411,6 +442,12 @@ export default function ShopListPage() {
                             <div className="h-full w-full flex items-center justify-center text-slate-500">No Image</div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-slate-900/0 to-transparent" />
+
+                          {shop.imageUrls?.length > 1 && (
+                            <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                              {shop.imageUrls.length} Photos
+                            </span>
+                          )}
 
                           <span className={`absolute top-3 right-3 rounded-full px-2.5 py-1 text-[11px] font-bold ${shop.shopStatus === "open" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
                             {shop.shopStatus === "open" ? "Open" : "Closed"}
@@ -452,6 +489,7 @@ export default function ShopListPage() {
                             {shop.phone && (
                               <a
                                 href={`tel:${shop.phone}`}
+                                onClick={(event) => event.stopPropagation()}
                                 className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-bold text-sky-700 hover:bg-sky-100"
                               >
                                 <Phone size={13} /> Call
@@ -463,6 +501,7 @@ export default function ShopListPage() {
                                 href={directionsUrl}
                                 target="_blank"
                                 rel="noreferrer"
+                                onClick={(event) => event.stopPropagation()}
                                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
                               >
                                 <Navigation size={13} /> Directions
@@ -514,6 +553,13 @@ export default function ShopListPage() {
                 )}
               </>
             )}
+
+            <ShopDetailModal
+              isOpen={isDetailOpen}
+              onClose={() => setIsDetailOpen(false)}
+              shop={selectedShop}
+              userLocation={userLocation}
+            />
           </div>
         </div>
       </section>

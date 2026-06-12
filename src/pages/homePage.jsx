@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import LOGO_SRC from "../assets/motorMandiLogo.png";
 import HERO_IMAGE from "../assets/backHome.png";
 import NearbyShopsMap from "../components/NearbyShopsMap";
+import ShopDetailModal from "../components/ShopDetailModal";
 import useNearbyShops from "../hooks/useNearbyShops";
 import ApiProvider from "../api/ApiProvider";
 
@@ -706,6 +707,7 @@ function NearestShops({ onOpenNearbyShops }) {
   const { shops, loading, error, userLocation, requestLocationPermission, fetchShops } = useNearbyShops();
   const [activeType, setActiveType] = useState("All");
   const [selectedShop, setSelectedShop] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const initializedRef = useRef(false);
 
   const toNumber = (value) => {
@@ -787,6 +789,11 @@ function NearestShops({ onOpenNearbyShops }) {
   const isLocating = loading && !shops.length;
   const selectedShopCoords = getValidCoords(selectedShop);
 
+  const openShopDetail = (shop) => {
+    setSelectedShop(shop);
+    setIsDetailOpen(true);
+  };
+
   return (
     <section className="py-16 px-4 relative z-0" id="shops" style={{ backgroundColor: PAGE_SURFACE }}>
       <div className="max-w-7xl mx-auto rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-xl shadow-slate-200/50 backdrop-blur-sm sm:p-8">
@@ -842,7 +849,9 @@ function NearestShops({ onOpenNearbyShops }) {
                 const isSelected = selectedShop === shop;
 
                 return (
-                <div key={getShopKey(shop, idx)} onClick={() => setSelectedShop(shop)}
+                <div
+                  key={getShopKey(shop, idx)}
+                  onClick={() => openShopDetail(shop)}
                   className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${isSelected ? "border-sky-400 bg-sky-50 shadow-lg shadow-sky-100" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:shadow-slate-100"}`}>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-start gap-3 min-w-0">
@@ -874,7 +883,14 @@ function NearestShops({ onOpenNearbyShops }) {
                     <span className="text-slate-700 font-bold text-xs ml-1">{shop.rating?.toFixed(1) || 'N/A'}</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
-                    <span className="flex items-center gap-1"><MapPin size={11} />{(shop.distance / 1000).toFixed(1)} km</span>
+                    <span className="flex items-center gap-1">
+                      <MapPin size={11} />
+                      {Number.isFinite(shop.distanceKm)
+                        ? `${shop.distanceKm.toFixed(1)} km`
+                        : Number.isFinite(shop.distance)
+                          ? `${(shop.distance / 1000).toFixed(1)} km`
+                          : "N/A"}
+                    </span>
                     <span className="flex items-center gap-1"><Phone size={11} />{shop.phone}</span>
                   </div>
                   {shop.address && (
@@ -968,7 +984,13 @@ function NearestShops({ onOpenNearbyShops }) {
                   </div>
                   <div className="flex items-center gap-2 text-slate-300">
                     <Navigation size={14} className="text-sky-400 shrink-0" />
-                    <span className="text-xs">{(selectedShop.distance / 1000).toFixed(1)} km away</span>
+                    <span className="text-xs">
+                      {Number.isFinite(selectedShop.distanceKm)
+                        ? `${selectedShop.distanceKm.toFixed(1)} km away`
+                        : Number.isFinite(selectedShop.distance)
+                          ? `${(selectedShop.distance / 1000).toFixed(1)} km away`
+                          : "Distance unavailable"}
+                    </span>
                   </div>
                   {selectedShop.email && (
                     <div className="flex items-center gap-2 text-slate-300">
@@ -978,6 +1000,13 @@ function NearestShops({ onOpenNearbyShops }) {
                   )}
                 </div>
                 <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => openShopDetail(selectedShop)}
+                    className="flex-1 border border-slate-500/50 bg-white/5 text-slate-100 text-sm font-bold py-2.5 rounded-xl transition-all hover:bg-white/15"
+                  >
+                    View Full Details
+                  </button>
                   <a href={`tel:${selectedShop.phone}`} className="flex-1 bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105">
                     <Phone size={16} /> Call Now
                   </a>
@@ -1008,6 +1037,13 @@ function NearestShops({ onOpenNearbyShops }) {
           </button>
         </div>
       </div>
+
+      <ShopDetailModal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        shop={selectedShop}
+        userLocation={userLocation}
+      />
     </section>
   );
 }
