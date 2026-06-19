@@ -24,12 +24,22 @@ import AccessorySvg from "../assets/svg/accessory.svg";
 const PAGE_SURFACE = "#f3f6fb";
 
 // ── Data ────────────────────────────────────────────────────────────────────
+
+const [tyresRes, wheelsRes, rimsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
+  ApiProvider.tyres.getList({ limit: 6, page: 1 }),
+  ApiProvider.wheels.getList({ limit: 6, page: 1 }),
+  ApiProvider.rims.getList({ limit: 6, page: 1 }),
+  ApiProvider.cars.getList({ limit: 6, page: 1 }),
+  ApiProvider.bikes.getList({ limit: 6, page: 1 }),
+  ApiProvider.accessories.getList({ limit: 6, page: 1 }),
+]);
+
 const categories = [
   {
     icon: "tyres",
     label: "Tyres",
     sub: "New & Used",
-    count: "2,400+",
+    count: tyresRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-slate-900/10 to-slate-950/50",
     image: TyreSvg,
     photo: "https://images.unsplash.com/photo-1527266258038-6ae3e089a609?auto=format&fit=crop&w=900&q=80",
@@ -39,7 +49,7 @@ const categories = [
     icon: "wheels",
     label: "Wheels",
     sub: "Alloy, Steel",
-    count: "1,800+",
+    count: wheelsRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-indigo-900/12 to-slate-950/50",
     image: RimSvg,
     photo: "https://images.unsplash.com/photo-1542377281-73d08e3a10aa?auto=format&fit=crop&w=900&q=80",
@@ -49,7 +59,7 @@ const categories = [
     icon: "rims",
     label: "Rims",
     sub: "Alloy, Steel",
-    count: "1,800+",
+    count: rimsRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-indigo-900/12 to-slate-950/50",
     image: RimSvg,
     photo: "https://images.unsplash.com/photo-1542377281-73d08e3a10aa?auto=format&fit=crop&w=900&q=80",
@@ -59,7 +69,7 @@ const categories = [
     icon: "car",
     label: "Cars",
     sub: "All Brands",
-    count: "950+",
+    count: carsRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-cyan-900/12 to-slate-950/50",
     image: CarSvg,
     photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=900&q=80",
@@ -69,7 +79,7 @@ const categories = [
     icon: "bike",
     label: "Bikes",
     sub: "Street, Sport",
-    count: "640+",
+    count: bikesRes.pagination.totalRecords,
     color: "from-slate-900/38 via-amber-900/12 to-slate-950/50",
     image: BikeSvg,
     photo: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=900&q=80",
@@ -79,7 +89,7 @@ const categories = [
     icon: "accessories",
     label: "Accessories",
     sub: "Parts & More",
-    count: "3,100+",
+    count: accessoriesRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-sky-900/12 to-slate-950/50",
     image: AccessorySvg,
     photo: "https://images.unsplash.com/photo-1498887960847-2a5e46312788?auto=format&fit=crop&w=900&q=80",
@@ -432,9 +442,9 @@ function Categories({
         </div>
 
         {/* Hint text under categories */}
-        <p className="text-center text-slate-500 text-xs mt-4 font-medium">
+        {/* <p className="text-center text-slate-500 text-xs mt-4 font-medium">
           Click a category to view listings
-        </p>
+        </p> */}
       </div>
     </section>
   );
@@ -528,14 +538,14 @@ function FeaturedListings({ onViewMore }) {
         setError(null);
 
         // Fetch data from all APIs (limit to 6 items each)
-        const [tyresRes, wheelsRes, rimsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
-          ApiProvider.tyres.getList({ limit: 6, page: 1 }),
-          ApiProvider.wheels.getList({ limit: 6, page: 1 }),
-          ApiProvider.rims.getList({ limit: 6, page: 1 }),
-          ApiProvider.cars.getList({ limit: 6, page: 1 }),
-          ApiProvider.bikes.getList({ limit: 6, page: 1 }),
-          ApiProvider.accessories.getList({ limit: 6, page: 1 }),
-        ]);
+        // const [tyresRes, wheelsRes, rimsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
+        //   ApiProvider.tyres.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.wheels.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.rims.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.cars.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.bikes.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.accessories.getList({ limit: 6, page: 1 }),
+        // ]);
 
         // Transform API responses to listing format
         const transformedData = {
