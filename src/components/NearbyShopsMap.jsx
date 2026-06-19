@@ -37,12 +37,28 @@ const NearbyShopsMap = ({
   borderRadius = "12px",
 }) => {
   const [selectedShop, setSelectedShop] = useState(null);
+  const [mapError, setMapError] = useState(null);
   const GOOGLE_MAP_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const userCoords = getValidCoords(userLocation);
 
   useEffect(() => {
     if (focusedShop) setSelectedShop(focusedShop);
   }, [focusedShop]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const previousAuthFailure = window.gm_authFailure;
+    window.gm_authFailure = () => {
+      setMapError(
+        "Google Maps authentication failed. This usually means the API key is restricted to different domains, billing is not enabled, or the Maps JavaScript API is not enabled."
+      );
+    };
+
+    return () => {
+      window.gm_authFailure = previousAuthFailure;
+    };
+  }, []);
 
   const shopMarkers = shops.reduce((acc, shop, index) => {
     const coords = getValidCoords(shop);
@@ -94,8 +110,32 @@ const NearbyShopsMap = ({
     );
   }
 
+  if (mapError) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">
+        <div className="font-semibold text-gray-900">Google Map failed to load</div>
+        <div className="mt-1">{mapError}</div>
+        <div className="mt-2">
+          If you are on localhost, allow these HTTP referrers for your key: <span className="font-mono">http://localhost/*</span>
+          , <span className="font-mono">http://127.0.0.1/*</span>. Also ensure billing is enabled and <span className="font-mono">Maps JavaScript API</span>
+          is enabled in Google Cloud.
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <LoadScript googleMapsApiKey={GOOGLE_MAP_KEY}>
+    <LoadScript
+      googleMapsApiKey={GOOGLE_MAP_KEY}
+      onError={() =>
+        setMapError(
+          "Google Maps script failed to load. This can be caused by API key restrictions, billing/API not enabled, or blocked third-party scripts (ad blocker / network policy)."
+        )
+      }
+      loadingElement={
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">Loading map…</div>
+      }
+    >
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={defaultCenter}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  Search,
   AlertCircle,
   ChevronLeft,
   ChevronRight,
@@ -202,14 +203,17 @@ function RimCard({ rim, onCardClick }) {
 
 export default function RimListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { rims, loading, error, pagination, fetchRims } = useRims();
   const { companies, loading: companiesLoading, error: companiesError } = useRimCompanies();
 
+  const [searchTerm, setSearchTerm] = useState("");
   const [condition, setCondition] = useState("all");
   const [company, setCompany] = useState("");
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const [currentPage, setCurrentPage] = useState(1);
+  const searchFromUrl = (searchParams.get("search") || "").trim();
 
   const limit = 20;
   const inlineListSlot = (import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "5182233001").trim();
@@ -222,9 +226,15 @@ export default function RimListPage() {
   }, [companies]);
 
   useEffect(() => {
+    setSearchTerm((prev) => (prev === searchFromUrl ? prev : searchFromUrl));
+    setCurrentPage((prev) => (prev === 1 ? prev : 1));
+  }, [searchFromUrl]);
+
+  useEffect(() => {
     const params = {
       page: currentPage,
       limit,
+      ...(searchTerm && { search: searchTerm.trim() }),
       ...(company && { company }),
       ...(condition !== "all" && { condition: condition === "used" ? "old" : condition }),
     };
@@ -237,7 +247,7 @@ export default function RimListPage() {
     }
 
     fetchRims(params);
-  }, [currentPage, company, condition, priceFrom, priceTo, fetchRims]);
+  }, [currentPage, searchTerm, company, condition, priceFrom, priceTo, fetchRims]);
 
   const totalPages = pagination?.totalPages || 1;
 
@@ -265,6 +275,7 @@ export default function RimListPage() {
   });
 
   const clearFilters = () => {
+    setSearchTerm("");
     setCondition("all");
     setCompany("");
     setPriceFrom(PRICE_RANGE.min);
@@ -286,7 +297,7 @@ export default function RimListPage() {
             <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-black text-gray-900">Filters</h2>
-                {(company || condition !== "all" || priceFrom !== PRICE_RANGE.min || priceTo !== PRICE_RANGE.max) && (
+                {(searchTerm || company || condition !== "all" || priceFrom !== PRICE_RANGE.min || priceTo !== PRICE_RANGE.max) && (
                   <button
                     onClick={clearFilters}
                     className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
@@ -296,6 +307,23 @@ export default function RimListPage() {
                     Clear
                   </button>
                 )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Search</label>
+                <div className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2">
+                  <Search size={15} className="text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Search rim by name, size..."
+                    className="w-full bg-transparent text-sm text-gray-800 outline-none placeholder-gray-400"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search, AlertCircle, ChevronLeft, ChevronRight,
   Heart, Filter, BadgeCheck
@@ -405,6 +405,7 @@ function CarCard({ car, onCardClick }) {
 
 export default function CarListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { cars, loading, error, pagination, fetchCars } = useCars();
   const { companies, loading: companiesLoading, error: companiesError } = useCarCompanies();
   const { models, loading: modelsLoading, error: modelsError, fetchModels, reset: resetModels } = useCarModelsByCompany();
@@ -418,10 +419,16 @@ export default function CarListPage() {
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
   const [currentPage, setCurrentPage] = useState(1);
+  const searchFromUrl = (searchParams.get("search") || "").trim();
   const limit = 20;
   const inlineListSlot = (
     import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "5182233001"
   ).trim();
+
+  useEffect(() => {
+    setSearchTerm((prev) => (prev === searchFromUrl ? prev : searchFromUrl));
+    setCurrentPage((prev) => (prev === 1 ? prev : 1));
+  }, [searchFromUrl]);
 
   useEffect(() => {
     if (!company) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search, RefreshCw, AlertCircle, ChevronLeft, ChevronRight,
   Star, Phone, MapPin, Heart, Filter, X
@@ -210,6 +210,7 @@ function AccessoryCard({ accessory, onCardClick }) {
 
 export default function AccessoryListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { accessories, loading, error, pagination, fetchAccessories } = useAccessories();
   const { categories, loading: categoriesLoading, error: categoriesError } = useAccessoryCategories();
   const {
@@ -226,10 +227,16 @@ export default function AccessoryListPage() {
   const [brandId, setBrandId] = useState("");
   const [priceFrom, setPriceFrom] = useState(PRICE_RANGE.min);
   const [priceTo, setPriceTo] = useState(PRICE_RANGE.max);
+  const searchFromUrl = (searchParams.get("search") || "").trim();
   const limit = 20;
   const inlineListSlot = (
     import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "5182233001"
   ).trim();
+
+  useEffect(() => {
+    setSearchTerm((prev) => (prev === searchFromUrl ? prev : searchFromUrl));
+    setCurrentPage((prev) => (prev === 1 ? prev : 1));
+  }, [searchFromUrl]);
 
   useEffect(() => {
     if (!categoryId) {

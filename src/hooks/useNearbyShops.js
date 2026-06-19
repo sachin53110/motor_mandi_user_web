@@ -2,12 +2,33 @@ import { useState, useCallback } from "react";
 import ApiProvider from "../api/ApiProvider";
 
 const normalizeShop = (shop = {}) => {
-  const rawImage = shop?.image?.media || shop?.image?.url || shop?.media || null;
+  const imageCandidates = [
+    ...(Array.isArray(shop?.images) ? shop.images : []),
+    shop?.image,
+  ].filter(Boolean);
+
+  const imageUrls = imageCandidates
+    .map((img) => {
+      if (typeof img === "string") return img.trim();
+      if (typeof img?.media === "string") return img.media.trim();
+      if (typeof img?.url === "string") return img.url.trim();
+      return "";
+    })
+    .filter(Boolean);
+
+  const firstImage = imageUrls[0] || null;
+  const rawImage =
+    firstImage ||
+    shop?.image?.media ||
+    shop?.image?.url ||
+    shop?.media ||
+    null;
   const imageUrl = typeof rawImage === "string" && rawImage.trim() ? rawImage.trim() : null;
   const fallbackAddress = [shop?.city, shop?.state, shop?.country].filter(Boolean).join(", ");
 
   return {
     ...shop,
+    imageUrls,
     imageUrl,
     shopName: shop?.shopName || shop?.name || "Shop",
     phone: shop?.phone || "N/A",
@@ -33,8 +54,9 @@ const useNearbyShops = () => {
         limit: params.limit || 20,
       };
 
-      // Only add lat/lng if location permission is granted and coordinates exist
-      if (locationEnabled && params.lat && params.lng) {
+      // Keep default behavior as "all shops". Only apply API-side nearby filtering
+      // when explicitly requested by caller.
+      if (params.useLocationFilter && locationEnabled && params.lat && params.lng) {
         apiParams.lat = params.lat;
         apiParams.lng = params.lng;
       }
@@ -152,6 +174,7 @@ const useNearbyShops = () => {
     await fetchNearbyShops({
       lat: locationEnabled && userLocation ? userLocation.lat : undefined,
       lng: locationEnabled && userLocation ? userLocation.lng : undefined,
+      useLocationFilter: Boolean(params.useLocationFilter),
       page: params.page || 1,
       limit: params.limit || 20,
     });

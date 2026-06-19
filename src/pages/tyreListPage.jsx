@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search, RefreshCw, AlertCircle, ChevronLeft, ChevronRight,
   Star, Phone, Heart
@@ -240,6 +240,7 @@ function TyreCard({ tyre, onCardClick, isDark }) {
 
 export default function TyreListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isDark } = useTheme();
   const { tyres, loading, error, pagination, fetchTyres } = useTyres();
   const { companies, loading: companiesLoading, fetchCompanies } = useTyreCompanies();
@@ -256,9 +257,16 @@ export default function TyreListPage() {
   const [draftFilters, setDraftFilters] = useState(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
   const [page, setPage] = useState(1);
+  const searchFromUrl = (searchParams.get("search") || "").trim();
   const inlineListSlot = (
     import.meta.env.VITE_ADSENSE_INLINE_LIST_SLOT || "5182233001"
   ).trim();
+
+  useEffect(() => {
+    setDraftFilters((prev) => (prev.search === searchFromUrl ? prev : { ...prev, search: searchFromUrl }));
+    setAppliedFilters((prev) => (prev.search === searchFromUrl ? prev : { ...prev, search: searchFromUrl }));
+    setPage((prev) => (prev === 1 ? prev : 1));
+  }, [searchFromUrl]);
 
   const buildApiParams = useCallback((filters) => {
     const params = {};

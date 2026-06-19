@@ -83,7 +83,11 @@ body * {
 
 /* Keep white text on colored action buttons in light mode. */
 .theme-light .bg-blue-600.text-white,
+.theme-light .bg-blue-700.text-white,
 .theme-light .bg-blue-500.text-white,
+.theme-light .bg-sky-700.text-white,
+.theme-light .bg-sky-600.text-white,
+.theme-light .bg-sky-500.text-white,
 .theme-light .bg-red-600.text-white,
 .theme-light .bg-red-500.text-white,
 .theme-light .bg-green-600.text-white,

@@ -15,6 +15,10 @@ import AccessoryListPage from "./pages/accessoryListPage.jsx";
 import AccessoryDetailPage from "./pages/accessoryDetailPage.jsx";
 import ShopListPage from "./pages/shopListPage.jsx";
 import PartListPage from "./pages/partListPage.jsx";
+import AboutPage from "./pages/aboutPage.jsx";
+import BlogPage from "./pages/blogPage.jsx";
+import PrivacyPolicyPage from "./pages/privacyPolicyPage.jsx";
+import TermsOfUsePage from "./pages/termsOfUsePage.jsx";
 import { Route, Routes, useLocation } from "react-router-dom";
 import LoginForm from "./pages/auth/loginPage.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
@@ -57,6 +61,11 @@ function AppRoutes() {
           <Route path="/parts" element={<PartListPage />} />
 
           <Route path="/shops" element={<ShopListPage />} />
+
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-use" element={<TermsOfUsePage />} />
 
           <Route path="/login" element={<LoginForm />} />
         </Routes>
