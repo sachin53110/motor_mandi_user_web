@@ -303,8 +303,8 @@ function Hero() {
                 key={f}
                 onClick={() => setActiveFilter(f)}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${activeFilter === f
-                    ? "bg-sky-600 border-sky-600 text-white"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
+                  ? "bg-sky-600 border-sky-600 text-white"
+                  : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                   }`}
               >
                 {f}
@@ -442,6 +442,8 @@ function Categories({
 
 // ── Listing Card ─────────────────────────────────────────────────────────────
 function ListingCard({ item }) {
+  const navigate = useNavigate();
+
   const [liked, setLiked] = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -491,7 +493,7 @@ function ListingCard({ item }) {
         </button>
       </div>
       <div className="p-4">
-        
+
         <h3 className="text-slate-900 font-bold text-base leading-snug mb-2 group-hover:text-sky-700 transition-colors">{item.name}</h3>
         <div className="text-[10px] text-sky-700 font-bold uppercase tracking-wider mb-1">{item.type} · For {item.vehicleType}</div>
         {/* <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-3"><MapPin size={12} />{item.location}</div> */}
@@ -500,7 +502,7 @@ function ListingCard({ item }) {
             <span className="text-slate-900 font-black text-xl">{item.price}</span>
             {item.oldPrice && <span className="text-slate-400 text-xs line-through ml-2">{item.oldPrice}</span>}
           </div>
-          <button className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 transition-colors hover:bg-sky-100">
+          <button onClick={() => navigate(`/${item.type.toLowerCase()}/${item.id}`)} className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 transition-colors hover:bg-sky-100">
             View <ArrowRight size={12} />
           </button>
         </div>
