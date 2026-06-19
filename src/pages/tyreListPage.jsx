@@ -228,7 +228,7 @@ function TyreCard({ tyre, onCardClick, isDark }) {
 
         {/* Contact button */}
         <button
-          onClick={(e) => e.stopPropagation()}
+          onClick={onCardClick}
           className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3.5 rounded-xl transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-base"
         >
           <Phone size={14} /> View Details
