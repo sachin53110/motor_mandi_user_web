@@ -256,7 +256,7 @@ export default function TyreDetailPage() {
               <div className="bg-blue-950 rounded-2xl p-6 text-white">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    <h3 className="text-blue-400 text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                       {tyre.user.shopName || tyre.user.name}
                     </h3>
                     <p className="text-blue-400 text-sm flex items-center gap-1">

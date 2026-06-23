@@ -153,9 +153,8 @@ export default function RimDetailPage() {
                       setImgError(false);
                       setImageIndex(idx);
                     }}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition ${
-                      idx === imageIndex ? "border-green-600" : "border-gray-200"
-                    }`}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition ${idx === imageIndex ? "border-green-600" : "border-gray-200"
+                      }`}
                   >
                     <img src={img.media} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
@@ -223,7 +222,11 @@ export default function RimDetailPage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Shop / Name</p>
-                    <p className="font-semibold text-gray-900">{rim.user.shopName || rim.user.name || "N/A"}</p>
+                    {(rim.user.shopName || rim.user.name) && (
+                      <p className="font-semibold text-gray-900">
+                        {rim.user.shopName || rim.user.name}
+                      </p>
+                    )}
                   </div>
 
                   {rim.user.phone && (

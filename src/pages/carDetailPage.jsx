@@ -77,10 +77,9 @@ const normalizeImages = (medias = []) =>
     .filter(Boolean);
 
 const tabButtonClass = (isActive) =>
-  `-mb-px border-b-2 pb-3 text-[15px] font-semibold transition ${
-    isActive
-      ? "border-teal-600 text-teal-700"
-      : "border-transparent text-gray-500 hover:text-gray-800"
+  `-mb-px border-b-2 pb-3 text-[15px] font-semibold transition ${isActive
+    ? "border-teal-600 text-teal-700"
+    : "border-transparent text-gray-500 hover:text-gray-800"
   }`;
 
 export default function CarDetailPage() {
@@ -159,8 +158,8 @@ export default function CarDetailPage() {
     "Used Car";
   const odometer = car.km ?? car.kilometer ?? car.kms;
   const odometerNumber = toNumber(odometer);
-  const fuelType = car.fuelType || car.fuel || "N/A";
-  const transmission = car.transmission || car.gearType || "N/A";
+  const fuelType = car.fuelType || car.fuel || "";
+  const transmission = car.transmission || car.gearType || "";
   const listedOn = formatDate(car.createdAt);
   const location =
     [car.location, car.user?.city, car.user?.state, car.user?.country]
@@ -184,24 +183,24 @@ export default function CarDetailPage() {
     { label: "Fuel Type", value: fuelType },
     { label: "Transmission", value: transmission },
     { label: "Owner", value: toTitleCase(car.owner) },
-    { label: "Vehicle No.", value: car.vehicleNumber || "N/A" },
+    { label: "Vehicle No.", value: car.vehicleNumber || "" },
   ];
 
   const specRows = [
-    { label: "Brand", value: brand || "N/A" },
-    { label: "Model", value: car.model || "N/A" },
-    { label: "Condition", value: toTitleCase(car.condition) },
-    { label: "Status", value: toTitleCase(car.status) },
-    { label: "Listed On", value: listedOn },
-    { label: "Location", value: location },
-  ];
+  { label: "Brand", value: brand },
+  { label: "Model", value: car.model },
+  { label: "Condition", value: toTitleCase(car.condition) },
+  { label: "Status", value: toTitleCase(car.status) },
+  { label: "Listed On", value: listedOn },
+  { label: "Location", value: location },
+].filter(row => row.value);
 
-  const sellerRows = [
-    { label: "Seller", value: sellerName },
-    { label: "Shop", value: car.user?.shopName || "N/A" },
-    { label: "Email", value: car.user?.email || "N/A" },
-    { label: "Address", value: car.user?.address || "N/A" },
-  ];
+const sellerRows = [
+  { label: "Seller", value: sellerName },
+  { label: "Shop", value: car.user?.shopName },
+  { label: "Email", value: car.user?.email },
+  { label: "Address", value: car.user?.address },
+].filter(row => row.value);
 
   const descriptionPoints = (car.description || "")
     .split(/\n|\./)
@@ -283,11 +282,10 @@ export default function CarDetailPage() {
                         setImageIndex(idx);
                         setImgError(false);
                       }}
-                      className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition ${
-                        idx === imageIndex
+                      className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition ${idx === imageIndex
                           ? "border-teal-600 ring-2 ring-teal-100"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                     >
                       <img src={image} alt={`${title} view ${idx + 1}`} className="h-full w-full object-cover" />
                     </button>
@@ -328,9 +326,8 @@ export default function CarDetailPage() {
 
               <a
                 href={sellerPhone ? `tel:${sellerPhone}` : undefined}
-                className={`mt-4 flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold text-white transition ${
-                  sellerPhone ? "bg-[#ef3b24] hover:bg-[#d93621]" : "bg-gray-400 cursor-not-allowed"
-                }`}
+                className={`mt-4 flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold text-white transition ${sellerPhone ? "bg-[#ef3b24] hover:bg-[#d93621]" : "bg-gray-400 cursor-not-allowed"
+                  }`}
               >
                 {sellerPhone ? "Get Seller Details" : "Seller details unavailable"}
               </a>
@@ -473,12 +470,20 @@ export default function CarDetailPage() {
                     <p className="text-gray-500">Asking Price</p>
                     <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(askingPrice)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5">
-                    <p className="text-gray-500">Market Reference</p>
-                    <p className="mt-1 text-xl font-bold text-gray-900">
-                      {referencePrice ? formatPrice(referencePrice) : "N/A"}
-                    </p>
-                  </div>
+
+                  {
+                    referencePrice && (
+                      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5">
+                        <p className="text-gray-500">Market Reference</p>
+
+                        <p className="mt-1 text-xl font-bold text-gray-900">
+                          {formatPrice(referencePrice)}
+                        </p>
+                      </div>
+                    )
+                  }
+
+
                   {savings && (
                     <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800">
                       Potential upside against market: {formatPrice(savings)}

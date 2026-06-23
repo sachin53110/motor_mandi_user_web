@@ -24,12 +24,22 @@ import AccessorySvg from "../assets/svg/accessory.svg";
 const PAGE_SURFACE = "#f3f6fb";
 
 // ── Data ────────────────────────────────────────────────────────────────────
+
+const [tyresRes, wheelsRes, rimsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
+  ApiProvider.tyres.getList({ limit: 6, page: 1 }),
+  ApiProvider.wheels.getList({ limit: 6, page: 1 }),
+  ApiProvider.rims.getList({ limit: 6, page: 1 }),
+  ApiProvider.cars.getList({ limit: 6, page: 1 }),
+  ApiProvider.bikes.getList({ limit: 6, page: 1 }),
+  ApiProvider.accessories.getList({ limit: 6, page: 1 }),
+]);
+
 const categories = [
   {
     icon: "tyres",
     label: "Tyres",
     sub: "New & Used",
-    count: "2,400+",
+    count: tyresRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-slate-900/10 to-slate-950/50",
     image: TyreSvg,
     photo: "https://images.unsplash.com/photo-1527266258038-6ae3e089a609?auto=format&fit=crop&w=900&q=80",
@@ -39,7 +49,7 @@ const categories = [
     icon: "wheels",
     label: "Wheels",
     sub: "Alloy, Steel",
-    count: "1,800+",
+    count: wheelsRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-indigo-900/12 to-slate-950/50",
     image: RimSvg,
     photo: "https://images.unsplash.com/photo-1542377281-73d08e3a10aa?auto=format&fit=crop&w=900&q=80",
@@ -49,7 +59,7 @@ const categories = [
     icon: "rims",
     label: "Rims",
     sub: "Alloy, Steel",
-    count: "1,800+",
+    count: rimsRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-indigo-900/12 to-slate-950/50",
     image: RimSvg,
     photo: "https://images.unsplash.com/photo-1542377281-73d08e3a10aa?auto=format&fit=crop&w=900&q=80",
@@ -59,7 +69,7 @@ const categories = [
     icon: "car",
     label: "Cars",
     sub: "All Brands",
-    count: "950+",
+    count: carsRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-cyan-900/12 to-slate-950/50",
     image: CarSvg,
     photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=900&q=80",
@@ -69,7 +79,7 @@ const categories = [
     icon: "bike",
     label: "Bikes",
     sub: "Street, Sport",
-    count: "640+",
+    count: bikesRes.pagination.totalRecords,
     color: "from-slate-900/38 via-amber-900/12 to-slate-950/50",
     image: BikeSvg,
     photo: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=900&q=80",
@@ -79,7 +89,7 @@ const categories = [
     icon: "accessories",
     label: "Accessories",
     sub: "Parts & More",
-    count: "3,100+",
+    count: accessoriesRes?.pagination.totalRecords,
     color: "from-slate-900/38 via-sky-900/12 to-slate-950/50",
     image: AccessorySvg,
     photo: "https://images.unsplash.com/photo-1498887960847-2a5e46312788?auto=format&fit=crop&w=900&q=80",
@@ -109,8 +119,8 @@ const categories = [
 
 const testimonials = [
   { name: "Rahul Sharma", role: "Car Enthusiast", rating: 5, text: "Found exactly the BBS rims I was hunting for months. Smooth transaction, seller was super professional.", avatar: "RS" },
-  { name: "Priya Nair",   role: "Bike Rider",     rating: 5, text: "Sold my old Michelin tyres within 2 days. The platform is incredibly well-designed and easy to use.",     avatar: "PN" },
-  { name: "Arjun Singh",  role: "Fleet Manager",  rating: 4, text: "Bulk tyre purchases at the best rates. The brand filter and condition toggle saved me so much time.",     avatar: "AS" },
+  { name: "Priya Nair", role: "Bike Rider", rating: 5, text: "Sold my old Michelin tyres within 2 days. The platform is incredibly well-designed and easy to use.", avatar: "PN" },
+  { name: "Arjun Singh", role: "Fleet Manager", rating: 4, text: "Bulk tyre purchases at the best rates. The brand filter and condition toggle saved me so much time.", avatar: "AS" },
 ];
 
 const navLinks = [
@@ -302,11 +312,10 @@ function Hero() {
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                  activeFilter === f
-                    ? "bg-sky-600 border-sky-600 text-white"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
-                }`}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${activeFilter === f
+                  ? "bg-sky-600 border-sky-600 text-white"
+                  : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
+                  }`}
               >
                 {f}
               </button>
@@ -392,8 +401,8 @@ function Categories({
                 onClick={() => {
                   if (cat.key === "tyres") onTyresClick();
                   if (cat.key === "wheels") onWheelsClick();
-                  if (cat.key === "rims")  onRimsClick();
-                  if (cat.key === "cars")  onCarsClick();
+                  if (cat.key === "rims") onRimsClick();
+                  if (cat.key === "cars") onCarsClick();
                   if (cat.key === "bikes") onBikesClick();
                   if (cat.key === "accessories") onAccessoriesClick();
                   if (cat.key === "carParts") onCarPartsClick();
@@ -433,9 +442,9 @@ function Categories({
         </div>
 
         {/* Hint text under categories */}
-        <p className="text-center text-slate-500 text-xs mt-4 font-medium">
+        {/* <p className="text-center text-slate-500 text-xs mt-4 font-medium">
           Click a category to view listings
-        </p>
+        </p> */}
       </div>
     </section>
   );
@@ -443,6 +452,8 @@ function Categories({
 
 // ── Listing Card ─────────────────────────────────────────────────────────────
 function ListingCard({ item }) {
+  const navigate = useNavigate();
+
   const [liked, setLiked] = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -462,8 +473,8 @@ function ListingCard({ item }) {
     <div className="group relative overflow-hidden rounded-[1.45rem] border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-xl hover:shadow-slate-300/45">
       <div className="relative h-48 overflow-hidden bg-slate-100">
         {item.imageUrl && !imgError ? (
-          <img 
-            src={item.imageUrl} 
+          <img
+            src={item.imageUrl}
             alt={item.name}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -474,22 +485,34 @@ function ListingCard({ item }) {
           </div>
         )}
         {item.imageUrl && !imgError && <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/15 to-transparent" />}
-        {item.badge && <span className={`absolute top-3 left-3 ${item.badgeColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm`}>{item.badge}</span>}
+        {/* {item.badge && <span className={`absolute top-3 left-3 ${item.badgeColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm`}>{item.badge}</span>} */}
+        {item.tireType && (
+          <span
+            className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm
+      ${item.tireType === "Tubeless"
+                ? "bg-sky-600 text-white"
+                : "bg-orange-500 text-white"
+              }`}
+          >
+            {item.tireType}
+          </span>
+        )}
         <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full ${item.condition === "New" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-amber-100 text-amber-700 border border-amber-200"}`}>{item.condition}</span>
         <button onClick={() => setLiked(!liked)} className="absolute bottom-3 right-3 w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center transition-colors hover:bg-red-50 shadow-sm">
           <Heart size={14} fill={liked ? "#ef4444" : "none"} stroke={liked ? "#ef4444" : "#64748b"} />
         </button>
       </div>
       <div className="p-4">
-        <div className="text-[10px] text-sky-700 font-bold uppercase tracking-wider mb-1">{item.type} · {item.brand}</div>
+
         <h3 className="text-slate-900 font-bold text-base leading-snug mb-2 group-hover:text-sky-700 transition-colors">{item.name}</h3>
-        <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-3"><MapPin size={12} />{item.location}</div>
+        <div className="text-[10px] text-sky-700 font-bold uppercase tracking-wider mb-1">{item.type} · For {item.vehicleType}</div>
+        {/* <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-3"><MapPin size={12} />{item.location}</div> */}
         <div className="flex items-end justify-between">
           <div>
             <span className="text-slate-900 font-black text-xl">{item.price}</span>
             {item.oldPrice && <span className="text-slate-400 text-xs line-through ml-2">{item.oldPrice}</span>}
           </div>
-          <button className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 transition-colors hover:bg-sky-100">
+          <button onClick={() => navigate(`/${item.type.toLowerCase()}/${item.id}`)} className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 transition-colors hover:bg-sky-100">
             View <ArrowRight size={12} />
           </button>
         </div>
@@ -515,14 +538,14 @@ function FeaturedListings({ onViewMore }) {
         setError(null);
 
         // Fetch data from all APIs (limit to 6 items each)
-        const [tyresRes, wheelsRes, rimsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
-          ApiProvider.tyres.getList({ limit: 6, page: 1 }),
-          ApiProvider.wheels.getList({ limit: 6, page: 1 }),
-          ApiProvider.rims.getList({ limit: 6, page: 1 }),
-          ApiProvider.cars.getList({ limit: 6, page: 1 }),
-          ApiProvider.bikes.getList({ limit: 6, page: 1 }),
-          ApiProvider.accessories.getList({ limit: 6, page: 1 }),
-        ]);
+        // const [tyresRes, wheelsRes, rimsRes, carsRes, bikesRes, accessoriesRes] = await Promise.all([
+        //   ApiProvider.tyres.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.wheels.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.rims.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.cars.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.bikes.getList({ limit: 6, page: 1 }),
+        //   ApiProvider.accessories.getList({ limit: 6, page: 1 }),
+        // ]);
 
         // Transform API responses to listing format
         const transformedData = {
@@ -537,7 +560,10 @@ function FeaturedListings({ onViewMore }) {
             location: item.location || "Unknown",
             badge: item.isHot ? "Hot Deal" : item.isFeatured ? "Featured" : null,
             badgeColor: item.isHot ? "bg-emerald-600" : "bg-green-600",
-            imageUrl: item.medias?.[0]?.media || null
+            imageUrl: item.medias?.[0]?.media || null,
+            vehicleType: item.vehicleType,
+            size: item.size,
+            tireType: item.type
           })),
           wheels: (wheelsRes.data || []).map(item => ({
             id: item.id,
@@ -692,9 +718,14 @@ function FeaturedListings({ onViewMore }) {
                 </div>
               )}
             </div>
-            <div className="text-center mt-10">
-              <button onClick={handleViewMore} className="border border-sky-300 hover:bg-sky-50 text-sky-700 font-bold px-8 py-3 rounded-xl transition-all hover:scale-105 inline-flex items-center gap-2">View All Listings <ArrowRight size={18} /></button>
-            </div>
+            {
+              filteredData.length > 4 && (
+                <div className="text-center mt-10">
+                  <button onClick={handleViewMore} className="border border-sky-300 hover:bg-sky-50 text-sky-700 font-bold px-8 py-3 rounded-xl transition-all hover:scale-105 inline-flex items-center gap-2">View All Listings <ArrowRight size={18} /></button>
+                </div>
+              )
+            }
+
           </>
         )}
       </div>
@@ -761,13 +792,13 @@ function NearestShops({ onOpenNearbyShops }) {
   }, [shops, selectedShop]);
 
   const types = ["All"];
-  
-  const filtered = activeType === "All" 
-    ? shops 
+
+  const filtered = activeType === "All"
+    ? shops
     : shops.filter(s => {
-        // Filter by distance or other properties if needed
-        return true;
-      });
+      // Filter by distance or other properties if needed
+      return true;
+    });
 
   const handleLocate = async () => {
     try {
@@ -802,8 +833,8 @@ function NearestShops({ onOpenNearbyShops }) {
             <p className="text-sky-700 text-xs font-bold tracking-widest uppercase mb-2">Find Nearby</p>
             <h2 className="text-4xl font-black text-slate-900" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.04em" }}>NEAREST REPAIR SHOPS</h2>
             <p className="text-slate-500 text-sm mt-2">
-              {shops.length > 0 
-                ? `${shops.length} shops near you` 
+              {shops.length > 0
+                ? `${shops.length} shops near you`
                 : 'Locate trusted car & bike workshops near you on the map'}
             </p>
           </div>
@@ -811,8 +842,8 @@ function NearestShops({ onOpenNearbyShops }) {
             <button onClick={handleLocate} disabled={loading}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${shops.length > 0 ? "bg-sky-100 text-sky-700 border border-sky-200" : "bg-sky-600 hover:bg-sky-500 text-white hover:scale-105"}`}>
               {loading ? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>Locating...</span></>) :
-               shops.length > 0 ? (<><LocateFixed size={16} /><span>Location Found</span></>) :
-               (<><Navigation size={16} /><span>Use My Location</span></>)}
+                shops.length > 0 ? (<><LocateFixed size={16} /><span>Location Found</span></>) :
+                  (<><Navigation size={16} /><span>Use My Location</span></>)}
             </button>
             <button onClick={onOpenNearbyShops}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-sky-600 hover:bg-sky-500 text-white hover:scale-105 transition-all">
@@ -849,60 +880,61 @@ function NearestShops({ onOpenNearbyShops }) {
                 const isSelected = selectedShop === shop;
 
                 return (
-                <div
-                  key={getShopKey(shop, idx)}
-                  onClick={() => openShopDetail(shop)}
-                  className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${isSelected ? "border-sky-400 bg-sky-50 shadow-lg shadow-sky-100" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:shadow-slate-100"}`}>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0">
-                        {shop.imageUrl ? (
-                          <img
-                            src={shop.imageUrl}
-                            alt={shop.shopName || shop.name || "Shop"}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-sky-700 text-base">🏪</div>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="text-slate-900 font-black text-sm truncate">{shop.name}</h3>
-                        <div className="flex items-center gap-1 text-slate-500 text-xs mt-0.5">
-                          <span className="text-sky-700 text-sm font-bold">🏪</span>
-                          <span className="truncate">{shop.shopName || 'Shop'}</span>
+                  <div
+                    key={getShopKey(shop, idx)}
+                    onClick={() => openShopDetail(shop)}
+                    className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${isSelected ? "border-sky-400 bg-sky-50 shadow-lg shadow-sky-100" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:shadow-slate-100"}`}>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0">
+                          {shop.imageUrl ? (
+                            <img
+                              src={shop.imageUrl}
+                              alt={shop.shopName || shop.name || "Shop"}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sky-700 text-base">🏪</div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-slate-900 font-black text-sm truncate">{shop.name}</h3>
+                          <div className="flex items-center gap-1 text-slate-500 text-xs mt-0.5">
+                            <span className="text-sky-700 text-sm font-bold">🏪</span>
+                            <span className="truncate">{shop.shopName || 'Shop'}</span>
+                          </div>
                         </div>
                       </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${shop.shopStatus === 'open' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
+                        {shop.shopStatus === 'open' ? 'Open' : 'Closed'}
+                      </span>
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${shop.shopStatus === 'open' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
-                      {shop.shopStatus === 'open' ? 'Open' : 'Closed'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 mb-2">
-                    {[1,2,3,4,5].map(s => <Star key={s} size={11} fill={s <= Math.floor(shop.rating || 0) ? "#f59e0b" : "none"} stroke="#f59e0b" />)}
-                    <span className="text-slate-700 font-bold text-xs ml-1">{shop.rating?.toFixed(1) || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
-                    <span className="flex items-center gap-1">
-                      <MapPin size={11} />
-                      {Number.isFinite(shop.distanceKm)
-                        ? `${shop.distanceKm.toFixed(1)} km`
-                        : Number.isFinite(shop.distance)
-                          ? `${(shop.distance / 1000).toFixed(1)} km`
-                          : "N/A"}
-                    </span>
-                    <span className="flex items-center gap-1"><Phone size={11} />{shop.phone}</span>
-                  </div>
-                  {shop.address && (
-                    <div className="text-xs text-slate-500 mb-2 truncate">
-                      📍 {shop.address}
+                    <div className="flex items-center gap-1 mb-2">
+                      {[1, 2, 3, 4, 5].map(s => <Star key={s} size={11} fill={s <= Math.floor(shop.rating || 0) ? "#f59e0b" : "none"} stroke="#f59e0b" />)}
+                      <span className="text-slate-700 font-bold text-xs ml-1">{shop.rating?.toFixed(1) || 'N/A'}</span>
                     </div>
-                  )}
-                  <div className={`absolute right-4 bottom-4 transition-all ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                    <ChevronRight size={16} className="text-sky-600" />
+                    <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
+                      <span className="flex items-center gap-1">
+                        <MapPin size={11} />
+                        {Number.isFinite(shop.distanceKm)
+                          ? `${shop.distanceKm.toFixed(1)} km`
+                          : Number.isFinite(shop.distance)
+                            ? `${(shop.distance / 1000).toFixed(1)} km`
+                            : "N/A"}
+                      </span>
+                      <span className="flex items-center gap-1"><Phone size={11} />{shop.phone}</span>
+                    </div>
+                    {shop.address && (
+                      <div className="text-xs text-slate-500 mb-2 truncate">
+                        📍 {shop.address}
+                      </div>
+                    )}
+                    <div className={`absolute right-4 bottom-4 transition-all ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                      <ChevronRight size={16} className="text-sky-600" />
+                    </div>
                   </div>
-                </div>
-              )})
+                )
+              })
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <MapPin size={40} className="text-sky-300 mb-3" />
@@ -967,7 +999,9 @@ function NearestShops({ onOpenNearbyShops }) {
                   <div className="text-right">
                     <div className="flex items-center gap-1 justify-end">
                       <Star size={14} fill="#f59e0b" stroke="#f59e0b" />
-                      <span className="font-black text-amber-400">{selectedShop.rating?.toFixed(1) || 'N/A'}</span>
+                      {
+                        selectedShop.rating && <span className="text-slate-400 text-xs">({selectedShop.rating.toFixed(1)})</span>
+                      }
                     </div>
                   </div>
                 </div>
@@ -1051,9 +1085,9 @@ function NearestShops({ onOpenNearbyShops }) {
 // ── Why Choose Us ─────────────────────────────────────────────────────────────
 function WhyChooseUs() {
   const features = [
-    { LucideIcon: ShieldCheck, title: "Trusted Sellers",  desc: "Every seller is ID-verified and rated by our community. Zero scams, zero stress.",            color: "text-sky-400" },
-    { LucideIcon: Tag,         title: "Best Prices",      desc: "Compare 8,000+ listings across India. Our price alert tells you when deals drop.",            color: "text-cyan-400"   },
-    { LucideIcon: Truck,       title: "Fast Delivery",    desc: "Pan-India shipping on tyres and accessories. Track your order in real time.",                  color: "text-blue-400"    },
+    { LucideIcon: ShieldCheck, title: "Trusted Sellers", desc: "Every seller is ID-verified and rated by our community. Zero scams, zero stress.", color: "text-sky-400" },
+    { LucideIcon: Tag, title: "Best Prices", desc: "Compare 8,000+ listings across India. Our price alert tells you when deals drop.", color: "text-cyan-400" },
+    { LucideIcon: Truck, title: "Fast Delivery", desc: "Pan-India shipping on tyres and accessories. Track your order in real time.", color: "text-blue-400" },
   ];
   return (
     <section className="bg-slate-950 py-24 px-4 relative overflow-hidden">
@@ -1089,7 +1123,7 @@ function Testimonials() {
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((t) => (
             <div key={t.name} className="bg-white border border-slate-200 rounded-2xl p-7 hover:border-sky-300 transition-all shadow-sm hover:shadow-lg hover:shadow-slate-200/60 hover:-translate-y-1">
-              <div className="flex mb-4 gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} size={16} fill={s <= t.rating ? "#F59E0B" : "none"} stroke="#F59E0B" />)}</div>
+              <div className="flex mb-4 gap-0.5">{[1, 2, 3, 4, 5].map(s => <Star key={s} size={16} fill={s <= t.rating ? "#F59E0B" : "none"} stroke="#F59E0B" />)}</div>
               <p className="text-slate-600 text-sm leading-relaxed mb-6">"{t.text}"</p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-sky-100 border border-sky-200 rounded-full flex items-center justify-center text-sky-700 font-black text-sm">{t.avatar}</div>
@@ -1153,7 +1187,7 @@ export default function HomePage() {
         onCarPartsClick={() => navigate('/parts?type=car')}
         onBikePartsClick={() => navigate('/parts?type=bike')}
       />
-      <FeaturedListings 
+      <FeaturedListings
         onViewMore={(category) => {
           if (category === "tyres") navigate('/tyres');
           else if (category === "wheels") navigate('/wheels');
