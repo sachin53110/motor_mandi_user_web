@@ -19,7 +19,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://scaredrealm.com/s
 Create a `.env.local` file in the project root (this will NOT be committed to git):
 ```
 VITE_API_BASE_URL=http://localhost:3001/api/v1/
-VITE_GOOGLE_MAPS_API_KEY=your_actual_google_maps_api_key_here
+VITE_GOOGLE_MAPS_API_KEY=AIzaSyDaGvunBG7npH3gniMbklfJwjKrjxJ6N4Y
 ```
 
 Then reference in code:

@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import ApiProvider from "../api/ApiProvider";
 import NearbyShopsMap from "../components/NearbyShopsMap";
-import ShopDetailModal from "../components/ShopDetailModal";
 
 const PAGE_SURFACE = "#f3f6fb";
 const PAGE_LIMIT = 20;
@@ -114,7 +113,6 @@ export default function ShopListPage() {
   const [nearOnly, setNearOnly] = useState(false);
   const [radiusKm, setRadiusKm] = useState(25);
   const [selectedShop, setSelectedShop] = useState(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchShopsPage = async (page = 1) => {
     setLoading(true);
@@ -431,7 +429,6 @@ export default function ShopListPage() {
                         key={shop.id}
                         onClick={() => {
                           setSelectedShop(shop);
-                          setIsDetailOpen(true);
                         }}
                         className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:shadow-slate-200/60 transition-all cursor-pointer"
                       >
@@ -554,12 +551,6 @@ export default function ShopListPage() {
               </>
             )}
 
-            <ShopDetailModal
-              isOpen={isDetailOpen}
-              onClose={() => setIsDetailOpen(false)}
-              shop={selectedShop}
-              userLocation={userLocation}
-            />
           </div>
         </div>
       </section>

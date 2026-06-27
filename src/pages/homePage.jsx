@@ -10,7 +10,6 @@ import { Link, useNavigate } from "react-router-dom";
 import LOGO_SRC from "../assets/motorMandiLogo.png";
 import HERO_IMAGE from "../assets/backHome.png";
 import NearbyShopsMap from "../components/NearbyShopsMap";
-import ShopDetailModal from "../components/ShopDetailModal";
 import useNearbyShops from "../hooks/useNearbyShops";
 import ApiProvider from "../api/ApiProvider";
 
@@ -738,7 +737,6 @@ function NearestShops({ onOpenNearbyShops }) {
   const { shops, loading, error, userLocation, requestLocationPermission, fetchShops } = useNearbyShops();
   const [activeType, setActiveType] = useState("All");
   const [selectedShop, setSelectedShop] = useState(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const initializedRef = useRef(false);
 
   const toNumber = (value) => {
@@ -820,9 +818,35 @@ function NearestShops({ onOpenNearbyShops }) {
   const isLocating = loading && !shops.length;
   const selectedShopCoords = getValidCoords(selectedShop);
 
-  const openShopDetail = (shop) => {
-    setSelectedShop(shop);
-    setIsDetailOpen(true);
+  const openDirections = async (shopCoords) => {
+    if (!shopCoords) return;
+
+    const getCurrentPosition = () => new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation is not supported"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
+        reject,
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+
+    let origin = userLocation;
+
+    try {
+      origin = await getCurrentPosition();
+    } catch {
+      origin = userLocation;
+    }
+
+    const directionsUrl = origin
+      ? `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${shopCoords.lat},${shopCoords.lng}`
+      : `https://www.google.com/maps/dir/?api=1&destination=${shopCoords.lat},${shopCoords.lng}`;
+
+    window.open(directionsUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -882,7 +906,7 @@ function NearestShops({ onOpenNearbyShops }) {
                 return (
                   <div
                     key={getShopKey(shop, idx)}
-                    onClick={() => openShopDetail(shop)}
+                    onClick={() => setSelectedShop(shop)}
                     className={`group relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${isSelected ? "border-sky-400 bg-sky-50 shadow-lg shadow-sky-100" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:shadow-slate-100"}`}>
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-start gap-3 min-w-0">
@@ -1034,21 +1058,17 @@ function NearestShops({ onOpenNearbyShops }) {
                   )}
                 </div>
                 <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => openShopDetail(selectedShop)}
-                    className="flex-1 border border-slate-500/50 bg-white/5 text-slate-100 text-sm font-bold py-2.5 rounded-xl transition-all hover:bg-white/15"
-                  >
-                    View Full Details
-                  </button>
                   <a href={`tel:${selectedShop.phone}`} className="flex-1 bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105">
                     <Phone size={16} /> Call Now
                   </a>
                   {selectedShopCoords ? (
-                    <a href={`https://www.google.com/maps/dir/?api=1&destination=${selectedShopCoords.lat},${selectedShopCoords.lng}`} target="_blank" rel="noreferrer"
-                      className="flex-1 bg-white/10 hover:bg-white/20 border border-slate-500/50 text-slate-200 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all">
+                    <button
+                      type="button"
+                      onClick={() => openDirections(selectedShopCoords)}
+                      className="flex-1 bg-white/10 hover:bg-white/20 border border-slate-500/50 text-slate-200 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all"
+                    >
                       <Navigation size={16} /> Get Directions
-                    </a>
+                    </button>
                   ) : (
                     <button
                       type="button"
@@ -1072,12 +1092,6 @@ function NearestShops({ onOpenNearbyShops }) {
         </div>
       </div>
 
-      <ShopDetailModal
-        isOpen={isDetailOpen}
-        onClose={() => setIsDetailOpen(false)}
-        shop={selectedShop}
-        userLocation={userLocation}
-      />
     </section>
   );
 }
