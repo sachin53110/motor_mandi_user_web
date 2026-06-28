@@ -154,7 +154,7 @@ function TyreCard({ tyre, onCardClick, isDark }) {
         </div> */}
 
         {/* Like button */}
-        <button
+        {/* <button
           onClick={(e) => {
             e.stopPropagation();
             setLiked(!liked);
@@ -162,7 +162,7 @@ function TyreCard({ tyre, onCardClick, isDark }) {
           className={`absolute top-3 right-3 w-9 h-9 ${isDark ? "bg-gray-800 hover:bg-gray-700" : "bg-white hover:bg-gray-100"} rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105`}
         >
           <Heart size={16} fill={liked ? "#ef4444" : "none"} stroke={liked ? "#ef4444" : isDark ? "#9ca3af" : "#999"} />
-        </button>
+        </button> */}
 
         {tyre.medias?.length > 1 && (
           <div className="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -193,14 +193,14 @@ function TyreCard({ tyre, onCardClick, isDark }) {
         </h3>
 
         {/* Rating */}
-        <div className="flex items-center gap-1 mb-2">
+        {/* <div className="flex items-center gap-1 mb-2">
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={12} fill="#fbbf24" stroke="#fbbf24" />
             ))}
           </div>
           <span className="text-xs text-gray-500">(200+)</span>
-        </div>
+        </div> */}
 
         {/* Car Company */}
         {tyre.carCompany && (
@@ -210,24 +210,42 @@ function TyreCard({ tyre, onCardClick, isDark }) {
         {/* Price */}
         <div className={`mb-3 pt-3 border-t ${isDark ? "border-gray-800" : "border-gray-100"}`}>
           <div className="flex items-baseline gap-1.5">
-            <span className={`${isDark ? "text-white" : "text-gray-900"} text-2xl font-black`}>{formatPrice(tyre.price)}</span>
-            {tyre.customerPrice && (
+            <span className={`${isDark ? "text-white" : "text-gray-900"} text-2xl font-black`}>{formatPrice(tyre.customerPrice)}</span>
+            {/* {tyre.customerPrice && (
               <span className={`${isDark ? "text-gray-500" : "text-gray-500"} text-sm line-through`}>{formatPrice(tyre.customerPrice)}</span>
-            )}
+            )} */}
           </div>
         </div>
 
-        {savings > 0 && (
+        {/* {savings > 0 && (
           <div className={`text-xs font-bold px-2 py-1 rounded mb-2 ${isDark ? "bg-green-500/20 text-green-400" : "bg-green-100 text-green-700"}`}>
             ✓ Save {formatPrice(savings)}
           </div>
-        )}
+        )} */}
 
         {/* Stock */}
-        <div className={`text-sm font-bold mb-4 ${isDark ? "text-green-400" : "text-green-700"}`}>
-          {tyre.quantity && tyre.quantity > 5 ? "✓ In Stock" : "Only few left"}
-        </div>
+        {/* <div className={`text-sm font-bold mb-4 ${isDark ? "text-green-400" : "text-green-700"}`}>
+          {tyre.quantity }
+          {tyre.quantity && tyre.quantity > 5 ? " In Stock" : " Only few left"}
+        </div> */}
 
+<div
+  className={`text-sm mb-4 font-medium ${
+    tyre.quantity > 5
+      ? isDark
+        ? "text-green-400"
+        : "text-green-600"
+      : isDark
+      ? "text-orange-400"
+      : "text-orange-600"
+  }`}
+>
+  {tyre.quantity > 5 ? (
+    <>✔ {tyre.quantity} In Stock</>
+  ) : (
+    <>⚠  Only {tyre.quantity} Left</>
+  )}
+</div>
         {/* Contact button */}
         <button
           onClick={onCardClick}
