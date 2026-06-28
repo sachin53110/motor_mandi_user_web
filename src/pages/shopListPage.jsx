@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -93,6 +93,7 @@ const normalizeShop = (shop = {}) => {
 };
 
 export default function ShopListPage() {
+  const navigate = useNavigate();
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -428,7 +429,7 @@ export default function ShopListPage() {
                       <article
                         key={shop.id}
                         onClick={() => {
-                          setSelectedShop(shop);
+                          navigate(`/shops/${shop.id}`, { state: { shop } });
                         }}
                         className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:shadow-slate-200/60 transition-all cursor-pointer"
                       >

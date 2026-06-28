@@ -5,6 +5,27 @@
 import { useState, useCallback } from "react";
 import ApiProvider from "../api/ApiProvider";
 
+const normalizeTyres = (payload) => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.result)) return payload.result;
+  if (Array.isArray(payload.data)) return payload.data;
+  if (Array.isArray(payload.data?.result)) return payload.data.result;
+  return [];
+};
+
+const normalizePagination = (payload, fallbackPage = 1, fallbackLimit = 20) => {
+  const pagination = payload?.pagination || payload?.data?.pagination || payload || {};
+
+  return {
+    page: pagination.page || fallbackPage,
+    limit: pagination.limit || fallbackLimit,
+    total: pagination.total ?? pagination.totalRecords ?? 0,
+    totalPages: pagination.totalPages || 1,
+    totalRecords: pagination.totalRecords ?? pagination.total ?? 0,
+  };
+};
+
 const useTyres = () => {
   const [tyres,      setTyres]      = useState([]);
   const [loading,    setLoading]    = useState(false);
@@ -17,8 +38,9 @@ const useTyres = () => {
     try {
       const response = await ApiProvider.tyres.getList(params);
       if (response.status) {
-        setTyres(response.data || []);
-        setPagination(response.pagination || null);
+        const normalizedTyres = normalizeTyres(response);
+        setTyres(normalizedTyres);
+        setPagination(normalizePagination(response, params.page || 1, params.limit || 20));
       } else {
         throw new Error(response.message || "Failed to fetch tyres");
       }

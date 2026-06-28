@@ -27,6 +27,8 @@ const PRICE_RANGE = {
   step: 100,
 };
 
+const PAGE_LIMIT = 12;
+
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 function PriceRangePicker({ isDark, minValue, maxValue, onChangeMin, onChangeMax }) {
@@ -140,7 +142,7 @@ function TyreCard({ tyre, onCardClick, isDark }) {
         )}
 
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        {/* <div className="absolute top-2 left-2 flex flex-col gap-1">
           {discountPercent > 0 && (
             <div className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded">
               {discountPercent}% OFF
@@ -149,7 +151,7 @@ function TyreCard({ tyre, onCardClick, isDark }) {
           <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded border capitalize ${isDark ? "bg-gray-900" : "bg-white"} ${conditionClass}`}>
             {tyre.condition || "—"}
           </span>
-        </div>
+        </div> */}
 
         {/* Like button */}
         <button
@@ -294,7 +296,7 @@ export default function TyreListPage() {
   }, [fetchCompanies]);
 
   useEffect(() => {
-    fetchTyres({ page, limit: 20, ...buildApiParams(appliedFilters) });
+    fetchTyres({ page, limit: PAGE_LIMIT, ...buildApiParams(appliedFilters) });
   }, [page, appliedFilters, fetchTyres, buildApiParams]);
 
   const handleApplyFilters = () => {
@@ -345,7 +347,7 @@ export default function TyreListPage() {
 
   return (
     <div className={isDark ? "min-h-screen bg-gray-950" : "min-h-screen bg-gray-50"}>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className=" px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-5">
           {/* Left Filters (desktop) */}
           <aside className={`hidden xl:block ${isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"} border rounded-xl p-4 h-fit sticky top-6`}>
@@ -481,7 +483,7 @@ export default function TyreListPage() {
               </div>
 
               <button
-                onClick={() => fetchTyres({ page, limit: 20, ...buildApiParams(appliedFilters) })}
+                onClick={() => fetchTyres({ page, limit: PAGE_LIMIT, ...buildApiParams(appliedFilters) })}
                 disabled={loading}
                 className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isDark ? "bg-gray-900 border-gray-800 text-gray-300 hover:bg-gray-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"} transition-colors`}
                 title="Refresh"
@@ -603,7 +605,7 @@ export default function TyreListPage() {
             </div>
 
         {loading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
             {Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} isDark={isDark} />)}
           </div>
         )}
@@ -616,7 +618,7 @@ export default function TyreListPage() {
             <button
               onClick={() => {
                 setPage(1);
-                fetchTyres({ page: 1, limit: 20, ...buildApiParams(appliedFilters) });
+                fetchTyres({ page: 1, limit: PAGE_LIMIT, ...buildApiParams(appliedFilters) });
               }}
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-lg"
             >
@@ -635,7 +637,7 @@ export default function TyreListPage() {
 
         {!loading && !error && tyres.length > 0 && (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 mb-8">
               {tyreCardsWithAds}
             </div>
 

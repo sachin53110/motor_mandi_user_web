@@ -1,5 +1,6 @@
 import { GoogleMap, LoadScript, OverlayView } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Phone, MapPin, Star, Clock, Navigation, X, Mail } from "lucide-react";
 
 const toNumber = (value) => {
@@ -47,6 +48,27 @@ const resolveShopImage = (shop) => {
     .filter(Boolean)[0] || null;
 };
 
+const resolveShopImages = (shop) => {
+  const candidates = [
+    ...(Array.isArray(shop?.imageUrls) ? shop.imageUrls : []),
+    ...(Array.isArray(shop?.images) ? shop.images : []),
+    shop?.image,
+    shop?.media,
+    shop?.imageUrl,
+  ];
+
+  const imageUrls = candidates
+    .map((img) => {
+      if (typeof img === "string") return img.trim();
+      if (typeof img?.media === "string") return img.media.trim();
+      if (typeof img?.url === "string") return img.url.trim();
+      return "";
+    })
+    .filter(Boolean);
+
+  return [...new Set(imageUrls)];
+};
+
 const getCurrentPosition = () =>
   new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -74,6 +96,7 @@ const NearbyShopsMap = ({
   height = 500,
   borderRadius = "12px",
 }) => {
+  const navigate = useNavigate();
   const [selectedShop, setSelectedShop] = useState(null);
   const [mapError, setMapError] = useState(null);
   const GOOGLE_MAP_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -111,6 +134,7 @@ const NearbyShopsMap = ({
   const selectedShopCoords = getValidCoords(selectedShop);
   const selectedIdentity = selectedShop?.id ?? selectedShop?.shopName ?? selectedShop?.name ?? null;
   const selectedImage = resolveShopImage(selectedShop);
+  const selectedImages = resolveShopImages(selectedShop);
 
   const focusedCoords = getValidCoords(focusedShop);
 
@@ -231,6 +255,7 @@ const NearbyShopsMap = ({
                 onClick={() => {
                   setSelectedShop(shop);
                   onShopClick?.(shop);
+                  navigate(`/shops/${shop?.id}`, { state: { shop } });
                 }}
                 className={`group -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-4 border-white bg-white shadow-xl shadow-slate-900/20 transition-transform hover:scale-110 ${
                   isSelected ? "scale-110 ring-4 ring-sky-500/30" : ""
@@ -297,6 +322,27 @@ const NearbyShopsMap = ({
                 </div>
               </div>
             </div>
+
+            {selectedImages.length > 1 && (
+              <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
+                <div className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                  Shop Photos
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {selectedImages.map((url, index) => (
+                    <button
+                      type="button"
+                      key={`${url}-${index}`}
+                      onClick={() => setSelectedShop({ ...selectedShop, imageUrl: url })}
+                      className="h-16 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:scale-[1.02]"
+                      aria-label={`Show shop photo ${index + 1}`}
+                    >
+                      <img src={url} alt={`${getShopTitle(selectedShop)} photo ${index + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-3 p-4">
               <div className="flex items-center gap-2 text-sm text-slate-700">

@@ -242,6 +242,7 @@ function ContactPopup({ tyre, onClose }) {
 export default function TyreListingsModal({ isOpen, onClose }) {
   const navigate = useNavigate();
   const { tyres, loading, error, pagination, fetchTyres } = useTyres();
+  const PAGE_LIMIT = 12;
   const [search,      setSearch]      = useState("");
   const [condition,   setCondition]   = useState("all");
   const [tyreType,    setTyreType]    = useState("all");
@@ -252,7 +253,7 @@ export default function TyreListingsModal({ isOpen, onClose }) {
   // Fetch on open
   useEffect(() => {
     if (isOpen && !hasLoaded) {
-      fetchTyres({ page: 1, limit: 10 });
+      fetchTyres({ page: 1, limit: PAGE_LIMIT });
       setHasLoaded(true);
     }
   }, [isOpen, hasLoaded, fetchTyres]);
@@ -281,12 +282,12 @@ export default function TyreListingsModal({ isOpen, onClose }) {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    fetchTyres({ page: newPage, limit: 10 });
+    fetchTyres({ page: newPage, limit: PAGE_LIMIT });
     window.scrollTo(0, 0);
   };
 
   const handleRefresh = () => {
-    fetchTyres({ page, limit: 10 });
+    fetchTyres({ page, limit: PAGE_LIMIT });
   };
 
   if (!isOpen) return null;

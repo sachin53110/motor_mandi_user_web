@@ -14,6 +14,7 @@ import BikeDetailPage from "./pages/bikeDetailPage.jsx";
 import AccessoryListPage from "./pages/accessoryListPage.jsx";
 import AccessoryDetailPage from "./pages/accessoryDetailPage.jsx";
 import ShopListPage from "./pages/shopListPage.jsx";
+import ShopDetailPage from "./pages/shopDetailPage.jsx";
 import PartListPage from "./pages/partListPage.jsx";
 import AboutPage from "./pages/aboutPage.jsx";
 import BlogPage from "./pages/blogPage.jsx";
@@ -61,6 +62,7 @@ function AppRoutes() {
           <Route path="/parts" element={<PartListPage />} />
 
           <Route path="/shops" element={<ShopListPage />} />
+          <Route path="/shops/:id" element={<ShopDetailPage />} />
 
           <Route path="/about" element={<AboutPage />} />
           <Route path="/blog" element={<BlogPage />} />
