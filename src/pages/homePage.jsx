@@ -351,14 +351,14 @@ function Hero() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[["8,000+", "Active Listings"], ["12K+", "Happy Buyers"], ["99%", "Verified Sellers"], ["24/7", "Support"]].map(([n, l]) => (
             <div key={l} className="rounded-2xl border border-white/70 bg-white/80 backdrop-blur-sm p-4 text-center">
               <span className="text-sky-700 font-black text-lg">{n}</span>
               <p className="text-slate-500 text-xs mt-0.5">{l}</p>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
 
     </section>

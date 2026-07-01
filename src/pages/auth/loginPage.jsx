@@ -122,7 +122,7 @@ export default function AuthScreen() {
             The smartest way to trade automotive parts, vehicles &amp; accessories. 8,000+ verified listings. Real prices. Zero middlemen.
           </p>
 
-          <div className="flex gap-10">
+          {/* <div className="flex gap-10">
             {[
               { val: "8,000+", label: "Active Listings" },
               { val: "12K+", label: "Happy Buyers" },
@@ -133,7 +133,7 @@ export default function AuthScreen() {
                 <div className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>{label}</div>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
 
         {/* Bottom badges */}
